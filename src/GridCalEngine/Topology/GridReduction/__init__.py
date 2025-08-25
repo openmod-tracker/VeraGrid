@@ -3,5 +3,5 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
 
-from GridCalEngine.Topology.detect_substations import detect_substations
-from GridCalEngine.Topology.GridReduction import *
+from GridCalEngine.Topology.GridReduction.ptdf_grid_reduction import ptdf_reduction
+from GridCalEngine.Topology.GridReduction.di_shi_grid_reduction import di_shi_reduction
