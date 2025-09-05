@@ -122,6 +122,7 @@ def _get_jacobian(eqs: List[Expr],
     triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
     rows: List[int] = []
     cols: List[int] = []
+    rows_cols: List[Tuple[int, int]] = []
 
     jac_equations: List[Expr] = []
 
@@ -133,9 +134,21 @@ def _get_jacobian(eqs: List[Expr],
             jac_equations.append(d_expression)
             rows.append(row)
             cols.append(col)
+            rows_cols.append((row, col))
 
     functions_ptr = _compile_equations(eqs=jac_equations, uid2sym_vars=uid2sym_vars,
                                               uid2sym_params=uid2sym_params)
+
+    rows_cols.sort(key=lambda t: (t[0], t[1]))
+    cols_sorted, rows_sorted = zip(*rows_cols) if rows_cols else ([], [])
+
+    nnz = len(functions_ptr)
+    indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
+
+    indptr = np.zeros(len(variables) + 1, dtype=np.int32)
+    for c in cols_sorted:
+        indptr[c + 1] += 1
+    np.cumsum(indptr, out=indptr)
 
     # fn = fn_cache.setdefault(d_expression.uid, function_ptr)  # TODO: not taking advantage of this cache right now, we still compile all the equations in the line above
 
@@ -168,16 +181,8 @@ def _get_jacobian(eqs: List[Expr],
         triplets.sort(key=lambda t: (t[0], t[1]))
         cols_sorted, rows_sorted, jac_values_sorted = zip(*triplets) if triplets else ([], [], [])
 
-        nnz = len(jac_values_sorted)
-        indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
+
         data = np.array(jac_values_sorted, dtype=np.float64)
-
-        indptr = np.zeros(len(variables) + 1, dtype=np.int32)
-        for c in cols_sorted:
-            indptr[c + 1] += 1
-        np.cumsum(indptr, out=indptr)
-
-
 
         start_csc_matrix = time.time()
         csc_matrix = sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
