@@ -119,10 +119,9 @@ def _get_jacobian(eqs: List[Expr],
 
     # Cache compiled partials by UID so duplicates are reused
     # fn_cache: Dict[str, Callable] = {}
-    # triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
     rows: List[int] = []
     cols: List[int] = []
-    rows_cols: List[Tuple[int, int]] = []
+    cols_rows: List[Tuple[int, int]] = []
 
     jac_equations: List[Expr] = []
 
@@ -134,13 +133,13 @@ def _get_jacobian(eqs: List[Expr],
             jac_equations.append(d_expression)
             rows.append(row)
             cols.append(col)
-            rows_cols.append((row, col))
+            cols_rows.append((col, row))
 
     functions_ptr = _compile_equations(eqs=jac_equations, uid2sym_vars=uid2sym_vars,
                                               uid2sym_params=uid2sym_params)
 
-    rows_cols.sort(key=lambda t: (t[0], t[1]))
-    cols_sorted, rows_sorted = zip(*rows_cols) if rows_cols else ([], [])
+    cols_rows.sort(key=lambda t: (t[0], t[1]))
+    cols_sorted, rows_sorted = zip(*cols_rows) if cols_rows else ([], [])
 
     nnz = len(cols)
     indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
@@ -150,22 +149,6 @@ def _get_jacobian(eqs: List[Expr],
         indptr[c + 1] += 1
     np.cumsum(indptr, out=indptr)
 
-    # fn = fn_cache.setdefault(d_expression.uid, function_ptr)  # TODO: not taking advantage of this cache right now, we still compile all the equations in the line above
-
-            # triplets.append((col, row, fn))
-
-    # Sort by column, then row for CSC layout
-    # triplets.sort(key=lambda t: (t[0], t[1]))
-    # cols_sorted, rows_sorted, fns_sorted = zip(*triplets) if triplets else ([], [], [])
-    #
-    # nnz = len(fns_sorted)
-    # indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
-    # data = np.empty(nnz, dtype=np.float64)
-    #
-    # indptr = np.zeros(len(variables) + 1, dtype=np.int32)
-    # for c in cols_sorted:
-    #     indptr[c + 1] += 1
-    # np.cumsum(indptr, out=indptr)
 
 
     def jac_fn(values: np.ndarray, params: np.ndarray) -> tuple[csc_matrix, float, float]:  # noqa: D401 – simple
@@ -176,11 +159,10 @@ def _get_jacobian(eqs: List[Expr],
         end_jac = time.time()
         jac_eval_time = end_jac - start_jac
 
-        triplets = list(zip(rows, cols, jac_values))
+        triplets = list(zip(cols, rows, jac_values))
 
         triplets.sort(key=lambda t: (t[0], t[1]))
         cols_sorted_new, rows_sorted_new, jac_values_sorted = zip(*triplets) if triplets else ([], [], [])
-
 
         data = np.array(jac_values_sorted, dtype=np.float64)
 
