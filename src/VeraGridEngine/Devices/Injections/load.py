@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
 import pdb
-from typing import Union
+from typing import Union, List
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -580,7 +580,7 @@ class Load(LoadParent):
                 }
             )
 
-    def initialize_rms_with_event(self, rms_events):
+    def initialize_rms_with_event(self, rms_events: List):
         if self.rms_model.empty():
             Ql = Var("Ql")
             Pl = Var("Pl")

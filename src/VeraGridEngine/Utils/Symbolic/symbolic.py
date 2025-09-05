@@ -56,7 +56,7 @@ def _var_uid(sym: Var | str) -> str:
 # Function helpers
 # ----------------------------------------------------------------------------
 
-@nb.njit
+@nb.njit                                        # TODO: is it the best option to compile here _heaviside?
 def _heaviside(x):
     return 0.0 if x <= 0 else 1.0
 
@@ -87,55 +87,9 @@ def piecewise(time: Expr, t_events: np.ndarray, new_values: np.ndarray, default_
 
     for t_event, new_value in zip(t_events, new_values):
         step = heaviside(t_expr - Const(t_event))
-        # when step = 1, switch from current result to new_value
         result = step * _to_expr(new_value) + (Const(1) - step) * result
 
     return result
-
-#
-# def piecewise(time: Expr, t_events: np.ndarray, new_values: np.ndarray, default_value: NUMBER) -> Expr:
-#     """
-#     Vectorized symbolic piecewise function.
-#
-#     Returns default_value before the first event, then switches to
-#     corresponding new_values after each t_event.
-#
-#     Parameters
-#     ----------
-#     time : Expr
-#         Symbolic time expression
-#     t_events : np.ndarray
-#         1D array of event times (must be sorted ascending)
-#     new_values : np.ndarray
-#         1D array of values after each event time
-#     default_value : NUMBER
-#         Value before the first event
-#     """
-#     t_expr = _to_expr(time)
-#     default_expr = _to_expr(default_value)
-#
-#     # prepend default to align differences
-#     prev_values = np.concatenate(([default_value], new_values[:-1]))
-#     deltas = new_values - prev_values
-#
-#     # build heaviside terms for all events
-#     heavisides = [heaviside(t_expr - Const(t)) for t in t_events]
-#     delta_terms = [d * H for d, H in zip(deltas, heavisides)]
-#
-#     # sum them up
-#     return default_expr + sum(delta_terms, Const(0))
-
-
-#
-# def piecewise(time: Expr, t_event: NUMBER, new_value: NUMBER, default_value: NUMBER) -> Expr:
-#     """
-#     Symbolic piecewise: returns new_value after t_event, default_value before.
-#     """
-#
-#     t_expr = _to_expr(time)
-#     step = heaviside(t_expr - Const(t_event))  # symbolic heaviside
-#     return step * _to_expr(new_value) + (Const(1) - step) * _to_expr(default_value)
-
 
 
 class CmpOp(Enum):

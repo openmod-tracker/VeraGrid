@@ -20,7 +20,6 @@ import VeraGridEngine.api as gce
 # Power flow
 # ----------------------------------------------------------------------------------------------------------------------
 # Load system
-# TODO: be careful! this is _noshunt, such that the initialization it's easier because we have one device per bus. 
 # In scriptin_gridcal_hardcoded there are also shunt elements!
 grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
 # Run power flow
@@ -315,7 +314,7 @@ print(init_guess)
 
 params_mapping = {}
 
-# TODO: initi_guess in hardcoded was Dict(Var, float), now it's Dict((int(uid), str(name)), float) for debugging. So slv.build_init_vars_vector(init_guess) and slv.sort_vars(init_guess) needs to be addressed
+
 # # Solver
 start_building_system = time.time()
 
@@ -336,15 +335,13 @@ t, y = slv.simulate(
     h=0.001,
     x0=x0,
     params0=params0,
-    time=t,
+    glob_time=t,
     method="implicit_euler"
 )
 
 end_simulation = time.time()
 print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
-
-# TODO: check results and implement test once intilize_rms is wokring!
 # # Save to csv
 slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 
