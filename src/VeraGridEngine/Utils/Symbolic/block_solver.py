@@ -118,8 +118,8 @@ def _get_jacobian(eqs: List[Expr],
             check_set.add(v)
 
     # Cache compiled partials by UID so duplicates are reused
-    fn_cache: Dict[str, Callable] = {}
-    triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
+    # fn_cache: Dict[str, Callable] = {}
+    # triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
     rows: List[int] = []
     cols: List[int] = []
     rows_cols: List[Tuple[int, int]] = []
@@ -142,7 +142,7 @@ def _get_jacobian(eqs: List[Expr],
     rows_cols.sort(key=lambda t: (t[0], t[1]))
     cols_sorted, rows_sorted = zip(*rows_cols) if rows_cols else ([], [])
 
-    nnz = len(functions_ptr)
+    nnz = len(cols)
     indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
 
     indptr = np.zeros(len(variables) + 1, dtype=np.int32)
@@ -179,7 +179,7 @@ def _get_jacobian(eqs: List[Expr],
         triplets = list(zip(rows, cols, jac_values))
 
         triplets.sort(key=lambda t: (t[0], t[1]))
-        cols_sorted, rows_sorted, jac_values_sorted = zip(*triplets) if triplets else ([], [], [])
+        cols_sorted_new, rows_sorted_new, jac_values_sorted = zip(*triplets) if triplets else ([], [], [])
 
 
         data = np.array(jac_values_sorted, dtype=np.float64)
