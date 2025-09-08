@@ -17,6 +17,7 @@ from VeraGridEngine.Simulations.PowerFlow.Formulations.pf_basic_formulation_3ph 
 from VeraGridEngine.Simulations.PowerFlow.NumericalMethods.newton_raphson_fx import newton_raphson_fx
 from VeraGridEngine.Simulations.PowerFlow.NumericalMethods.powell_fx import powell_fx
 from VeraGridEngine.Simulations.PowerFlow.NumericalMethods.levenberg_marquadt_fx import levenberg_marquardt_fx
+from VeraGridEngine.Simulations.PowerFlow.NumericalMethods.gauss_power_flow import gausspf
 from VeraGridEngine.Topology.simulation_indices import SimulationIndices
 from VeraGridEngine.DataStructures.numerical_circuit import NumericalCircuit
 from VeraGridEngine.Devices.multi_circuit import MultiCircuit
@@ -167,6 +168,22 @@ def __solve_island_limited_support_3ph(island: NumericalCircuit,
                                              trust=options.trust_radius,
                                              verbose=options.verbose,
                                              logger=logger)
+
+            elif solver_type == SolverType.GAUSS:
+
+                problem = PfBasicFormulation3Ph(V0=final_solution.V,
+                                                S0=S0,
+                                                Qmin=Qmin,
+                                                Qmax=Qmax,
+                                                nc=island,
+                                                options=options,
+                                                logger=logger)
+
+                solution = gausspf(nc=problem.nc,
+                                   Ybus=problem.Ybus, Yf=problem.Yf, Yt=problem.Yt, Yshunt_bus=problem.Yshunt_bus,
+                                   S0=problem.S0, I0=problem.I0, Y0=np.zeros(len(problem.S0)), V0=problem.V,
+                                   pv=problem.pv, pq=problem.pq, p=problem.p, pqv=problem.pqv, vd=problem.vd,
+                                   bus_installed_power=problem.S0, Qmin=Qmin, Qmax=Qmax, logger=logger)
 
             elif solver_type == SolverType.PowellDogLeg:
 

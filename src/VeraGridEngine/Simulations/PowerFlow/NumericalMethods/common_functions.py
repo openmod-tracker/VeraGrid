@@ -308,7 +308,7 @@ def power_flow_post_process_nonlinear(Sbus: CxVec, V: CxVec, F: IntVec, T: IntVe
 
     # Add the shunt power V^2 x Y^*
     Vm = np.abs(V)
-    Sbus += Vm * Vm * np.conj(Yshunt_bus)
+    Sbus += (Vm * Vm) @ np.conj(Yshunt_bus)
 
     # Branches current, loading, etc
     Vf = V[F]

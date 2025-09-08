@@ -28,15 +28,11 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Three-phase power flow results">
-      <change afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/current_opendss.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/voltage_opendss.py" afterDir="false" />
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Validating three-phase transformers">
+      <change afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/levenberg_marquadt_fx.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/levenberg_marquadt_fx.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_results_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_results_3ph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/trunk/three_phase/Transformers.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/three_phase/Transformers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/trunk/three_phase/transformer_primitives.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/three_phase/transformer_primitives.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/common_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/common_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -210,6 +206,7 @@
     &quot;Python tests.pytest in tests.executor&quot;: &quot;Run&quot;,
     &quot;Python.AnalysisDialogue.executor&quot;: &quot;Run&quot;,
     &quot;Python.ExecuteGridCal.executor&quot;: &quot;Run&quot;,
+    &quot;Python.ExecuteVeraGrid.executor&quot;: &quot;Run&quot;,
     &quot;Python.GridCalMain.executor&quot;: &quot;Run&quot;,
     &quot;Python.LineBuilderDialogue.executor&quot;: &quot;Run&quot;,
     &quot;Python.Transformers.executor&quot;: &quot;Run&quot;,
@@ -220,6 +217,7 @@
     &quot;Python.demo_code.executor&quot;: &quot;Run&quot;,
     &quot;Python.demo_code2.executor&quot;: &quot;Debug&quot;,
     &quot;Python.demo_code3.executor&quot;: &quot;Run&quot;,
+    &quot;Python.estabanell.executor&quot;: &quot;Run&quot;,
     &quot;Python.full_trafo_validation.executor&quot;: &quot;Run&quot;,
     &quot;Python.grid_merge.executor&quot;: &quot;Run&quot;,
     &quot;Python.ieee9.executor&quot;: &quot;Run&quot;,
@@ -260,7 +258,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Shell Script.make.sh.executor&quot;: &quot;Run&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;#425-3ph-Transformers-Dy-Yd&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;#331 on #425-3ph-Transformers-Dy-Yd&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/alexb/VeraGrid/src/trunk/unbalanced_pf&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -294,7 +292,7 @@
       <recent name="D:\SIROCO\GridCal\src\GridCal\Gui\Diagrams\MapWidget\Substation" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.full_trafo_validation">
     <configuration default="true" type="DjangoTestsConfigurationType">
       <module name="GridCalEngine" />
       <option name="ENV_FILES" value="" />
@@ -2348,7 +2346,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="697" />
+    <option name="localTasksCounter" value="699" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2394,7 +2392,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed bug in gslv conversion" />
     <MESSAGE value="5.3.30" />
     <MESSAGE value="Added the ability to recolour the schematic with the design values" />
     <MESSAGE value="minor refactorings" />
@@ -2419,7 +2416,8 @@
     <MESSAGE value="some corrections in the mip interfaces" />
     <MESSAGE value="Early unification of TopologicalNode and ConnectivityNode" />
     <MESSAGE value="Three-phase power flow results" />
-    <option name="LAST_COMMIT_MESSAGE" value="Three-phase power flow results" />
+    <MESSAGE value="Validating three-phase transformers" />
+    <option name="LAST_COMMIT_MESSAGE" value="Validating three-phase transformers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2635,13 +2633,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
-          <line>893</line>
-          <option name="timeStamp" value="2612" />
+          <line>918</line>
+          <option name="timeStamp" value="2617" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
-          <line>825</line>
-          <option name="timeStamp" value="2613" />
+          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/common_functions.py</url>
+          <line>310</line>
+          <option name="timeStamp" value="2618" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
