@@ -265,10 +265,9 @@ class BlockSolver:
         uid2sym_t[self.time.uid] = f"time"
         self.uid2idx_t[self.time.uid] = k
 
-
-
         # Compile RHS and Jacobian
         """
+        
                    state Var   algeb var  
         state eq |J11        | J12       |    | ∆ state var|    | ∆ state eq |
                  |           |           |    |            |    |            |
@@ -1005,6 +1004,18 @@ class BlockSolver:
         fy = self._j12_fn(z, params)  # ∂f_state/∂y
         gx = self._j21_fn(z, params)  # ∂g/∂x
         gy = self._j22_fn(z, params)  # ∂g/∂y
+        print("size fx:", fx.shape)
+        print("size fy:", fy.shape)
+        print("size gx:", gx.shape)
+        print("size gy:", gy.shape)
+        print("fx:",fx.toarray())
+        print("fx:", fx)
+        print("fy:", fy.toarray())
+        print("fy:",fy)
+        print("gx:",gx.toarray())
+        print("gx:", gx)
+        print("gy:",gy.toarray())
+        print("gy:", gy)
 
         gxy = inv(gy) @ gx
         A = (fx - fy @ gxy)  # sparse state matrix csc matrix
