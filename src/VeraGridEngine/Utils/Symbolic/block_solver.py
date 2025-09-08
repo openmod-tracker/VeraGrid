@@ -30,6 +30,8 @@ from VeraGridEngine.Utils.Symbolic.symbolic import Var, Expr, Const, _emit, _emi
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Sparse.csc import pack_4_by_4_scipy
 
+from matplotlib import pyplot as plt
+
 
 def _fully_substitute(expr: Expr, mapping: Dict[Var, Expr], max_iter: int = 10) -> Expr:
     cur = expr
@@ -982,7 +984,7 @@ class BlockSolver:
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
 
-    def stability_assessment(self, z: np.ndarray, params: np.ndarray):
+    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = False):
         """
             Stability analisys:
             1. Calculate the state matrix (A) from the state space model. From the DAE model:
@@ -1012,7 +1014,7 @@ class BlockSolver:
         An = A.toarray()
         num_states = A.shape[0]
         det_A = np.linalg.det(An)
-        print("detererminant A=", det_A)
+        #print("determinant A=", det_A)
 
         Eigenvalues, V = scipy.linalg.eig(An)  # find eigenvalues and right eigenvectors(V)
         V = sp.csc_matrix(V)
@@ -1048,5 +1050,21 @@ class BlockSolver:
                 stability = "Marginally stable"
         else:
             stability = "Unstable"
+
+        if plot == True:
+            x = Eigenvalues.real
+            y = Eigenvalues.imag
+
+            plt.scatter(x, y, marker='x', color='blue')
+            plt.xlabel("Re [s -1]")
+            plt.ylabel("Im [s -1]")
+            plt.title("Stability plot")
+            # plt.xlim([-5, 5])
+            # plt.ylim([-5, 5])
+            plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
+            plt.axvline(0, color='black', linewidth=1)
+            # plt.grid(True)
+            plt.tight_layout()
+            plt.show()
 
         return stability, Eigenvalues, V, W, PF, A
