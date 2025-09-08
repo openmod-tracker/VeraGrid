@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 
 import sys
 import os
+import time
 
 from VeraGridEngine import DynamicVarType
 
@@ -1529,6 +1530,18 @@ plt.tight_layout()
 plt.show()
 
 
+#stability assessment
+start_stability = time.time()
+stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0)
+end_stability = time.time()
+print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
+
+print("State matrix A:", A.toarray())
+print("Stability assessment:", stab)
+print("Eigenvalues:", Eigenvalues)
+#print("Right eivenvectors:", V)
+#print("Left eigenvectors:", W)
+print("Participation factors:", PF.toarray())
 
 
 
