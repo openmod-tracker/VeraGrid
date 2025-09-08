@@ -264,13 +264,13 @@ grid.add_generator(bus=bus4, api_obj=gen4)
 # Events
 # ---------------------------------------------------------------------------------------
 
-event1 = RmsEvent(load1, "Pl0", np.array([2.5, 12.5]), np.array([-9.0, -9.01]))
+event1 = RmsEvent(load1, "Pl0", np.array([2.5]), np.array([-9.0]))
 
-event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
+# event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
 
 
 grid.add_rms_event(event1)
-grid.add_rms_event(event2)
+# grid.add_rms_event(event2)
 
 # # Run power flow
 options = gce.PowerFlowOptions(

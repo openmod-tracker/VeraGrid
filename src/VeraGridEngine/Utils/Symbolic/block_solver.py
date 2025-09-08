@@ -117,31 +117,21 @@ def _get_jacobian(eqs: List[Expr],
         else:
             check_set.add(v)
 
-    # Cache compiled partials by UID so duplicates are reused
-    # fn_cache: Dict[str, Callable] = {}
-    rows: List[int] = []
-    cols: List[int] = []
-    cols_rows: List[Tuple[int, int]] = []
-
-    jac_equations: List[Expr] = []
+    triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
 
     for row, eq in enumerate(eqs):
         for col, var in enumerate(variables):
             d_expression = eq.diff(var).simplify()
             if isinstance(d_expression, Const) and d_expression.value == 0:
                 continue  # structural zero
-            jac_equations.append(d_expression)
-            rows.append(row)
-            cols.append(col)
-            cols_rows.append((col, row))
+            triplets.append((col, row, d_expression))
 
-    functions_ptr = _compile_equations(eqs=jac_equations, uid2sym_vars=uid2sym_vars,
+    triplets.sort(key=lambda t: (t[0], t[1]))
+    cols_sorted, rows_sorted, equations_sorted = zip(*triplets) if triplets else ([], [], [])
+    functions_ptr = _compile_equations(eqs=equations_sorted, uid2sym_vars=uid2sym_vars,
                                               uid2sym_params=uid2sym_params)
 
-    cols_rows.sort(key=lambda t: (t[0], t[1]))
-    cols_sorted, rows_sorted = zip(*cols_rows) if cols_rows else ([], [])
-
-    nnz = len(cols)
+    nnz = len(cols_sorted)
     indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
 
     indptr = np.zeros(len(variables) + 1, dtype=np.int32)
@@ -159,12 +149,7 @@ def _get_jacobian(eqs: List[Expr],
         end_jac = time.time()
         jac_eval_time = end_jac - start_jac
 
-        triplets = list(zip(cols, rows, jac_values))
-
-        triplets.sort(key=lambda t: (t[0], t[1]))
-        cols_sorted_new, rows_sorted_new, jac_values_sorted = zip(*triplets) if triplets else ([], [], [])
-
-        data = np.array(jac_values_sorted, dtype=np.float64)
+        data = np.array(jac_values, dtype=np.float64)
 
         start_csc_matrix = time.time()
         csc_matrix = sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
