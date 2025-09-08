@@ -40,7 +40,7 @@ grid = gce.MultiCircuit()
 # Buses
 bus1 = gce.Bus(name="Bus1", Vnom=20)
 bus2 = gce.Bus(name="Bus2", Vnom=20)
-bus3 = gce.Bus(name="Bus3", Vnom=20)
+bus3 = gce.Bus(name="Bus3", Vnom=20, is_slack=True)
 bus4 = gce.Bus(name="Bus4", Vnom=20)
 bus5 = gce.Bus(name="Bus5", Vnom=230)
 bus6 = gce.Bus(name="Bus6", Vnom=230)
