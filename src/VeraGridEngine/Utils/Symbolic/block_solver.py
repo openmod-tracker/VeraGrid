@@ -100,9 +100,10 @@ def _get_jacobian(eqs: List[Expr],
     :param uid2sym_vars: dictionary relating the uid of a var with its array name (i.e. var[0])
     :param uid2sym_params:
     :return:
-            jac_fn : callable(values: np.ndarray) -> scipy.sparse.csc_matrix
+            jac_fn : callable(values: np.ndarray, params: np.ndarray) -> scipy.sparse.csc_matrix
                 Fast evaluator in which *values* is a 1‑D NumPy vector of length
-                ``len(variables)``.
+                ``len(variables)``and *params* is a 1‑D NumPy vector of length
+                ``len(parameters)``
             sparsity_pattern : tuple(np.ndarray, np.ndarray)
                 Row/col indices of structurally non‑zero entries.
     """
@@ -115,8 +116,6 @@ def _get_jacobian(eqs: List[Expr],
         else:
             check_set.add(v)
 
-    # Cache compiled partials by UID so duplicates are reused
-    fn_cache: Dict[str, Callable] = {}
     triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
 
     for row, eq in enumerate(eqs):
@@ -124,31 +123,29 @@ def _get_jacobian(eqs: List[Expr],
             d_expression = eq.diff(var).simplify()
             if isinstance(d_expression, Const) and d_expression.value == 0:
                 continue  # structural zero
+            triplets.append((col, row, d_expression))
 
-            function_ptr = _compile_equations(eqs=[d_expression], uid2sym_vars=uid2sym_vars,
+    triplets.sort(key=lambda t: (t[0], t[1]))
+    cols_sorted, rows_sorted, equations_sorted = zip(*triplets) if triplets else ([], [], [])
+    functions_ptr = _compile_equations(eqs=equations_sorted, uid2sym_vars=uid2sym_vars,
                                               uid2sym_params=uid2sym_params)
 
-            fn = fn_cache.setdefault(d_expression.uid, function_ptr)
-
-            triplets.append((col, row, fn))
-
-    # Sort by column, then row for CSC layout
-    triplets.sort(key=lambda t: (t[0], t[1]))
-    cols_sorted, rows_sorted, fns_sorted = zip(*triplets) if triplets else ([], [], [])
-
-    nnz = len(fns_sorted)
+    nnz = len(cols_sorted)
     indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
-    data = np.empty(nnz, dtype=np.float64)
 
     indptr = np.zeros(len(variables) + 1, dtype=np.int32)
     for c in cols_sorted:
         indptr[c + 1] += 1
     np.cumsum(indptr, out=indptr)
 
-    def jac_fn(values: np.ndarray, params) -> sp.csc_matrix:  # noqa: D401 – simple
+
+
+    def jac_fn(values: np.ndarray, params: np.ndarray) -> sp.csc_matrix:  # noqa: D401 – simple
         assert len(values) >= len(variables)
-        for k, fn_ in enumerate(fns_sorted):
-            data[k] = fn_(values, params)
+
+        jac_values = functions_ptr(values, params)
+        data = np.array(jac_values, dtype=np.float64)
+
         return sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
 
     return jac_fn
