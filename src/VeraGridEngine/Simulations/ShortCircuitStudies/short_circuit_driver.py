@@ -122,6 +122,9 @@ class ShortCircuitDriver(DriverTemplate):
         # set the bus fault impedance
         middle_bus.Zf = complex(r_fault, x_fault)
 
+        # middle_bus.r_fault = r_fault
+        # middle_bus.x_fault = x_fault
+
         br1 = Line(bus_from=branch.bus_from,
                    bus_to=middle_bus,
                    r=r * fault_position,
