@@ -380,6 +380,10 @@ print("Eigenvalues:", Eigenvalues)
 #print("Left eigenvectors:", W)
 print("Participation factors:", PF.toarray())
 
+
+
+
+
 df_Eig = pd.DataFrame(Eigenvalues)
 df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
 df_A = pd.DataFrame(A.toarray())

@@ -15,6 +15,7 @@ import numpy as np
 #matplotlib.use('TkAgg')  # or 'QtAgg', depending on your system
 from andes.utils.paths import list_cases, get_case
 
+
 def main():
 
    start = time.time()
@@ -68,15 +69,24 @@ def main():
    print("Left eigenvectors:", eig.W)
    print("Participation factors:", eig.pfactors)
 
-   return eig.As, eig.mu, eig.N, eig.W, eig.pfactors
+   dae = ss.dae
+
+   return eig.As, eig.mu, eig.N, eig.W, eig.pfactors, dae.fx, dae.fy, dae.gx, dae.gy, dae.Tf
 
 if __name__ == '__main__':
-    As, mu, N, W, pfactors =  main()
+    As, mu, N, W, pfactors, fx, fy, gx, gy, Tf =  main()
 
 df_Eig = pd.DataFrame(mu)
 df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False , header = False)
 df_A = pd.DataFrame(As)
 df_A.to_csv("A_results_Andes.csv", index=False)
+
+
+print("fx:", fx)
+print("fy:", fy)
+print("gx:", gx)
+print("gy:", gy)
+print("Tf:", Tf)
 
 
 #case_path = get_case('kundur/kundur_full.xlsx')
