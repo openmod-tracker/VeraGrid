@@ -513,9 +513,10 @@ class Generator(GeneratorParent):
                 state_eqs=[
                     (2 * np.pi * self.freq) * (omega - self.omega_ref),
                     (tm - te - self.D * (omega - self.omega_ref)) / self.M,
-                    (omega - self.omega_ref),
+                    #(omega - self.omega_ref),
                 ],
-                state_vars=[delta, omega, et],
+                #state_vars=[delta, omega, et],
+                state_vars=[delta, omega],
                 algebraic_eqs=[
                     psid - (self.R1 * i_q + v_q),
                     psiq + (self.R1 * i_d + v_d),
@@ -526,9 +527,11 @@ class Generator(GeneratorParent):
                     te - (psid * i_q - psiq * i_d),
                     P_g - (v_d * i_d + v_q * i_q),
                     Q_g - (v_q * i_d - v_d * i_q),
-                    tm - (self.tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et)
+                    tm - (self.tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et),
+                    2 * np.pi * self.freq * et -delta, #
                 ],
-                algebraic_vars=[P_g, Q_g, v_d, v_q, i_d, i_q, psid, psiq, te, tm],
+                #algebraic_vars=[P_g, Q_g, v_d, v_q, i_d, i_q, psid, psiq, te, tm],
+                algebraic_vars=[P_g, Q_g, v_d, v_q, i_d, i_q, psid, psiq, te, tm, et],
                 init_eqs = {
                     delta: imag(log((Vm * exp(1j * Va) + (self.R1 + 1j * self.X1) * (conj((P_g + 1j * Q_g) / (Vm * exp(1j * Va)))))/(abs(Vm * exp(1j * Va) + (self.R1 + 1j * self.X1) * (conj((P_g + 1j * Q_g) / (Vm * exp(1j * Va)))))))),
                     omega: Const(self.omega_ref),

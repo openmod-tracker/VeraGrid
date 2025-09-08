@@ -44,7 +44,7 @@ grid = gce.MultiCircuit()
 # Buses
 bus1 = gce.Bus(name="Bus1", Vnom=20)
 bus2 = gce.Bus(name="Bus2", Vnom=20)
-bus3 = gce.Bus(name="Bus3", Vnom=20)
+bus3 = gce.Bus(name="Bus3", Vnom=20, is_slack=True)
 bus4 = gce.Bus(name="Bus4", Vnom=20)
 bus5 = gce.Bus(name="Bus5", Vnom=230)
 bus6 = gce.Bus(name="Bus6", Vnom=230)
@@ -124,7 +124,6 @@ line13 = grid.add_line(
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 # Transformers
-
 trafo_G1 = grid.add_line(
     gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
@@ -382,4 +381,6 @@ print("Eigenvalues:", Eigenvalues)
 print("Participation factors:", PF.toarray())
 
 df_Eig = pd.DataFrame(Eigenvalues)
-df_Eig.to_csv("Eigenvalues_results.csv", index=False)
+df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
+df_A = pd.DataFrame(A.toarray())
+df_A.to_csv("A_results.csv", index=False , header = False)

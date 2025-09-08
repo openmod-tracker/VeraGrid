@@ -74,7 +74,9 @@ if __name__ == '__main__':
     As, mu, N, W, pfactors =  main()
 
 df_Eig = pd.DataFrame(mu)
-df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False)
+df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False , header = False)
+df_A = pd.DataFrame(As)
+df_A.to_csv("A_results_Andes.csv", index=False)
 
 
 #case_path = get_case('kundur/kundur_full.xlsx')
