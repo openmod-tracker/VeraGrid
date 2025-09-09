@@ -83,7 +83,7 @@ def compute_ybus_generator(nc: NumericalCircuit) -> Tuple[csc_matrix, CxMat]:
     return Ybus_gen.tocsc(), Yzeros
 
 
-def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matrix, CxVec, BoolVec, IntVec, IntVec]:
+def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matrix, CxVec, BoolVec, IntVec, IntVec, csc_matrix, csc_matrix]:
     """
     Compute admittances and masks
 
@@ -112,6 +112,10 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
     Ct = lil_matrix((3 * m, 3 * n), dtype=int)
     Yf = lil_matrix((3 * m, 3 * n), dtype=complex)
     Yt = lil_matrix((3 * m, 3 * n), dtype=complex)
+    Yf_s = lil_matrix((3 * m, 3 * n), dtype=complex)
+    Yt_s = lil_matrix((3 * m, 3 * n), dtype=complex)
+    Yf_sh = lil_matrix((3 * m, 3 * n), dtype=complex)
+    Yt_sh = lil_matrix((3 * m, 3 * n), dtype=complex)
 
     idx3 = np.array([0, 1, 2])  # array that we use to generate the 3-phase indices
 
@@ -129,6 +133,16 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
         Yf[np.ix_(k3, t3)] = nc.passive_branch_data.Yft3[k3, :]
         Yt[np.ix_(k3, f3)] = nc.passive_branch_data.Ytf3[k3, :]
         Yt[np.ix_(k3, t3)] = nc.passive_branch_data.Ytt3[k3, :]
+
+        Yf_s[np.ix_(k3, f3)] = nc.passive_branch_data.Yff3_s[k3, :]
+        Yf_s[np.ix_(k3, t3)] = nc.passive_branch_data.Yft3_s[k3, :]
+        Yt_s[np.ix_(k3, f3)] = nc.passive_branch_data.Ytf3_s[k3, :]
+        Yt_s[np.ix_(k3, t3)] = nc.passive_branch_data.Ytt3_s[k3, :]
+
+        Yf_sh[np.ix_(k3, f3)] = nc.passive_branch_data.Yff3_sh[k3, :]
+        Yf_sh[np.ix_(k3, t3)] = nc.passive_branch_data.Yft3_sh[k3, :]
+        Yt_sh[np.ix_(k3, f3)] = nc.passive_branch_data.Ytf3_sh[k3, :]
+        Yt_sh[np.ix_(k3, t3)] = nc.passive_branch_data.Ytt3_sh[k3, :]
 
         R[3 * k + 0] = nc.passive_branch_data.phA[k]
         R[3 * k + 1] = nc.passive_branch_data.phB[k]
@@ -167,12 +181,23 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
     Yf = Yf[R, :][:, binary_bus_mask]
     Yt = Yt[R, :][:, binary_bus_mask]
 
+    Ybus_series_helm = Cf.T @ Yf_s + Ct.T @ Yt_s
+    Ybus_series_helm = Ybus_series_helm[binary_bus_mask, :][:, binary_bus_mask]
+    Ybus_shunt_helm = Cf.T @ Yf_sh + Ct.T @ Yt_sh + Ysh_bus
+    Ybus_shunt_helm = Ybus_shunt_helm[binary_bus_mask, :][:, binary_bus_mask]
+
     bus_idx_lookup = lookup_from_mask(binary_bus_mask)
     branch_lookup = lookup_from_mask(R)
 
     Ybus = csc_matrix(Ybus)
+    Ybus_series_helm = csc_matrix(Ybus_series_helm)
+    Ybus_shunt_helm = csc_matrix(Ybus_shunt_helm)
 
-    return Ybus.tocsc(), Yf.tocsc(), Yt.tocsc(), Ysh_bus, binary_bus_mask, bus_idx_lookup, branch_lookup
+    # Comprobación
+    ones_vector = np.ones_like(bus_idx_lookup)
+    print("\nComprobación = \n", Ybus_series_helm @ ones_vector)
+
+    return Ybus.tocsc(), Yf.tocsc(), Yt.tocsc(), Ysh_bus, binary_bus_mask, bus_idx_lookup, branch_lookup, Ybus_series_helm.tocsc(), Ybus_shunt_helm.tocsc()
 
 
 def compute_Ibus(nc: NumericalCircuit) -> CxVec:
@@ -606,7 +631,7 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         :param nc: NumericalCircuit
         :param options: PowerFlowOptions
         """
-        self.Ybus, self.Yf, self.Yt, self.Yshunt_bus, self.mask, self.bus_lookup, self.branch_lookup = compute_ybus(nc)
+        self.Ybus, self.Yf, self.Yt, self.Yshunt_bus, self.mask, self.bus_lookup, self.branch_lookup, self.Ybus_series_helm, self.Ybus_shunt_helm = compute_ybus(nc)
         V0new = V0[self.mask]
 
         PfFormulationTemplate.__init__(self, V0=V0new.astype(complex), options=options)

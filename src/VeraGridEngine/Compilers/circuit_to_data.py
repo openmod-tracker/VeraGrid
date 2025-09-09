@@ -1473,12 +1473,27 @@ def get_branch_data(
             ytt = ys_abc + ysh_abc / 2
             """
             k3 = 3 * ii + idx3
+
             y1 = elm.ys.values + elm.ysh.values / 2.0 * 1e-6
             y2 = - elm.ys.values
             data.Yff3[k3, :] = y1
             data.Yft3[k3, :] = y2
             data.Ytf3[k3, :] = y2
             data.Ytt3[k3, :] = y1
+
+            y1_s = elm.ys.values
+            y2_s = - elm.ys.values
+            data.Yff3_s[k3, :] = y1_s
+            data.Yft3_s[k3, :] = y2_s
+            data.Ytf3_s[k3, :] = y2_s
+            data.Ytt3_s[k3, :] = y1_s
+
+            y1_sh = elm.ysh.values / 2.0 * 1e-6
+            y2_sh = 0
+            data.Yff3_sh[k3, :] = y1_sh
+            data.Yft3_sh[k3, :] = y2_sh
+            data.Ytf3_sh[k3, :] = y2_sh
+            data.Ytt3_sh[k3, :] = y1_sh
 
             """ Save the phases of each line """
             data.phA[ii] = elm.ys.phA

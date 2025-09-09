@@ -53,6 +53,16 @@ class PassiveBranchData(BranchParentData):
         self.Ytf3 = np.zeros((self.nelm * 3, 3), dtype=complex)
         self.Ytt3 = np.zeros((self.nelm * 3, 3), dtype=complex)
 
+        self.Yff3_s = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Yft3_s = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Ytf3_s = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Ytt3_s = np.zeros((self.nelm * 3, 3), dtype=complex)
+
+        self.Yff3_sh = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Yft3_sh = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Ytf3_sh = np.zeros((self.nelm * 3, 3), dtype=complex)
+        self.Ytt3_sh = np.zeros((self.nelm * 3, 3), dtype=complex)
+
         self.phA: IntVec = np.zeros(self.nelm, dtype=int)
         self.phB: IntVec = np.zeros(self.nelm, dtype=int)
         self.phC: IntVec = np.zeros(self.nelm, dtype=int)
@@ -108,6 +118,16 @@ class PassiveBranchData(BranchParentData):
         data.Yft3 = self.Yft3[elm_idx_3, :]
         data.Ytt3 = self.Ytt3[elm_idx_3, :]
         data.Ytf3 = self.Ytf3[elm_idx_3, :]
+
+        data.Yff3_s = self.Yff3_s[elm_idx_3, :]
+        data.Yft3_s = self.Yft3_s[elm_idx_3, :]
+        data.Ytt3_s = self.Ytt3_s[elm_idx_3, :]
+        data.Ytf3_s = self.Ytf3_s[elm_idx_3, :]
+
+        data.Yff3_sh = self.Yff3_sh[elm_idx_3, :]
+        data.Yft3_sh = self.Yft3_sh[elm_idx_3, :]
+        data.Ytt3_sh = self.Ytt3_sh[elm_idx_3, :]
+        data.Ytf3_sh = self.Ytf3_sh[elm_idx_3, :]
 
         data.phA = self.phA[elm_idx]
         data.phB = self.phB[elm_idx]
