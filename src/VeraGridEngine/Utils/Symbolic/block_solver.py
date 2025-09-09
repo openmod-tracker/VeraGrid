@@ -399,17 +399,7 @@ class BlockSolver:
         else:
             return f_algeb
 
-        def eval_jacobians_parallel(x, params):
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                futures = [
-                    executor.submit(self._j11_fn, x, params),
-                    executor.submit(self._j12_fn, x, params),
-                    executor.submit(self._j21_fn, x, params),
-                    executor.submit(self._j22_fn, x, params),
-                ]
-                j11_val, j12_val, j21_val, j22_val = [f.result() for f in futures]
 
-            return j11_val, j12_val, j21_val, j22_val
 
 
 
@@ -431,23 +421,14 @@ class BlockSolver:
                  |            |           |    |            |    |            |
         """
         ########################to del
-        ####################ThreadPool Paralel
-        # with ThreadPoolExecutor(max_workers=4) as executor:
-        #     futures = [
-        #         executor.submit(self._j11_fn, x, params),
-        #         executor.submit(self._j12_fn, x, params),
-        #         executor.submit(self._j21_fn, x, params),
-        #         executor.submit(self._j22_fn, x, params),
-        #     ]
-        #     results = [f.result() for f in futures]
-        #
-        # # Each result is a tuple: (csc_matrix, jac_eval_time, csc_matrix_time)
-        # (j11_val, jac_time11, csc_time11), (j12_val, jac_time12, csc_time12), (j21_val, jac_time21, csc_time21), (j22_val, jac_time22, csc_time22) = results
-        #
-        # j11_val, jac_time11, csc_time11 = self._j11_fn(x, params)
-        # j12_val, jac_time12, csc_time12 = self._j12_fn(x, params)
-        # j21_val, jac_time21, csc_time21 = self._j21_fn(x, params)
-        # j22_val, jac_time22, csc_time22 = self._j22_fn(x, params)
+
+        j11_val, jac_time11, csc_time11 = self._j11_fn(x, params)
+        j12_val, jac_time12, csc_time12 = self._j12_fn(x, params)
+        j21_val, jac_time21, csc_time21 = self._j21_fn(x, params)
+        j22_val, jac_time22, csc_time22 = self._j22_fn(x, params)
+
+        jac_time = jac_time11 + jac_time12 + jac_time21 + jac_time22
+        csc_time = csc_time11 + csc_time12 + csc_time21 + csc_time22
         ##################################################################################33333
 
         # names = ["j11", "j12", "j21", "j22"]
@@ -469,10 +450,15 @@ class BlockSolver:
         #####################################
 
         I = sp.eye(m=self._n_state, n=self._n_state)
-        j11: sp.csc_matrix = (I - h * self._j11_fn(x, params)).tocsc()
-        j12: sp.csc_matrix = - h * self._j12_fn(x, params)
-        j21: sp.csc_matrix = self._j21_fn(x, params)
-        j22: sp.csc_matrix = self._j22_fn(x, params)
+        j11: sp.csc_matrix = (I - h * j11_val).tocsc()
+        j12: sp.csc_matrix = - h * j12_val
+        j21: sp.csc_matrix = j21_val
+        j22: sp.csc_matrix = j22_val
+
+        # j11: sp.csc_matrix = (I - h * self._j11_fn(x, params)).tocsc()
+        # j12: sp.csc_matrix = - h * self._j12_fn(x, params)
+        # j21: sp.csc_matrix = self._j21_fn(x, params)
+        # j22: sp.csc_matrix = self._j22_fn(x, params)
         J = pack_4_by_4_scipy(j11, j12, j21, j22)
 
 
