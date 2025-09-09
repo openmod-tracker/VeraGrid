@@ -23,8 +23,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix, csc_matrix
 from scipy.sparse.linalg import gmres, spilu, LinearOperator
 from typing import Dict, List, Literal, Any, Callable, Sequence
-from concurrent.futures import ThreadPoolExecutor
-from joblib import Parallel, delayed
+from pathos.multiprocessing import ProcessingPool as Pool
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
@@ -172,7 +171,6 @@ def _get_jacobian(eqs: List[Expr],
         return csc_matrix, jac_eval_time, csc_matrix_time
 
     return jac_fn
-
 
 class BlockSolver:
     """
@@ -398,9 +396,53 @@ class BlockSolver:
 
         else:
             return f_algeb
-
-
-
+    #
+    # def jacobian_implicit(
+    #         self,
+    #         x: np.ndarray,
+    #         params: np.ndarray,
+    #         h: float,
+    #         n_processes: int = 4
+    # ) -> Tuple[sp.csc_matrix, float, float]:
+    #     """
+    #     Compute the implicit Jacobian:
+    #         | I - h*J11   -h*J12 |
+    #         | J21         J22    |
+    #     using pathos multiprocessing to parallelize the four Jacobians.
+    #     """
+    #
+    #     tasks = [
+    #         (self._j11_fn, (x, params)),
+    #         (self._j12_fn, (x, params)),
+    #         (self._j21_fn, (x, params)),
+    #         (self._j22_fn, (x, params))
+    #     ]
+    #
+    #     # Use pathos ProcessingPool
+    #     with Pool(nodes=n_processes) as pool:
+    #         # pathos can map closures/lambdas directly
+    #         results = pool.map(lambda t: t[0](*t[1]), tasks)
+    #
+    #     # Unpack results
+    #     (j11_val, jac_time11, csc_time11), \
+    #         (j12_val, jac_time12, csc_time12), \
+    #         (j21_val, jac_time21, csc_time21), \
+    #         (j22_val, jac_time22, csc_time22) = results
+    #
+    #     # Total timing
+    #     jac_time = jac_time11 + jac_time12 + jac_time21 + jac_time22
+    #     csc_time = csc_time11 + csc_time12 + csc_time21 + csc_time22
+    #
+    #     # Build blocks
+    #     I = sp.eye(self._n_state, self._n_state)
+    #     j11: sp.csc_matrix = (I - h * j11_val).tocsc()
+    #     j12: sp.csc_matrix = - h * j12_val
+    #     j21: sp.csc_matrix = j21_val
+    #     j22: sp.csc_matrix = j22_val
+    #
+    #     J = pack_4_by_4_scipy(j11, j12, j21, j22)
+    #
+    #     return J, jac_time, csc_time
 
 
 
@@ -429,25 +471,6 @@ class BlockSolver:
 
         jac_time = jac_time11 + jac_time12 + jac_time21 + jac_time22
         csc_time = csc_time11 + csc_time12 + csc_time21 + csc_time22
-        ##################################################################################33333
-
-        # names = ["j11", "j12", "j21", "j22"]
-        #
-        # results = Parallel(n_jobs=4)(
-        #     delayed(fn)(x, params)
-        #     for fn in [self._j11_fn, self._j12_fn, self._j21_fn, self._j22_fn])
-        #
-        # res =  {
-        #     name: {
-        #         "matrix": mat,
-        #         "jac_time": jt,
-        #         "csc_time": ct
-        #     }for name, (mat, jt, ct) in zip(names, results)}
-        #
-        # j11 = res["j11"]["matrix"]
-        # time11 = res["j11"]["jac_time"]
-
-        #####################################
 
         I = sp.eye(m=self._n_state, n=self._n_state)
         j11: sp.csc_matrix = (I - h * j11_val).tocsc()
@@ -455,11 +478,12 @@ class BlockSolver:
         j21: sp.csc_matrix = j21_val
         j22: sp.csc_matrix = j22_val
 
+        J = pack_4_by_4_scipy(j11, j12, j21, j22)
+
         # j11: sp.csc_matrix = (I - h * self._j11_fn(x, params)).tocsc()
         # j12: sp.csc_matrix = - h * self._j12_fn(x, params)
         # j21: sp.csc_matrix = self._j21_fn(x, params)
         # j22: sp.csc_matrix = self._j22_fn(x, params)
-        J = pack_4_by_4_scipy(j11, j12, j21, j22)
 
 
         return J, jac_time, csc_time
