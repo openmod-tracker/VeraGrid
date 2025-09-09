@@ -200,7 +200,7 @@ def __solve_island_limited_support_3ph(island: NumericalCircuit,
                                       Ybus=problem.Ybus, Yf=problem.Yf, Yt=problem.Yt, Yshunt_bus=problem.Yshunt_bus,
                                       Yseries=problem.Ybus_series_helm, V0=problem.V, S0=problem.S0, Ysh0=problem.Ybus_shunt_helm,
                                       pq=problem.pq, pv=problem.pv, vd=problem.vd, no_slack=problem.no_slack,
-                                      logger=logger)
+                                      use_pade=False, logger=logger)
 
             elif solver_type == SolverType.PowellDogLeg:
 

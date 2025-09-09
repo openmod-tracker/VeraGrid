@@ -28,14 +28,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="First steps.">
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Ybus has split into Ybus_series_helm and Ybus_shunt_helm">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/DataStructures/passive_branch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/DataStructures/passive_branch_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -221,6 +217,7 @@
     "Python.estabanell.executor": "Debug",
     "Python.full_trafo_validation.executor": "Debug",
     "Python.grid_merge.executor": "Run",
+    "Python.helm_power_flow.executor": "Debug",
     "Python.ieee9.executor": "Run",
     "Python.load_designer.executor": "Run",
     "Python.make.executor": "Run",
@@ -229,6 +226,7 @@
     "Python.overhead_line_calcs.executor": "Run",
     "Python.pf_basic_formulation_3ph.executor": "Debug",
     "Python.post_example.executor": "Run",
+    "Python.power_flow_worker_3ph.executor": "Run",
     "Python.pymoo_example.executor": "Debug",
     "Python.python_console.executor": "Run",
     "Python.raw_imp_exp_test.executor": "Run",
@@ -2345,7 +2343,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="697" />
+    <option name="localTasksCounter" value="698" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2391,7 +2389,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed bug in gslv conversion" />
     <MESSAGE value="5.3.30" />
     <MESSAGE value="Added the ability to recolour the schematic with the design values" />
     <MESSAGE value="minor refactorings" />
@@ -2416,7 +2413,8 @@
     <MESSAGE value="some corrections in the mip interfaces" />
     <MESSAGE value="Early unification of TopologicalNode and ConnectivityNode" />
     <MESSAGE value="First steps." />
-    <option name="LAST_COMMIT_MESSAGE" value="First steps." />
+    <MESSAGE value="Ybus has split into Ybus_series_helm and Ybus_shunt_helm" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ybus has split into Ybus_series_helm and Ybus_shunt_helm" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2631,24 +2629,14 @@
           <option name="timeStamp" value="2587" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
-          <line>943</line>
-          <option name="timeStamp" value="2617" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/common_functions.py</url>
-          <line>310</line>
-          <option name="timeStamp" value="2618" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py</url>
           <line>52</line>
           <option name="timeStamp" value="2619" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
-          <line>331</line>
-          <option name="timeStamp" value="2621" />
+          <line>456</line>
+          <option name="timeStamp" value="2629" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

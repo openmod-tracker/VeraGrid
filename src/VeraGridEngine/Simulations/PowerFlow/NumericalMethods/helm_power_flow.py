@@ -298,7 +298,7 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     vec_P = S0.real[no_slack]
     vec_Q = S0.imag[no_slack]
     Vslack = V0[sl]
-    Ysh = Ysh0[no_slack]
+    Ysh = Ysh0[np.ix_(no_slack, no_slack)]
     Vm0 = np.abs(V0[no_slack])
     vec_W = Vm0 * Vm0
 
@@ -318,6 +318,7 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
 
     if nsl > 1:
         U[0, :] = spsolve(Yred, Yslack.sum(axis=1))
+        # U[0, :] = Vslack
     else:
         U[0, :] = spsolve(Yred, Yslack)
 
@@ -329,15 +330,24 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     # get the current Injections that appear due to the slack buses reduction
     I_inj_slack = Yslack[pqpv_, :] * Vslack
 
+    # print("I_inj_slack[pq_].shape:", I_inj_slack[pv_].shape)
+    # print("Yslack[pq_].sum(axis=1).A1.shape:", Yslack[pv_].sum(axis=1).A1.shape)
+    # print("X[0, pq_].shape:", X[0, pv_].shape)
+    # print("U[0, pq_].shape:", U[0, pv_].shape)
+    # print("Ysh[pq_].shape:", Ysh[pv_].shape)
+
+    # Ysh_test = Ysh.toarray()
+    # Ysh_test_1 = Ysh_test[pq_, :][:, pq_]
+
     valor[pq_] = (I_inj_slack[pq_]
                   - Yslack[pq_].sum(axis=1).A1
                   + (vec_P[pq_] - vec_Q[pq_] * 1j) * X[0, pq_]
-                  - U[0, pq_] * Ysh[pq_])
+                  - U[0, pq_] * Ysh[pq_, :][:, pq_])
 
     valor[pv_] = (I_inj_slack[pv_]
                   - Yslack[pv_].sum(axis=1).A1
                   + (vec_P[pv_]) * X[0, pv_]
-                  - U[0, pv_] * Ysh[pv_])
+                  - U[0, pv_] * Ysh[pv_, :][:, pv_])
 
     # compose the right-hand side vector
     RHS = np.r_[
@@ -398,7 +408,7 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     while c <= max_coeff and not converged:  # c defines the current depth
 
         valor[pq_] = (vec_P[pq_] - vec_Q[pq_] * 1j) * X[c - 1, pq_] - U[c - 1, pq_] * Ysh[pq_]
-        valor[pv_] = -1j * conv2(X, Q, c, pv_) - U[c - 1, pv_] * Ysh[pv_] + X[c - 1, pv_] * vec_P[pv_]
+        valor[pv_] = -1j * conv2(X, Q, c, pv_) - U[c - 1, pv_] * Ysh[pv_, :][:, pv_] + X[c - 1, pv_] * vec_P[pv_]
 
         RHS = np.r_[
             valor.real,
