@@ -174,6 +174,7 @@
     "Python.AnalysisDialogue.executor": "Run",
     "Python.Andes_vs_Veragrid_init_rms.executor": "Run",
     "Python.ExecuteGridCal.executor": "Run",
+    "Python.ExecuteVeraGrid.executor": "Run",
     "Python.GridCalMain.executor": "Run",
     "Python._callers.executor": "Debug",
     "Python._piecewise_try.executor": "Run",
@@ -1913,7 +1914,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="619" />
+    <option name="localTasksCounter" value="620" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1959,7 +1960,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Improved rms generator values" />
     <MESSAGE value="Equivalent events in simulations" />
     <MESSAGE value="Worked on the kundur modelling" />
     <MESSAGE value="Loading the kundur model from a file" />
@@ -1984,7 +1984,8 @@
     <MESSAGE value="comparision with Andes using automated and hardcoded VeraGrid" />
     <MESSAGE value="Events fully implemented" />
     <MESSAGE value="implemented test for the benchmark with andes" />
-    <option name="LAST_COMMIT_MESSAGE" value="implemented test for the benchmark with andes" />
+    <MESSAGE value="improoved get_jacobian function" />
+    <option name="LAST_COMMIT_MESSAGE" value="improoved get_jacobian function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
