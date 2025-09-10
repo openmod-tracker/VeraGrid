@@ -216,6 +216,7 @@ gen1 = gce.Generator(
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.999999999999923,
     vf=1.141048034212655,
+    # vf0=1.141048034212655,
     M=M_1, D=D_1,
     omega_ref=omega_ref_1,
     Kp=Kp_1, Ki=Ki_1
@@ -227,7 +228,8 @@ gen2 = gce.Generator(
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.999999999999478,
-    vf=1.180101792122771,
+    vf=1.180101792122771, ###
+    # vf0=1.180101792122771, ###
     M=M_2, D=D_2,
     omega_ref=omega_ref_2,
     Kp=Kp_2, Ki=Ki_2
@@ -239,7 +241,8 @@ gen3 = gce.Generator(
     # vf=1.0,
     # tm0=719.091/900.0,  # ≈ 0.7990
     tm0=7.331832804674334,
-    vf=1.1551307366822237,
+    vf=1.1551307366822237, ###
+    # vf0=1.1551307366822237, ###
     M=M_3, D=D_3,
     omega_ref=omega_ref_3,
     Kp=Kp_3, Ki=Ki_3
@@ -251,7 +254,8 @@ gen4 = gce.Generator(
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.99999999999765,
-    vf=1.2028205849036708,
+    vf=1.2028205849036708, ###
+    # vf0=1.2028205849036708, ###
     M=M_4, D=D_4,
     omega_ref=omega_ref_4,
     Kp=Kp_4, Ki=Ki_4
@@ -346,7 +350,7 @@ end_simulation = time.time()
 print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
 
-# TODO: check results and implement test once intilize_rms is wokring!
+# TODO: check results and implement test once initialize_rms is working!
 # # Save to csv
 slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 
@@ -365,10 +369,14 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 # plt.tight_layout()
 # plt.show()
 
+# print("x0:", x0)
+# print("size x0:", x0.shape)
+# print("params0:", params0)
+
 #stability assessment
 start_stability = time.time()
 
-stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
+stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=y[1000], params=params0, plot = True)
 
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
