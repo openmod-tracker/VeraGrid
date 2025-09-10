@@ -5,6 +5,7 @@
 import math
 
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 
 import sys
@@ -1551,5 +1552,9 @@ print("Eigenvalues:", Eigenvalues)
 #print("Left eigenvectors:", W)
 print("Participation factors:", PF.toarray())
 
+df_Eig = pd.DataFrame(Eigenvalues)
+df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
+df_A = pd.DataFrame(A.toarray())
+df_A.to_csv("A_results.csv", index=False , header = False)
 
 

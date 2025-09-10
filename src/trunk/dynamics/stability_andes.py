@@ -82,12 +82,17 @@ df_A = pd.DataFrame(As)
 df_A.to_csv("A_results_Andes.csv", index=False)
 
 
-print("fx:", fx)
-print("fy:", fy)
+# print("fx:", fx)
+# print("fy:", fy)
 print("gx:", gx)
-print("gy:", gy)
-print("Tf:", Tf)
+# print("gy:", gy)
+# print("Tf:", Tf)
 
+sum_pf = np.array([0,0,0,0,0,0,0,0])
+for col in range(pfactors.shape[0]):
+    # print("col iter:",pfactors[:, col])
+    sum_pf[col] = np.sum(pfactors[:, col])
+# print("sum pf:", sum_pf)
 
 #case_path = get_case('kundur/kundur_full.xlsx')
 #ss = andes.run(case_path, routine='eig')
