@@ -18,9 +18,10 @@ import numpy as np
 import numba as nb
 import math
 import scipy.sparse as sp
+import scipy.linalg
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import gmres, spilu, LinearOperator
+from scipy.sparse.linalg import gmres, spilu, LinearOperator, inv
 from typing import Dict, List, Literal, Any, Callable, Sequence
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
@@ -28,6 +29,8 @@ from VeraGridEngine.Devices.Dynamic.events import RmsEvents
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Expr, Const, _emit, _emit_params_eq, _heaviside
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Sparse.csc import pack_4_by_4_scipy
+
+from matplotlib import pyplot as plt
 
 
 def _fully_substitute(expr: Expr, mapping: Dict[Var, Expr], max_iter: int = 10) -> Expr:
@@ -100,9 +103,10 @@ def _get_jacobian(eqs: List[Expr],
     :param uid2sym_vars: dictionary relating the uid of a var with its array name (i.e. var[0])
     :param uid2sym_params:
     :return:
-            jac_fn : callable(values: np.ndarray) -> scipy.sparse.csc_matrix
+            jac_fn : callable(values: np.ndarray, params: np.ndarray) -> scipy.sparse.csc_matrix
                 Fast evaluator in which *values* is a 1‑D NumPy vector of length
-                ``len(variables)``.
+                ``len(variables)``and *params* is a 1‑D NumPy vector of length
+                ``len(parameters)``
             sparsity_pattern : tuple(np.ndarray, np.ndarray)
                 Row/col indices of structurally non‑zero entries.
     """
@@ -115,8 +119,6 @@ def _get_jacobian(eqs: List[Expr],
         else:
             check_set.add(v)
 
-    # Cache compiled partials by UID so duplicates are reused
-    fn_cache: Dict[str, Callable] = {}
     triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
 
     for row, eq in enumerate(eqs):
@@ -124,31 +126,29 @@ def _get_jacobian(eqs: List[Expr],
             d_expression = eq.diff(var).simplify()
             if isinstance(d_expression, Const) and d_expression.value == 0:
                 continue  # structural zero
+            triplets.append((col, row, d_expression))
 
-            function_ptr = _compile_equations(eqs=[d_expression], uid2sym_vars=uid2sym_vars,
+    triplets.sort(key=lambda t: (t[0], t[1]))
+    cols_sorted, rows_sorted, equations_sorted = zip(*triplets) if triplets else ([], [], [])
+    functions_ptr = _compile_equations(eqs=equations_sorted, uid2sym_vars=uid2sym_vars,
                                               uid2sym_params=uid2sym_params)
 
-            fn = fn_cache.setdefault(d_expression.uid, function_ptr)
-
-            triplets.append((col, row, fn))
-
-    # Sort by column, then row for CSC layout
-    triplets.sort(key=lambda t: (t[0], t[1]))
-    cols_sorted, rows_sorted, fns_sorted = zip(*triplets) if triplets else ([], [], [])
-
-    nnz = len(fns_sorted)
+    nnz = len(cols_sorted)
     indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
-    data = np.empty(nnz, dtype=np.float64)
 
     indptr = np.zeros(len(variables) + 1, dtype=np.int32)
     for c in cols_sorted:
         indptr[c + 1] += 1
     np.cumsum(indptr, out=indptr)
 
-    def jac_fn(values: np.ndarray, params) -> sp.csc_matrix:  # noqa: D401 – simple
+
+
+    def jac_fn(values: np.ndarray, params: np.ndarray) -> sp.csc_matrix:  # noqa: D401 – simple
         assert len(values) >= len(variables)
-        for k, fn_ in enumerate(fns_sorted):
-            data[k] = fn_(values, params)
+
+        jac_values = functions_ptr(values, params)
+        data = np.array(jac_values, dtype=np.float64)
+
         return sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
 
     return jac_fn
@@ -951,7 +951,7 @@ class BlockSolver:
 
         return t, y
 
-    def save_simulation_to_csv(self, filename, t, y):
+    def save_simulation_to_csv(self, filename, t, y, csv_saving=False):
         """
         Save the simulation results to a CSV file.
 
@@ -973,9 +973,95 @@ class BlockSolver:
         var_names = [str(var) + '_VeraGrid' for var in all_vars]
 
         # Create DataFrame with time and variable data
-        df = pd.DataFrame(data=y, columns=var_names)
-        df.insert(0, 'Time [s]', t)
+        df_simulation_results = pd.DataFrame(data=y, columns=var_names)
+        df_simulation_results.insert(0, 'Time [s]', t)
 
-        # Save to CSV
-        df.to_csv(filename, index=False)
-        print(f"Simulation results saved to: {filename}")
+        if csv_saving:
+            df_simulation_results.to_csv(filename, index=False)
+            print(f"Simulation results saved to: {filename}")
+        return df_simulation_results
+
+    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = False):
+        """
+            Stability analisys:
+            1. Calculate the state matrix (A) from the state space model. From the DAE model:
+                Tx'=f(x,y)
+                0=g(x,y)
+                the A matrix is computed as:
+                A = T^-1(f_x - f_y * g_y^{-1} * g_x)
+
+            2. Find eigenvalues and right and left eigenvectors
+                for left eigenvectors: bi-orthogonality: W.T@V =I --> W = inv(V).T
+
+            3. Perform stability assessment
+
+            Returns:
+            stability: "Unstable", "Marginally stable" or "Asymptotically stable"
+            ndarray with the positive eigenvalues (unstable ones)
+            -------
+            ??
+        """
+        fx = self._j11_fn(z, params)  # ∂f_state/∂x
+        fy = self._j12_fn(z, params)  # ∂f_state/∂y
+        gx = self._j21_fn(z, params)  # ∂g/∂x
+        gy = self._j22_fn(z, params)  # ∂g/∂y
+
+        gxy = inv(gy) @ gx
+        A = (fx - fy @ gxy)  # sparse state matrix csc matrix
+        An = A.toarray()
+        num_states = A.shape[0]
+        det_A = np.linalg.det(An)
+        #print("determinant A=", det_A)
+
+        Eigenvalues, V = scipy.linalg.eig(An)  # find eigenvalues and right eigenvectors(V)
+        V = sp.csc_matrix(V)
+
+        W = sp.csc_matrix(inv(V).T)  # left eigenvectors
+
+
+        Wabs = sp.lil_matrix((W.shape[0], W.shape[0]))
+        Vabs = sp.lil_matrix((V.shape[0], V.shape[0]))
+        for row in range(W.shape[0]):
+            for column in range(W.shape[0]):
+                Wabs[row, column] = abs(W[row, column])
+                Vabs[row, column] = abs(V[row, column])
+        Wabs = Wabs.tocsc()
+        Vabs = Vabs.tocsc()
+        PF = Wabs.multiply(Vabs)
+        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
+
+        for i in range(len(Eigenvalues)):
+            PF[:, i] /= PF_abs[0, i]
+
+        # Stability: select positive and zero eigenvalues
+        tol = 1e-6  # numerical tolerance for eigenvalues = 0
+        unstable_eigs = Eigenvalues[np.real(Eigenvalues) > tol]
+        zero_eigs = Eigenvalues[abs(np.real(Eigenvalues)) <= tol]
+        stable_eigs = Eigenvalues[np.real(Eigenvalues) < -tol]
+
+        stability = ""
+        if unstable_eigs.size == 0:
+            if zero_eigs.size == 0:
+                stability = "Asymptotically stable"
+            else:
+                stability = "Marginally stable"
+        else:
+            stability = "Unstable"
+
+        if plot == True:
+            x = Eigenvalues.real
+            y = Eigenvalues.imag
+
+            plt.scatter(x, y, marker='x', color='blue')
+            plt.xlabel("Re [s -1]")
+            plt.ylabel("Im [s -1]")
+            plt.title("Stability plot")
+            # plt.xlim([-5, 5])
+            # plt.ylim([-5, 5])
+            plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
+            plt.axvline(0, color='black', linewidth=1)
+            # plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+
+        return stability, Eigenvalues, V, W, PF, A

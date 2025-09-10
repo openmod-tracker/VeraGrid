@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import numpy as np
-from matplotlib import pyplot as plt
+import pandas as pd
+
 
 import sys
 import time
@@ -15,6 +16,8 @@ from VeraGridEngine.Devices.Aggregation.rms_event import RmsEvent
 from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 import VeraGridEngine.api as gce
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Power flow
@@ -41,7 +44,7 @@ grid = gce.MultiCircuit()
 # Buses
 bus1 = gce.Bus(name="Bus1", Vnom=20)
 bus2 = gce.Bus(name="Bus2", Vnom=20)
-bus3 = gce.Bus(name="Bus3", Vnom=20)
+bus3 = gce.Bus(name="Bus3", Vnom=20, is_slack=True)
 bus4 = gce.Bus(name="Bus4", Vnom=20)
 bus5 = gce.Bus(name="Bus5", Vnom=230)
 bus6 = gce.Bus(name="Bus6", Vnom=230)
@@ -121,7 +124,6 @@ line13 = grid.add_line(
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 # Transformers
-
 trafo_G1 = grid.add_line(
     gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
@@ -265,8 +267,13 @@ grid.add_generator(bus=bus4, api_obj=gen4)
 # Events
 # ---------------------------------------------------------------------------------------
 
-event1 = RmsEvent(load1, "Pl0", 2.5, -9.0)
+event1 = RmsEvent(load1, "Pl0", np.array([2.5, 12.5]), np.array([-9.0, -9.01]))
+
+event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
+
+
 grid.add_rms_event(event1)
+grid.add_rms_event(event2)
 
 # # Run power flow
 options = gce.PowerFlowOptions(
@@ -307,15 +314,7 @@ ss, init_guess = gce.initialize_rms(grid, res)
 print("init_guess")
 print(init_guess)
 
-# TODO: events definition and access to variable still needs to be addressed
 
-# # # Events
-# event1 = RmsEvent('Load', Pl0_7, 2500, -9.0)
-# event1 = RmsEvent('Load', grid.lines[7].rms_model.model.V('Pl07'), 2500, -9.0)
-
-# params_mapping = {
-#     # Pl0_7: Sb7.real + Ps0_7.value
-# }
 params_mapping = {}
 
 # TODO: initi_guess in hardcoded was Dict(Var, float), now it's Dict((int(uid), str(name)), float) for debugging. So slv.build_init_vars_vector(init_guess) and slv.sort_vars(init_guess) needs to be addressed
@@ -349,7 +348,7 @@ print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
 # TODO: check results and implement test once intilize_rms is wokring!
 # # Save to csv
-slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y)
+slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 
 # # Plot
 # plt.plot(t, y[:, slv.get_var_idx(slv._state_vars[1])], label="ω (pu)")
@@ -365,3 +364,23 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y)
 # plt.grid(True)
 # plt.tight_layout()
 # plt.show()
+
+#stability assessment
+start_stability = time.time()
+
+stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
+
+end_stability = time.time()
+print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
+
+print("State matrix A:", A.toarray())
+print("Stability assessment:", stab)
+print("Eigenvalues:", Eigenvalues)
+#print("Right eivenvectors:", V)
+#print("Left eigenvectors:", W)
+print("Participation factors:", PF.toarray())
+
+df_Eig = pd.DataFrame(Eigenvalues)
+df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
+df_A = pd.DataFrame(A.toarray())
+df_A.to_csv("A_results.csv", index=False , header = False)
