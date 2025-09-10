@@ -12,9 +12,10 @@ print(up_two_directories)
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
-import pandas as pd
 import math
+import pickle
 import numpy as np
+import warnings
 from matplotlib import pyplot as plt
 
 # from VeraGridEngine.Utils.Symbolic.events import Events, Event
@@ -22,6 +23,8 @@ from VeraGridEngine.Devices.Dynamic.events import RmsEvents, RmsEvent
 from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var, cos, sin
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.MultiLinear.multilinearize import *
+from VeraGridEngine.Utils.MultiLinear.differential_var import DiffVar, LagVar
+from VeraGridEngine.Utils.MultiLinear.diff_blocksolver import DiffBlock, DiffBlockSolver
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 import VeraGridEngine.api as gce
 
@@ -63,7 +66,7 @@ dg = Var("dg")
 tm = Var("tm")
 et = Var("et")
 
-generator_block = Block(
+generator_block = DiffBlock(
     state_eqs=[
         (2 * pi * fn) * (omega - omega_ref),  # dδ/dt
         (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
@@ -86,8 +89,133 @@ generator_block = Block(
     parameters=[]
 )
 
-#ML_block = multilinearize_block(generator_block)
-#print(ML_block)
+u_sin = Var('u_sin')
+du_sin = DiffVar.get_or_create('du_sin', base_var= u_sin)
+u_cos = Var('u_cos')
+du_cos = DiffVar.get_or_create('du_cos', base_var= u_cos)
+v_sin = Var('v_sin')
+delta_dt = DiffVar.get_or_create('delta_dt', base_var = delta)
+dg_dt = DiffVar.get_or_create('dg_dt', base_var = dg)
+
+u_sin_lag0 = LagVar.get_or_create(
+    f"{u_sin.name}_lag_{0}", base_var=u_sin, lag=0)
+u_sin_lag1 = LagVar.get_or_create(
+    f"{u_sin.name}_lag_{0}", base_var=u_sin, lag=0)
+u_cos_lag0 = LagVar.get_or_create(
+    f"{u_sin.name}_lag_{0}", base_var=u_cos, lag=0)
+u_cos_lag1 = LagVar.get_or_create(
+    f"{u_sin.name}_lag_{0}", base_var=u_cos, lag=0)
+
+generator_block_ML_0 = DiffBlock(
+    state_eqs=[
+        (2 * pi * fn) * (omega - omega_ref),  # dδ/dt
+        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
+        (omega - omega_ref),
+    
+    ],
+    state_vars=[delta, omega, et],
+    algebraic_eqs=[
+        psid - (ra * i_q + v_q),
+        psiq + (ra * i_d + v_d),
+        0 - (psid + xd * i_d - vf),
+        0 - (psiq + xd * i_q),
+        v_d - (Vg * u_sin),
+        v_q - (Vg * u_cos),
+        t_e - (psid * i_q - psiq * i_d),
+        P_g - (v_d * i_d + v_q * i_q),
+        Q_g - (v_q * i_d - v_d * i_q),
+        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
+    ],
+    differential_eqs = [
+        du_cos + (delta_dt - dg_dt)*(u_sin),
+        du_sin - (delta_dt - dg_dt)*(u_cos),
+    ],
+    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin],
+    parameters=[],
+    diff_vars= [delta_dt, dg_dt, du_cos, du_sin],
+)
+
+#Intregral Generator
+
+sin4x = Var('sin4x')
+int_sin2 = Var('int_sin2')
+int_cos2 = Var('int_cos2')
+int_xcosx = Var('int_xcosx')
+int_xsinx = Var('int_xsinx')
+int_sin2cos2 = Var('int_sin2cos2')
+u = Var('u')
+domega_dt = DiffVar.get_or_create('domega_dt', base_var=omega)
+det_dt = DiffVar.get_or_create('det_dt', base_var=et)
+dt_int_sin2 = DiffVar.get_or_create('dt_int_sin2', base_var=int_sin2)
+dt_int_cos2 = DiffVar.get_or_create('dt_int_sin2', base_var=int_cos2)
+dt_int_sin2cos2 = DiffVar.get_or_create('dt_int_sin2cos2', base_var=int_sin2cos2)
+dt_int_xsinx = DiffVar.get_or_create('dt_int_xsinx', base_var=int_xsinx)
+dt_int_xcosx = DiffVar.get_or_create('dt_int_xcosx', base_var=int_xcosx)
+
+generator_block_integrator = DiffBlock(
+    state_eqs=[
+        (2 * pi * fn) * (omega - omega_ref),  # dδ/dt
+        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
+        (omega - omega_ref),
+    
+    ],
+    state_vars=[delta, omega, et],
+    algebraic_eqs=[
+        psid - (ra * i_q + v_q),
+        psiq + (ra * i_d + v_d),
+        0 - (psid + xd * i_d - vf),
+        0 - (psiq + xd * i_q),
+        v_d - (Vg * sin(delta - dg)),
+        v_q - (Vg * cos(delta - dg)),
+        t_e - (psid * i_q - psiq * i_d),
+        P_g - (v_d * i_d + v_q * i_q),
+        Q_g - (v_q * i_d - v_d * i_q),
+        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
+        int_sin2 - 0.5*((delta-dg)-u_sin*u_cos), 
+        int_sin2cos2 - 1/32*(4*(delta-dg) - (4*u_cos**3*u_sin - 4*u_sin**3*u_cos)),
+    ],
+    differential_eqs = [       
+        dt_int_sin2 - (delta_dt - dg_dt)*u_sin**2,
+        dt_int_sin2cos2 - (delta_dt - dg_dt)*delta_dt*u_sin**2*u_cos**2
+    ],
+    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin, int_sin2, int_cos2],
+    parameters=[],
+    diff_vars= [delta_dt, dg_dt, du_cos, du_sin, dt_int_sin2, dt_int_sin2cos2],
+    reformulated_vars= [u_sin],
+)
+
+generator_block_integrator2 = DiffBlock(
+    state_eqs=[
+        (2 * pi * fn) * (omega - omega_ref),  # dδ/dt
+        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
+        (omega - omega_ref),
+    
+    ],
+    state_vars=[delta, omega, et],
+    algebraic_eqs=[
+        psid - (ra * i_q + v_q),
+        psiq + (ra * i_d + v_d),
+        0 - (psid + xd * i_d - vf),
+        0 - (psiq + xd * i_q),
+        v_d - (Vg * sin(delta - dg)),
+        v_q - (Vg * cos(delta - dg)),
+        t_e - (psid * i_q - psiq * i_d),
+        P_g - (v_d * i_d + v_q * i_q),
+        Q_g - (v_q * i_d - v_d * i_q),
+        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
+        int_sin2 - 0.5*( (delta-dg)-u_sin*u_cos), 
+        int_xcosx - ((delta - dg)*u_sin + u_cos),
+    ],
+    differential_eqs = [
+        dt_int_sin2 - (delta_dt - dg_dt)*u_sin**2,
+        dt_int_xcosx - ((delta_dt - dg_dt)*(u_cos*(delta - dg))),
+    ],
+    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin, int_sin2, int_xcosx],
+    parameters=[],
+    diff_vars= [delta_dt, dg_dt, du_cos, du_sin, dt_int_sin2, dt_int_xcosx],
+    reformulated_vars= [u_sin, u_cos, delta, dg],
+)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Power flow
@@ -110,7 +238,14 @@ grid.add_generator(bus=bus1, api_obj=gen)
 load = gce.Load(name="Load1", P=10, Q=10)        # PQ
 grid.add_load(bus=bus2, api_obj=load)
 
-res = gce.power_flow(grid)
+if run_powerflow := False:
+    res = gce.power_flow(grid)
+    with open("pf_results.pkl", "wb") as f:
+        pickle.dump(res, f)
+else:
+    with open("src/trunk/dynamics_tensor/pf_results.pkl", "rb") as f:
+        res_loaded = pickle.load(f)
+        res = res_loaded
 
 print(f"Converged: {res.converged}")
 
@@ -193,218 +328,9 @@ load_block = Block(
 )
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Generator
-# ----------------------------------------------------------------------------------------------------------------------
-delta = Var("delta")
-omega = Var("omega")
-psid = Var("psid")
-psiq = Var("psiq")
-i_d = Var("i_d")
-i_q = Var("i_q")
-v_d = Var("v_d")
-v_q = Var("v_q")
-t_e = Var("t_e")
-P_g = Var("P_g")
-Q_g = Var("Q_g")
-Vg = Var("Vg")
-dg = Var("dg")
-tm = Var("tm")
-et = Var("et")
-delta_dt = Var('delta_dt')
-
-
-
-u_sin = Var('u_sin')
-v_sin = Var('v_sin')
-u_cos = Var('u_cos')
-v_cos = Var('v_cos')
-sin4x = Var('sin4x')
-int_sin2 = Var('int_sin2')
-int_xcosx = Var('int_xcosx')
-int_xsinx = Var('int_xsinx')
-int_sin2cos2 = Var('int_sin2cos2')
-
-
-generator_block_nonlinear = Block(
-    state_eqs=[
-        delta_dt,  # dδ/dt
-        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
-        (omega - omega_ref),
-        u_cos*(delta_dt),
-        -u_sin*(delta_dt),
-        
-
-    ],
-    state_vars=[delta, omega, et, u_sin, u_cos],
-    algebraic_eqs=[
-        psid - (ra * i_q + v_q),
-        psiq + (ra * i_d + v_d),
-        0 - (psid + xd * i_d - vf),
-        0 - (psiq + xd * i_q),
-        v_d - (Vg * sin(delta - dg)),
-        v_q - (Vg * cos(delta - dg)),
-        t_e - (psid * i_q - psiq * i_d),
-        P_g - (v_d * i_d + v_q * i_q),
-        Q_g - (v_q * i_d - v_d * i_q),
-        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
-        (2 * pi * fn) * (omega - omega_ref) - delta_dt
-    ],
-    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, delta_dt],
-    parameters=[]
-)
-
-
-generator_block_ML_0 = Block(
-    state_eqs=[
-        delta_dt,  # dδ/dt
-        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
-        (omega - omega_ref),
-        u_cos*(delta_dt),
-        -u_sin*(delta_dt),
-    ],
-    state_vars=[delta, omega, et, u_sin, u_cos],
-    algebraic_eqs=[
-        psid - (ra * i_q + v_q),
-        psiq + (ra * i_d + v_d),
-        0 - (psid + xd * i_d - vf),
-        0 - (psiq + xd * i_q),
-        v_d - (Vg * u_sin),
-        v_q - (Vg * u_cos),
-        t_e - (psid * i_q - psiq * i_d),
-        P_g - (v_d * i_d + v_q * i_q),
-        Q_g - (v_q * i_d - v_d * i_q),
-        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
-        (2 * pi * fn) * (omega - omega_ref) - delta_dt,
-        u_cos - v_cos
-    ],
-    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, v_cos, delta_dt],
-    parameters=[]
-)
-
-generator_block_ML_1 = Block(
-    state_eqs=[
-        delta_dt,  # dδ/dt
-        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
-        (omega - omega_ref),
-        delta_dt*u_sin**2,
-        delta_dt*u_sin**2*u_cos**2
-    ],
-    state_vars=[delta, omega, et, int_sin2, int_sin2cos2],
-    algebraic_eqs=[
-        psid - (ra * i_q + v_q),
-        psiq + (ra * i_d + v_d),
-        0 - (psid + xd * i_d - vf),
-        0 - (psiq + xd * i_q),
-        v_d - (Vg * u_sin),
-        v_q - (Vg * u_cos),
-        t_e - (psid * i_q - psiq * i_d),
-        P_g - (v_d * i_d + v_q * i_q),
-        Q_g - (v_q * i_d - v_d * i_q),
-        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
-        (2 * pi * fn) * (omega - omega_ref) - delta_dt,
-        int_sin2 - 0.5*((delta-dg)-u_sin*u_cos), 
-        int_sin2cos2 - 1/32*(4*(delta-dg) - (4*u_cos**3*u_sin - 4*u_sin**3*u_cos))
-    ],
-    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_sin, u_cos, delta_dt], 
-    parameters=[]
-)
-
-generator_block_ML_2 = Block(
-    state_eqs=[
-        delta_dt,  # dδ/dt
-        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
-        (omega - omega_ref),
-        delta_dt*(delta-dg)*u_cos,
-        delta_dt*(delta-dg)*u_sin,
-    ],
-    state_vars=[delta, omega, et, int_xcosx, int_xsinx],
-    algebraic_eqs=[
-        psid - (ra * i_q + v_q),
-        psiq + (ra * i_d + v_d),
-        0 - (psid + xd * i_d - vf),
-        0 - (psiq + xd * i_q),
-        v_d - (Vg * u_sin),
-        v_q - (Vg * u_cos),
-        t_e - (psid * i_q - psiq * i_d),
-        P_g - (v_d * i_d + v_q * i_q),
-        Q_g - (v_q * i_d - v_d * i_q),
-        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
-        (2 * pi * fn) * (omega - omega_ref) - delta_dt,
-        (delta-dg)*u_sin + u_cos,
-        -(delta-dg)*u_cos + u_sin,
-    ],
-    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_sin, u_cos, delta_dt], 
-    parameters=[]
-)
-
-# psid - (-ra * i_q + v_q),
-# psiq - (-ra * i_d + v_d),
-# i_d - (psid + xd * i_d - vf),
-# i_q - (psiq + xd * i_q),
-# v_d - (Vg * sin(delta - dg)),
-# v_q - (Vg * cos(delta - dg)),
-# t_e - (psid * i_q - psiq * i_d),
-# (v_d * i_d + v_q * i_q) - p_g,
-# (v_q * i_d - v_d * i_q) - Q_g
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Buses
-# ----------------------------------------------------------------------------------------------------------------------
-
-bus1_block = Block(
-    algebraic_eqs=[
-        P_g - Pline_from,
-        Q_g - Qline_from,
-        Vg - Vline_from,
-        dg - dline_from
-    ],
-    algebraic_vars=[Pline_from, Qline_from, Vg, dg]
-)
-
-bus2_block = Block(
-    algebraic_eqs=[
-        Pl - Pline_to,
-        Ql - Qline_to,
-    ],
-    algebraic_vars=[Pline_to, Qline_to]
-)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# System
-# ----------------------------------------------------------------------------------------------------------------------
-
-sys = Block(
-    children=[line_block, load_block, generator_block, bus1_block, bus2_block],
-    in_vars=[]
-)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Solver
-# ----------------------------------------------------------------------------------------------------------------------
-slv = BlockSolver(sys)
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Intialization
 # ----------------------------------------------------------------------------------------------------------------------
-grid = gce.MultiCircuit()
 
-bus1 = gce.Bus(name="Bus1", Vnom=10)
-bus2 = gce.Bus(name="Bus2", Vnom=10)
-grid.add_bus(bus1)
-grid.add_bus(bus2)
-
-line = gce.Line(name="line 1-2", bus_from=bus1, bus_to=bus2,
-                r=0.029585798816568046, x=0.07100591715976332, b=0.03, rate=100.0)
-grid.add_line(line)
-
-gen = gce.Generator(name="Gen1", P=10, vset=1.0) # PV
-grid.add_generator(bus=bus1, api_obj=gen)
-
-load = gce.Load(name="Load1", P=10, Q=10)        # PQ
-grid.add_load(bus=bus2, api_obj=load)
-
-res = gce.power_flow(grid)
 
 print(f"Converged: {res.converged}")
 
@@ -436,17 +362,71 @@ psiq0 = -ra.value * i_d0 - v_d0
 vf0 = psid0 + xd.value * i_d0
 dg0 = np.angle(v1)
 delta_dt0 = 0
+delta0 = delta0
 u_cos0 = np.cos(delta0 -dg0)
 u_sin0 = np.sin(delta0 -dg0)
 print(f"vf = {vf0}")
 
-params_mapping = {
-    Pl0: Sb2.real
-    #Ql0: 0.1
-}
+
 # ----------------------------------------------------------------------------------------------------------------------
-# Intialization
+# Load
 # ----------------------------------------------------------------------------------------------------------------------
+Ql = Var("Ql")
+Pl = Var("Pl")
+
+coeff_alfa = Const(1.8)
+Pl0 = Var("Pl0")
+Ql0 = Const(Sb2.imag)
+coeff_beta = Const(8.0)
+print(Sb2.imag)
+
+load_block = Block(
+    algebraic_eqs=[
+        Pl - Pl0,
+        Ql - Ql0
+    ],
+    algebraic_vars=[Ql, Pl],
+    parameters=[Pl0]
+)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Buses
+# ----------------------------------------------------------------------------------------------------------------------
+
+bus1_block = Block(
+    algebraic_eqs=[
+        P_g - Pline_from,
+        Q_g - Qline_from,
+        Vg - Vline_from,
+        dg - dline_from
+    ],
+    algebraic_vars=[Pline_from, Qline_from, Vg, dg]
+)
+
+bus2_block = Block(
+    algebraic_eqs=[
+        Pl - Pline_to,
+        Ql - Qline_to,
+    ],
+    algebraic_vars=[Pline_to, Qline_to]
+)
+
+
+#-------------------------------------------------------------------------------------------------
+# System
+# ----------------------------------------------------------------------------------------------------------------------
+
+sys = DiffBlock(
+    children=[line_block, load_block, generator_block_integrator2, bus1_block, bus2_block],
+    in_vars=[]
+)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Solver
+# ----------------------------------------------------------------------------------------------------------------------
+slv = DiffBlockSolver(sys)
+
+
 vars_mapping = {
     dline_from: np.angle(v1),
     dline_to: np.angle(v2),
@@ -472,17 +452,35 @@ vars_mapping = {
     P_g: Sb1.real,
     Q_g: Sb1.imag,
     tm: te0,
+    #u:0,
     u_sin: u_sin0,
     u_cos: u_cos0,
+    #u_sin_delta: np.sin(delta0),
+    #u_cos_delta: np.cos(delta0),
+    #u_cos_dg: np.cos(dg0),
+    #u_sin_dg: np.sin(dg0),
     #v_sin: u_sin0,
     #v_cos: u_cos0,
-    #int_sin2: 0.5*((delta0-dg0)-u_sin0*u_cos0),
-    #int_sin2cos2:  1/32*(4*(delta0-dg0) - (4*u_cos0**3*u_sin0 - 4*u_sin0**3*u_cos)),
-    #int_xcosx:  (delta0 -dg0)*(u_sin0)+ u_cos0,
-    #int_xsinx: -(delta0 -dg0)*(u_cos0)+ u_sin0,
-    delta_dt: 0
+    int_sin2: 0.5*((delta0-dg0)-u_sin0*u_cos0),
+    #int_sin2cos2: 1/32*(4*(delta0-dg0) - (4*u_cos0**3*u_sin0 - 4*u_sin0**3*u_cos0)),
+    #int_cos2: 0.5*(-(delta0-dg0)+u_sin0*u_cos0),
+    int_xcosx: (delta0 - dg0)*u_sin0 - u_cos0,
 }
 
+# Consistency check 
+
+diff_vars_mapping = {
+}
+
+diff_vars_mapping = {
+    delta_dt:0,
+    dg_dt:0,
+    du_cos: 0,
+    du_sin: 0,
+    dt_int_sin2:0,
+    dt_int_xcosx:0,
+    #dt_int_cos2:0,
+}
 # Consistency check 
 residuals = {
     "f1: (2 * pi * fn) * (omega - omega_ref)": (2 * pi.value * fn.value) * (1.0 - omega_ref.value),
@@ -513,12 +511,23 @@ for eq, val in residuals.items():
 # Events
 # ---------------------------------------------------------------------------------------
 
-event1 = RmsEvent('Load', Pl0, 2500, 0.15)
+event1 = RmsEvent('Load', Pl0, 1000, 0.15)
 #event2 = Event(Ql0, 5000, 0.3)
 my_events = RmsEvents([event1])
+try:
+    params_mapping = {
+        slv.dt: 0.001,
+        Pl0: Sb2.real,
+    }
+except:
+    params_mapping = {
+        Pl0: Sb2.real,
+    }
 
 params0 = slv.build_init_params_vector(params_mapping)
 x0 = slv.build_init_vars_vector(vars_mapping)
+if isinstance(slv, DiffBlockSolver):
+    dx0 = slv.build_init_diffvars_vector(diff_vars_mapping)
 
 
 # x0 = slv.initialize_with_newton(x0=slv.build_init_vars_vector(vars_mapping),
@@ -545,36 +554,69 @@ x0 = slv.build_init_vars_vector(vars_mapping)
 
 vars_in_order = slv.sort_vars(vars_mapping)
 
-t, y = slv.simulate(
-    t0=0,
-    t_end=10.0,
-    h=0.001,
-    x0=x0,
-    params0=params0,
-    events_list=my_events,
-    method="implicit_euler"
-)
+if isinstance(slv, DiffBlockSolver):
+    t, y = slv.simulate(
+        t0=0,
+        t_end= 1.2,
+        h=0.001,
+        x0=x0,
+        dx0 = dx0,
+        params0=params0,
+        events_list=my_events,
+        method="implicit_euler",
+        followed_vars = [u_cos, u_sin],
+        verbose=False,
+    )
+else:
+    t, y = slv.simulate(
+        t0=0,
+        t_end=5.0,
+        h=0.001,
+        x0=x0,
+        params0=params0,
+        events_list=my_events,
+        method="implicit_euler",
+    )
 
 # save to csv
 slv.save_simulation_to_csv('simulation_results.csv', t, y)
+colors = plt.cm.tab10.colors  # 10 distinct colors as an RGBA tuple list
 
 fig = plt.figure(figsize=(14, 10))
 
 #Generator state variables
-# plt.plot(t, y[:, slv.get_var_idx(omega)], label="ω (pu)", color='red')
-# plt.plot(t, y[:, slv.get_var_idx(dg)], label="dg", color='red')
-plt.plot(t, y[:, slv.get_var_idx(delta)], label="delta", color='blue')
-# plt.plot(t, y[:, slv.get_var_idx(u_cos)], label="u cos (pu)", color='blue')
-# plt.plot(t, y[:, slv.get_var_idx(u_sin)], label="u sin (pu)", color='yellow')
+plt.plot(t, y[:, slv.get_var_idx(omega)], label="ω (pu)", color='red')
+
+try:
+    plt.plot(t, y[:, slv.get_var_idx(u_cos)], label="u cos (pu)", color='blue')
+    plt.plot(t, y[:, slv.get_var_idx(u_sin)], label="u sin (pu)", color='yellow')
+except:
+    _ = 0
 
 delta_idx = slv.get_var_idx(delta)  
 dg_idx = slv.get_var_idx(dg)  
 cos_delta_real = np.cos(y[:, delta_idx] - y[:, dg_idx]) 
 sin_delta_real = np.sin(y[:, delta_idx] - y[:, dg_idx]) 
-# plt.plot(t, cos_delta_real, label="cos delta real (pu)", color='gray')
-# plt.plot(t, sin_delta_real, label="sin delta real (pu)", color='teal')
+try:
+    plt.plot(t, cos_delta_real, label="cos delta real (pu)", color='gray')
+    plt.plot(t, sin_delta_real, label="sin delta real (pu)", color='teal')
+except:
+    _ = 0   
+
+
+
+try:
+    int_sin2_vals = np.sin(y[:, slv.get_var_idx(int_sin2)]) 
+    int_sin2cos2_vals = np.sin(y[:, slv.get_var_idx(int_sin2cos2)]) 
+    plt.plot(t, int_sin2_vals, label="int_sin_vals (pu)", color=colors[3])
+    plt.plot(t, int_sin2cos2_vals, label="int_sin2cos2_vals (pu)", color=colors[4] )
+except:
+    _ = 0   
+
+
 #plt.plot(t, y[:, slv.get_var_idx(delta)], label="delta", color='black')
-# plt.plot(t, y[:, slv.get_var_idx(t_e)], label="Te (pu)")
+#plt.plot(t, y[:, slv.get_var_idx(dg)], label="delta", color='black')
+#plt.plot(t, y[:, slv.get_var_idx(t_e)], label="Te (pu)")
 #plt.plot(t, y[:, slv.get_var_idx(delta)], label="δ (rad)")
 #plt.plot(t, y[:, slv.get_var_idx(et)], label="et (pu)")
 
