@@ -229,6 +229,7 @@ class SimulationsMain(TimeEventsMain):
         self.ui.actionFuse_devices.triggered.connect(self.fuse_devices)
         self.ui.actionInvestments_evaluation.triggered.connect(self.run_investments_evaluation)
         self.ui.actionReliability.triggered.connect(self.reliability_dispatcher)
+        self.ui.actionRun_Dynamic_RMS_Simulation.triggered.connect(self.rms_dispatcher)
 
         self.ui.actionUse_clustering.triggered.connect(self.activate_clustering)
         self.ui.actionNodal_capacity.triggered.connect(self.run_nodal_capacity)
@@ -2998,7 +2999,7 @@ class SimulationsMain(TimeEventsMain):
 
     def run_rms(self):
         """
-        Run reliability study
+        Run rms simulation
         :return:
         """
         if self.circuit.valid_for_simulation():
@@ -3020,12 +3021,12 @@ class SimulationsMain(TimeEventsMain):
                     drv = sim.RmsSimulationDriver(grid=self.circuit, options=options)
 
                     self.session.run(drv,
-                                     post_func=self.post_reliability,
+                                     post_func=self.post_rms,
                                      prog_func=self.ui.progressBar.setValue,
                                      text_func=self.ui.progress_label.setText)
 
                 else:
-                    self.show_warning_toast('Another reliability study is running already...')
+                    self.show_warning_toast('Another rms simulation is running already...')
             else:
                 self.show_warning_toast('Reliability studies need time data...')
         else:

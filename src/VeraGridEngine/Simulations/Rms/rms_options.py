@@ -13,7 +13,7 @@ class RmsOptions:
                  simulation_time: float = 5,
                  max_integrator_iterations: int = 20,
                  tolerance: float = 1e-6,
-                 integration_method: DynamicIntegrationMethod = DynamicIntegrationMethod.Trapezoid):
+                 integration_method: DynamicIntegrationMethod = DynamicIntegrationMethod.BackEuler):
         """
         RmsOptions
         :param time_step: time step of the simulations (s)
