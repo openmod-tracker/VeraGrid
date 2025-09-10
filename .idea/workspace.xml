@@ -29,11 +29,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="improoved get_jacobian function">
-      <change afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/Rms/rms_worker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/MainWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/MainWindow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/MainWindow.ui" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/MainWindow.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/SubClasses/simulations.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/SubClasses/simulations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/VeraGridMain.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/VeraGridMain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/icons_rc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/Main/icons_rc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/Rms/rms_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/Rms/rms_driver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/Rms/rms_options.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/Rms/rms_options.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/types.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,6 +181,7 @@
     "Python.ExecuteGridCal.executor": "Run",
     "Python.ExecuteVeraGrid.executor": "Run",
     "Python.GridCalMain.executor": "Run",
+    "Python.MainWindow.executor": "Run",
     "Python._callers.executor": "Debug",
     "Python._piecewise_try.executor": "Run",
     "Python.alex.executor": "Debug",
