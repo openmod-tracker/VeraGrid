@@ -624,7 +624,7 @@ class SystemVars:
 
             self.system_total_energy_cost = np.nan_to_num(gen_cost).sum(axis=1)
             self.system_total_energy_cost += np.nan_to_num(shedding_cost).sum(axis=1)
-            self.system_total_energy_cost += np.nan_to_num(overload_cost).sum(axis=1)
+            # self.system_total_energy_cost += np.nan_to_num(overload_cost).sum(axis=1)
 
             self.system_unit_energy_cost = self.system_total_energy_cost / np.nan_to_num(gen_p).sum(axis=1)
 
@@ -896,20 +896,34 @@ def add_linear_generation_formulation(t: Union[int, None],
 
                 # the generator is not dispatchable at time step
                 if p > 0:
+                    if k < 5:
+                        gen_vars.shedding[t, k] = 0
 
-                    gen_vars.shedding[t, k] = prob.add_var(0, p, join("gen_shedding_", [t, k], "_"))
+                        gen_vars.p[t, k] = p
 
-                    gen_vars.p[t, k] = p - gen_vars.shedding[t, k]
+                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
+                    else:
+                        gen_vars.shedding[t, k] = prob.add_var(0, p, join("gen_shedding_", [t, k], "_"))
 
-                    gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
+                        gen_vars.p[t, k] = p - gen_vars.shedding[t, k]
+
+                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
 
                 elif p < 0:
+
+                    if k < 5:
+                        gen_vars.shedding[t, k] = 0
+
+                        gen_vars.p[t, k] = p
+
+                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
+                    else:
                     # the negative sign is because P is already negative here, to make it positive
-                    gen_vars.shedding[t, k] = prob.add_var(0, -p, join("gen_shedding_", [t, k], "_"))
+                        gen_vars.shedding[t, k] = prob.add_var(0, -p, join("gen_shedding_", [t, k], "_"))
 
-                    gen_vars.p[t, k] = p + gen_vars.shedding[t, k]
+                        gen_vars.p[t, k] = p + gen_vars.shedding[t, k]
 
-                    gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
+                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
 
                 else:
                     # the generation value is exactly zero
@@ -1428,10 +1442,20 @@ def add_linear_hvdc_formulation(t: int,
 
             if hvdc_data_t.control_mode[m] == HvdcControlType.type_0_free:
 
+                # declare the flow var
+                hvdc_vars.flows[t, m] = prob.add_var(lb=-hvdc_data_t.rates[m] / Sbase,
+                                                     ub=hvdc_data_t.rates[m] / Sbase,
+                                                     name=join("hvdc_flow_", [t, m], "_"))
+
                 # set the flow based on the angular difference
                 P0 = hvdc_data_t.Pset[m] / Sbase
                 k = hvdc_data_t.angle_droop[m]
-                hvdc_vars.flows[t, m] = (P0 + k * (bus_vars.Va[t, fr] - bus_vars.Va[t, to]))
+                # hvdc_vars.flows[t, m] = (P0 + k * (bus_vars.Va[t, fr] - bus_vars.Va[t, to]))
+
+                prob.add_cst(
+                    cst=hvdc_vars.flows[t, m] == (P0 + k * (bus_vars.Va[t, fr] - bus_vars.Va[t, to])),
+                    name=join("Pmode3_", [t, m], "_")
+                )
 
                 # add the injections matching the flow
                 bus_vars.Pbalance[t, fr] -= hvdc_vars.flows[t, m]
