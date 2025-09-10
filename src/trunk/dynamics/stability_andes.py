@@ -68,13 +68,17 @@ def main():
    print("Right eigenvectors:", eig.N)
    print("Left eigenvectors:", eig.W)
    print("Participation factors:", eig.pfactors)
+   # print("what the hell is gyx:", eig.gyx)
+   # print("Condició de A:", np.linalg.cond(eig.As))
+   #print("algebraiques line:",andes.System().GENCLS.doc())
+
 
    dae = ss.dae
 
-   return eig.As, eig.mu, eig.N, eig.W, eig.pfactors, dae.fx, dae.fy, dae.gx, dae.gy, dae.Tf
+   return eig.As, eig.mu, eig.N, eig.W, eig.pfactors, dae.fx, dae.fy, dae.gx, dae.gy, dae.Tf, eig.gyx
 
 if __name__ == '__main__':
-    As, mu, N, W, pfactors, fx, fy, gx, gy, Tf =  main()
+    As, mu, N, W, pfactors, fx, fy, gx, gy, Tf, gyx =  main()
 
 df_Eig = pd.DataFrame(mu)
 df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False , header = False)

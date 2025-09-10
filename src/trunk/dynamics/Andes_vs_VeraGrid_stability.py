@@ -37,8 +37,8 @@ def merge_stability_results ( csv1, csv2):
     if not len(VeraGrid_Eig_ord) == len(Andes_Eig_ord):
         VeraGrid_Eig_ord = VeraGrid_Eig_ord[:-4]
     """
-    #print("vera eig ord:", VeraGrid_Eig_ord)
-    #print("andes eig ord:", Andes_Eig_ord)
+    print("vera eig ord:", VeraGrid_Eig_ord)
+    print("andes eig ord:", Andes_Eig_ord)
     print("vera eig ord abs:", np.abs(VeraGrid_Eig_ord))
     print("andes eig ord abs:", np.abs(Andes_Eig_ord))
 
@@ -62,8 +62,8 @@ def merge_stability_results ( csv1, csv2):
     x2= Andes_Eig_ord.real
     y2 = Andes_Eig_ord.imag
 
-    plt.scatter(x1, y1, marker='o', color='orange', label='VeraGrid')
-    plt.scatter(x2, y2, marker='x', color='blue', label='Andes')
+    plt.scatter(x2, y2, marker='o', color='orange', label='Andes')
+    plt.scatter(x1, y1, marker='x', color='blue', label='VeraGrid')
     plt.xlabel("Re [s -1]")
     plt.ylabel("Im [s -1]")
     plt.title("Stability plot")
