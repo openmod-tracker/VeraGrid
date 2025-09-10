@@ -3004,31 +3004,28 @@ class SimulationsMain(TimeEventsMain):
         """
         if self.circuit.valid_for_simulation():
 
-            if self.circuit.get_time_number() > 0:
+            if not self.session.is_this_running(SimulationTypes.RmsDynamic_run):
 
-                if not self.session.is_this_running(SimulationTypes.RmsDynamic_run):
+                self.add_simulation(SimulationTypes.RmsDynamic_run)
 
-                    self.add_simulation(SimulationTypes.RmsDynamic_run)
+                self.LOCK()
 
-                    self.LOCK()
+                # Compile the grid
+                self.ui.progress_label.setText('Compiling the grid...')
+                QtGui.QGuiApplication.processEvents()
 
-                    # Compile the grid
-                    self.ui.progress_label.setText('Compiling the grid...')
-                    QtGui.QGuiApplication.processEvents()
+                options = sim.RmsOptions()
 
-                    options = sim.RmsOptions()
+                drv = sim.RmsSimulationDriver(grid=self.circuit, options=options)
 
-                    drv = sim.RmsSimulationDriver(grid=self.circuit, options=options)
+                self.session.run(drv,
+                                post_func=self.post_rms,
+                                prog_func=self.ui.progressBar.setValue,
+                                text_func=self.ui.progress_label.setText)
 
-                    self.session.run(drv,
-                                     post_func=self.post_rms,
-                                     prog_func=self.ui.progressBar.setValue,
-                                     text_func=self.ui.progress_label.setText)
-
-                else:
-                    self.show_warning_toast('Another rms simulation is running already...')
             else:
-                self.show_warning_toast('Reliability studies need time data...')
+                self.show_warning_toast('Another rms simulation is running already...')
+
         else:
             pass
 

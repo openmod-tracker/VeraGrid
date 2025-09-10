@@ -64,30 +64,37 @@ class RmsSimulationDriver(DriverTemplate):
         # else:
         #     raise ValueError(f"integrator not implemented :( {self.options.integration_method}")
 
-        options = gce.PowerFlowOptions(
-            solver_type=gce.SolverType.NR,
-            retry_with_other_methods=False,
-            verbose=0,
-            initialize_with_existing_solution=True,
-            tolerance=1e-6,
-            max_iter=25,
-            control_q=False,
-            control_taps_modules=True,
-            control_taps_phase=True,
-            control_remote_voltage=True,
-            orthogonalize_controls=True,
-            apply_temperature_correction=True,
-            branch_impedance_tolerance_mode=gce.BranchImpedanceMode.Specified,
-            distributed_slack=False,
-            ignore_single_node_islands=False,
-            trust_radius=1.0,
-            backtracking_parameter=0.05,
-            use_stored_guess=False,
-            initialize_angles=False,
-            generate_report=False,
-            three_phase_unbalanced=False
-        )
-        res = gce.power_flow(self.grid, options=options)
+        # options = gce.PowerFlowOptions(
+        #     solver_type=gce.SolverType.NR,
+        #     retry_with_other_methods=False,
+        #     verbose=0,
+        #     initialize_with_existing_solution=True,
+        #     tolerance=1e-6,
+        #     max_iter=25,
+        #     control_q=False,
+        #     control_taps_modules=True,
+        #     control_taps_phase=True,
+        #     control_remote_voltage=True,
+        #     orthogonalize_controls=True,
+        #     apply_temperature_correction=True,
+        #     branch_impedance_tolerance_mode=gce.BranchImpedanceMode.Specified,
+        #     distributed_slack=False,
+        #     ignore_single_node_islands=False,
+        #     trust_radius=1.0,
+        #     backtracking_parameter=0.05,
+        #     use_stored_guess=False,
+        #     initialize_angles=False,
+        #     generate_report=False,
+        #     three_phase_unbalanced=False
+        # )
+        # res = gce.power_flow(self.grid, options=options)
+
+
+        options = PowerFlowOptions()
+
+        driver = PowerFlowDriver(grid=grid, options=options, engine=engine)
+
+        driver.run()
 
         t = Var("t")
 
