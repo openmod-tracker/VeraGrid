@@ -1005,37 +1005,32 @@ class BlockSolver:
         fy = self._j12_fn(z, params)  # ∂f_state/∂y
         gx = self._j21_fn(z, params)  # ∂g/∂x
         gy = self._j22_fn(z, params)  # ∂g/∂y
-        print("size fx:", fx.shape)
-        print("size fy:", fy.shape)
-        print("size gx:", gx.shape)
-        print("size gy:", gy.shape)
-        print("fx:",fx.toarray())
-        print("fx:", fx)
-        print("fy:", fy.toarray())
-        print("fy:",fy)
-        print("gx:",gx.toarray())
-        print("gx:", gx)
+        # print("size fx:", fx.shape)
+        # print("size fy:", fy.shape)
+        # print("size gx:", gx.shape)
+        # print("size gy:", gy.shape)
+        # print("fx:",fx.toarray())
+        # print("fx:", fx)
+        # print("fy:", fy.toarray())
+        # print("fy:",fy)
+        # print("gx:",gx.toarray())
+        # print("gx:", gx)
+        # print("gy:",gy.toarray())
+        # print("gy:", gy)
 
-        #gy_lil = gy.tolil()
+        # df_gy = pd.DataFrame(gy.toarray())
+        # df_gy.to_csv("gy_results.csv", index=False, header=False)
 
-        # Set values in rows 22 to 141 and columns 0 to 21 to zero
-        #gy_lil[22:142, 0:22] = 0
-        #for i in range(22):
-        #    gy_lil[i, i] = 1
-        # Convert back to CSC format
-        #gy = gy_lil.tocsc()
+        # I = identity(gy.shape[0], format='csc')
+        # gy_inv = spsolve(gy, I)
+        gyx = spsolve(gy, gx)
 
-        print("gy:",gy.toarray())
-        print("gy:", gy)
-
-        df_gy = pd.DataFrame(gy.toarray())
-        df_gy.to_csv("gy_results.csv", index=False, header=False)
-
-        I = identity(gy.shape[0], format='csc')
-        gy_inv = spsolve(gy, I)
-
-        A = (fx - fy @ gy_inv @ gx) # sparse state matrix csc matrix
+        # A = (fx - fy @ gy_inv @ gx) # sparse state matrix csc matrix
+        A = (fx - fy @ gyx)  # sparse state matrix csc matrix
         An = A.toarray()
+
+        print("Condició de A:", np.linalg.cond(An))
+
         num_states = A.shape[0]
 
         Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)  #find eigenvalues, right(V) and left(W)  eigenvectors. Returns exactly the same numbers as np.linalg.eig(An)
