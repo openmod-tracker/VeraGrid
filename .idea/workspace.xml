@@ -28,10 +28,11 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Ybus has split into Ybus_series_helm and Ybus_shunt_helm">
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="helm_power_flow.py has been updated to support three-phase power flow.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/power_flow_worker_3ph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/transformer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/transformer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,7 +216,7 @@
     "Python.demo_code2.executor": "Debug",
     "Python.demo_code3.executor": "Run",
     "Python.estabanell.executor": "Debug",
-    "Python.full_trafo_validation.executor": "Debug",
+    "Python.full_trafo_validation.executor": "Run",
     "Python.grid_merge.executor": "Run",
     "Python.helm_power_flow.executor": "Debug",
     "Python.ieee9.executor": "Run",
@@ -2343,7 +2344,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="698" />
+    <option name="localTasksCounter" value="699" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2389,7 +2390,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="5.3.30" />
     <MESSAGE value="Added the ability to recolour the schematic with the design values" />
     <MESSAGE value="minor refactorings" />
     <MESSAGE value="Important opf refurbishing&#10;Added tests about generation, battery and load shedding" />
@@ -2414,7 +2414,8 @@
     <MESSAGE value="Early unification of TopologicalNode and ConnectivityNode" />
     <MESSAGE value="First steps." />
     <MESSAGE value="Ybus has split into Ybus_series_helm and Ybus_shunt_helm" />
-    <option name="LAST_COMMIT_MESSAGE" value="Ybus has split into Ybus_series_helm and Ybus_shunt_helm" />
+    <MESSAGE value="helm_power_flow.py has been updated to support three-phase power flow." />
+    <option name="LAST_COMMIT_MESSAGE" value="helm_power_flow.py has been updated to support three-phase power flow." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2637,6 +2638,16 @@
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
           <line>456</line>
           <option name="timeStamp" value="2629" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
+          <line>324</line>
+          <option name="timeStamp" value="2631" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
+          <line>393</line>
+          <option name="timeStamp" value="2632" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

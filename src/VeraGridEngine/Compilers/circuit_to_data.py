@@ -1582,6 +1582,18 @@ def get_branch_data(
              data.Ytt3[k3, :]) = elm.transformer_admittance(vtap_f=data.virtual_tap_f[ii],
                                                             vtap_t=data.virtual_tap_t[ii],
                                                             logger=logger)
+            (data.Yff3_s[k3, :],
+             data.Yft3_s[k3, :],
+             data.Ytf3_s[k3, :],
+             data.Ytt3_s[k3, :]) = elm.transformer_series_admittance(vtap_f=data.virtual_tap_f[ii],
+                                                                     vtap_t=data.virtual_tap_t[ii],
+                                                                     logger=logger)
+            (data.Yff3_sh[k3, :],
+             data.Yft3_sh[k3, :],
+             data.Ytf3_sh[k3, :],
+             data.Ytt3_sh[k3, :]) = elm.transformer_shunt_admittance(vtap_f=data.virtual_tap_f[ii],
+                                                                     vtap_t=data.virtual_tap_t[ii],
+                                                                     logger=logger)
             data.phA[ii] = 1
             data.phB[ii] = 1
             data.phC[ii] = 1

@@ -570,17 +570,469 @@ class Transformer2W(ControllableBranchParent):
         conn_y_from = self.conn_f == WindingType.Star or self.conn_f == WindingType.GroundedStar
         conn_y_to = self.conn_t == WindingType.Star or self.conn_t == WindingType.GroundedStar
 
-        # phase_displacement = np.deg2rad(self.vector_group_number * 30.0)
-        if self.conn_f == WindingType.Delta and conn_y_to: # Dy
-            phase_displacement = np.deg2rad(60.0)
-
-        elif conn_y_from and self.conn_t == WindingType.Delta: # Yd
-            phase_displacement = np.deg2rad(0.0)
-
-        else:
-            phase_displacement = 0.0
+        phase_displacement = np.deg2rad(self.vector_group_number * 0.0)
 
         ys = 1.0 / (self.R + 1j * self.X + 1e-20)
+        ysh = self.G + 1j * self.B
+
+        yff = (ys + ysh / 2) / (self.tap_module * self.tap_module * vtap_f * vtap_f)
+        yft = -ys / (self.tap_module * np.exp(-1.0j * (self.tap_phase + phase_displacement)) * vtap_f * vtap_t)
+        ytf = -ys / (self.tap_module * np.exp(1.0j * (self.tap_phase + phase_displacement)) * vtap_t * vtap_f)
+        ytt = (ys + ysh / 2) / (vtap_t * vtap_t)
+
+        if conn_y_from and conn_y_to:  # Yy
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft, 0, 0],
+                [0, yft, 0],
+                [0, 0, yft]
+            ])
+            Ytf = np.array([
+                [ytf, 0, 0],
+                [0, ytf, 0],
+                [0, 0, ytf]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif conn_y_from and self.conn_t == WindingType.Delta:  # 'Yd'
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / np.sqrt(3), -yft / np.sqrt(3), 0],
+                [0, yft / np.sqrt(3), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), 0, yft / np.sqrt(3)]
+            ])
+            Ytf = np.array([
+                [ytf / np.sqrt(3), 0, -ytf / np.sqrt(3)],
+                [-ytf / np.sqrt(3), ytf / np.sqrt(3), 0],
+                [0, -ytf / np.sqrt(3), ytf / np.sqrt(3)]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif conn_y_from and self.conn_t == WindingType.ZigZag:  # 'Yz'
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / 2, 0, -yft / 2],
+                [-yft / 2, yft / 2, 0],
+                [0, -yft / 2, yft / 2]
+            ])
+            Ytf = np.array([
+                [ytf / 2, -ytf / 2, 0],
+                [0, ytf / 2, -ytf / 2],
+                [-ytf / 2, 0, ytf / 2]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.Delta and conn_y_to:  # 'Dy'
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [yft / np.sqrt(3), 0, -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / np.sqrt(3), 0],
+                [0, -yft / np.sqrt(3), yft / np.sqrt(3)]
+            ])
+            Ytf = np.array([
+                [ytf / np.sqrt(3), -ytf / np.sqrt(3), 0],
+                [0, ytf / np.sqrt(3), -ytf / np.sqrt(3)],
+                [-ytf / np.sqrt(3), 0, ytf / np.sqrt(3)]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.Delta and self.conn_t == WindingType.Delta:  # 'Dd'
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [2 * yft / 3, -yft / 3, -yft / 3],
+                [-yft / 3, 2 * yft / 3, -yft / 3],
+                [-yft / 3, -yft / 3, 2 * yft / 3]
+            ])
+            Ytf = np.array([
+                [2 * ytf / 3, -ytf / 3, -ytf / 3],
+                [-ytf / 3, 2 * ytf / 3, -ytf / 3],
+                [-ytf / 3, -ytf / 3, 2 * ytf / 3]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif self.conn_f == WindingType.Delta and self.conn_t == WindingType.ZigZag:  # 'Dz':
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))]
+            ])
+            Ytf = np.array([
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and conn_y_to:  # 'Zy':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / 2, -yft / 2, 0],
+                [0, yft / 2, -yft / 2],
+                [-yft / 2, 0, yft / 2]
+            ])
+            Ytf = np.array([
+                [ytf / 2, 0, -ytf / 2],
+                [-ytf / 2, ytf / 2, 0],
+                [0, -ytf / 2, ytf / 2]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and self.conn_t == WindingType.Delta:  # 'Zd':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))]
+            ])
+            Ytf = np.array([
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and self.conn_t == WindingType.ZigZag:  # 'Zz':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft, 0, 0],
+                [0, yft, 0],
+                [0, 0, yft]
+            ])
+            Ytf = np.array([
+                [ytf, 0, 0],
+                [0, ytf, 0],
+                [0, 0, ytf]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        else:
+            logger.add_error("transformer_admittance: Unknown vector group", device=self.name)
+            zeros = np.zeros((3, 3), dtype=float)
+            return zeros, zeros, zeros, zeros
+
+        return Yff, Yft, Ytf, Ytt
+
+    def transformer_series_admittance(self,
+                                      vtap_f: float,
+                                      vtap_t: float,
+                                      logger: Logger) -> Tuple[Mat, Mat, Mat, Mat]:
+        """
+        Get the transformer 3-phase series primitives
+        :param vtap_f: virtual tap from
+        :param vtap_t: virtual tap to
+        :param logger: Logger
+        :return: 3x3 matrices -> Yff, Yft, Ytf, Ytt
+        """
+
+        conn_y_from = self.conn_f == WindingType.Star or self.conn_f == WindingType.GroundedStar
+        conn_y_to = self.conn_t == WindingType.Star or self.conn_t == WindingType.GroundedStar
+
+        phase_displacement = np.deg2rad(self.vector_group_number * 0.0)
+
+        ys = 1.0 / (self.R + 1j * self.X + 1e-20)
+        ysh = 0.0 + 1j * 0.0
+
+        yff = (ys + ysh / 2) / (self.tap_module * self.tap_module * vtap_f * vtap_f)
+        yft = -ys / (self.tap_module * np.exp(-1.0j * (self.tap_phase + phase_displacement)) * vtap_f * vtap_t)
+        ytf = -ys / (self.tap_module * np.exp(1.0j * (self.tap_phase + phase_displacement)) * vtap_t * vtap_f)
+        ytt = (ys + ysh / 2) / (vtap_t * vtap_t)
+
+        if conn_y_from and conn_y_to:  # Yy
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft, 0, 0],
+                [0, yft, 0],
+                [0, 0, yft]
+            ])
+            Ytf = np.array([
+                [ytf, 0, 0],
+                [0, ytf, 0],
+                [0, 0, ytf]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif conn_y_from and self.conn_t == WindingType.Delta:  # 'Yd'
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / np.sqrt(3), -yft / np.sqrt(3), 0],
+                [0, yft / np.sqrt(3), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), 0, yft / np.sqrt(3)]
+            ])
+            Ytf = np.array([
+                [ytf / np.sqrt(3), 0, -ytf / np.sqrt(3)],
+                [-ytf / np.sqrt(3), ytf / np.sqrt(3), 0],
+                [0, -ytf / np.sqrt(3), ytf / np.sqrt(3)]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif conn_y_from and self.conn_t == WindingType.ZigZag:  # 'Yz'
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / 2, 0, -yft / 2],
+                [-yft / 2, yft / 2, 0],
+                [0, -yft / 2, yft / 2]
+            ])
+            Ytf = np.array([
+                [ytf / 2, -ytf / 2, 0],
+                [0, ytf / 2, -ytf / 2],
+                [-ytf / 2, 0, ytf / 2]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.Delta and conn_y_to:  # 'Dy'
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [yft / np.sqrt(3), 0, -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / np.sqrt(3), 0],
+                [0, -yft / np.sqrt(3), yft / np.sqrt(3)]
+            ])
+            Ytf = np.array([
+                [ytf / np.sqrt(3), -ytf / np.sqrt(3), 0],
+                [0, ytf / np.sqrt(3), -ytf / np.sqrt(3)],
+                [-ytf / np.sqrt(3), 0, ytf / np.sqrt(3)]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.Delta and self.conn_t == WindingType.Delta:  # 'Dd'
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [2 * yft / 3, -yft / 3, -yft / 3],
+                [-yft / 3, 2 * yft / 3, -yft / 3],
+                [-yft / 3, -yft / 3, 2 * yft / 3]
+            ])
+            Ytf = np.array([
+                [2 * ytf / 3, -ytf / 3, -ytf / 3],
+                [-ytf / 3, 2 * ytf / 3, -ytf / 3],
+                [-ytf / 3, -ytf / 3, 2 * ytf / 3]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif self.conn_f == WindingType.Delta and self.conn_t == WindingType.ZigZag:  # 'Dz':
+            Yff = np.array([
+                [2 * yff / 3, -yff / 3, -yff / 3],
+                [-yff / 3, 2 * yff / 3, -yff / 3],
+                [-yff / 3, -yff / 3, 2 * yff / 3]
+            ])
+            Yft = np.array([
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))]
+            ])
+            Ytf = np.array([
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and conn_y_to:  # 'Zy':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / 2, -yft / 2, 0],
+                [0, yft / 2, -yft / 2],
+                [-yft / 2, 0, yft / 2]
+            ])
+            Ytf = np.array([
+                [ytf / 2, 0, -ytf / 2],
+                [-ytf / 2, ytf / 2, 0],
+                [0, -ytf / 2, ytf / 2]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and self.conn_t == WindingType.Delta:  # 'Zd':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))]
+            ])
+            Ytf = np.array([
+                [yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3)), -yft / np.sqrt(3)],
+                [-yft / np.sqrt(3), yft / (2*np.sqrt(3)), yft / (2*np.sqrt(3))],
+                [yft / (2*np.sqrt(3)), -yft / np.sqrt(3), yft / (2*np.sqrt(3))]
+            ])
+            Ytt = np.array([
+                [2 * ytt / 3, -ytt / 3, -ytt / 3],
+                [-ytt / 3, 2 * ytt / 3, -ytt / 3],
+                [-ytt / 3, -ytt / 3, 2 * ytt / 3]
+            ])
+
+        elif self.conn_f == WindingType.ZigZag and self.conn_t == WindingType.ZigZag:  # 'Zz':
+            Yff = np.array([
+                [yff, 0, 0],
+                [0, yff, 0],
+                [0, 0, yff]
+            ])
+            Yft = np.array([
+                [yft, 0, 0],
+                [0, yft, 0],
+                [0, 0, yft]
+            ])
+            Ytf = np.array([
+                [ytf, 0, 0],
+                [0, ytf, 0],
+                [0, 0, ytf]
+            ])
+            Ytt = np.array([
+                [ytt, 0, 0],
+                [0, ytt, 0],
+                [0, 0, ytt]
+            ])
+
+        else:
+            logger.add_error("transformer_admittance: Unknown vector group", device=self.name)
+            zeros = np.zeros((3, 3), dtype=float)
+            return zeros, zeros, zeros, zeros
+
+        return Yff, Yft, Ytf, Ytt
+
+    def transformer_shunt_admittance(self,
+                               vtap_f: float,
+                               vtap_t: float,
+                               logger: Logger) -> Tuple[Mat, Mat, Mat, Mat]:
+        """
+        Get the transformer 3-phase primitives
+        :param vtap_f: virtual tap from
+        :param vtap_t: virtual tap to
+        :param logger: Logger
+        :return: 3x3 matrices -> Yff, Yft, Ytf, Ytt
+        """
+
+        conn_y_from = self.conn_f == WindingType.Star or self.conn_f == WindingType.GroundedStar
+        conn_y_to = self.conn_t == WindingType.Star or self.conn_t == WindingType.GroundedStar
+
+        phase_displacement = np.deg2rad(self.vector_group_number * 0.0)
+
+        ys = 0.0 + 1j * 0.0
         ysh = self.G + 1j * self.B
 
         yff = (ys + ysh / 2) / (self.tap_module * self.tap_module * vtap_f * vtap_f)
