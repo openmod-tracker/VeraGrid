@@ -9,10 +9,14 @@ from matplotlib import pyplot as plt
 
 import sys
 import os
+import time
+
+from VeraGridEngine import DynamicVarType
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents, RmsEvent
-from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var, cos, sin
+from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var, cos, sin, piecewise
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 import VeraGridEngine.api as gce
@@ -396,6 +400,12 @@ vf_3  = Const(vf0_3)
 tm0_4 = Const(t_e0_4)
 vf_4  = Const(vf0_4)
 # ----------------------------------------------------------------------------------------------------------------------
+
+# ----------
+# Variables
+# ----------
+
+t = Var("t")
 
 # Line 0
 Pline_to_0 = Var("Pline_to_0")
@@ -1102,16 +1112,21 @@ generator_block_4 = Block(
 # -------------------------------------------------------------
 Ql0_7 = Const(Sb7.imag)
 Pl0_7 = Var('Pl0_7')
+Pl0_7_default = Sb7.real
 
 load_7 = Block(
     algebraic_eqs=[
         Pl_7 - Pl0_7,
         Ql_7 - Ql0_7
     ],
-    algebraic_vars=[Ql_7, Pl_7],
-    parameters=[Pl0_7]
+    algebraic_vars=[Pl_7, Ql_7],
+    parameters=[Pl0_7],
+    parameters_eqs=[piecewise(t, np.array([2.5]), np.array([0.1174]), Pl0_7_default)],
+    external_mapping={
+        DynamicVarType.P: Pl_7,
+        DynamicVarType.Q: Ql_7
+    }
 )
-
 Ql0_8 = Const(Sb8.imag)
 Pl0_8 = Const(Sb8.real)
 
@@ -1135,7 +1150,7 @@ sys = Block(
 # ----------------------------------------------------------------------------------------------------------------------
 # Solver
 # ----------------------------------------------------------------------------------------------------------------------
-slv = BlockSolver(sys)
+slv = BlockSolver(sys, t)
 
 params_mapping = {
     Pl0_7: Sb7.real,
@@ -1406,14 +1421,6 @@ for eq, val in residuals.items():
     print(f"{eq:55} = {val:.3e}")
 
 
-# ---------------------------------------------------------------------------------------
-# Events
-# ---------------------------------------------------------------------------------------
-
-
-event1 = RmsEvent('Load', Pl0_7, 2500, 0.1174)
-#event2 = Event(Ql0, 5000, 0.3)
-my_events = RmsEvents([event1])
 
 params0 = slv.build_init_params_vector(params_mapping)
 x0 = slv.build_init_vars_vector(vars_mapping)
@@ -1449,7 +1456,7 @@ t, y = slv.simulate(
     h=0.001,
     x0=x0,
     params0=params0,
-    events_list=my_events,
+    time = t,
     method="implicit_euler"
 )
 
@@ -1523,6 +1530,18 @@ plt.tight_layout()
 plt.show()
 
 
+#stability assessment
+start_stability = time.time()
+stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0)
+end_stability = time.time()
+print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
+
+print("State matrix A:", A.toarray())
+print("Stability assessment:", stab)
+print("Eigenvalues:", Eigenvalues)
+#print("Right eivenvectors:", V)
+#print("Left eigenvectors:", W)
+print("Participation factors:", PF.toarray())
 
 
 
