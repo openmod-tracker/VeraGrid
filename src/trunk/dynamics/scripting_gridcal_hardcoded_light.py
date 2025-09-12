@@ -24,7 +24,7 @@ import VeraGridEngine.api as gce
 # ----------------------------------------------------------------------------------------------------------------------
 # Load system
 # TODO: be careful! this is _noshunt, such that the initialization it's easier because we have one device per bus. 
-# In scriptin_gridcal_hardcoded there are also shunt elements!
+# In scripting_gridcal_hardcoded there are also shunt elements!
 grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
 # Run power flow
 res_1 = gce.power_flow(grid_1)
