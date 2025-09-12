@@ -1018,8 +1018,14 @@ class BlockSolver:
         # print("gy:",gy.toarray())
         # print("gy:", gy)
 
-        # df_gy = pd.DataFrame(gy.toarray())
-        # df_gy.to_csv("gy_results.csv", index=False, header=False)
+        df_fx = pd.DataFrame(fx.toarray())
+        df_fx.to_csv("fx_results.csv", index=False, header=False)
+        df_fy = pd.DataFrame(fy.toarray())
+        df_fy.to_csv("fy_results.csv", index=False, header=False)
+        df_gx = pd.DataFrame(gx.toarray())
+        df_gx.to_csv("gx_results.csv", index=False, header=False)
+        df_gy = pd.DataFrame(gy.toarray())
+        df_gy.to_csv("gy_results.csv", index=False, header=False)
 
         # I = identity(gy.shape[0], format='csc')
         # gy_inv = spsolve(gy, I)
@@ -1029,7 +1035,7 @@ class BlockSolver:
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix
         An = A.toarray()
 
-        print("Condició de A:", np.linalg.cond(An))
+        # print("Condició de A:", np.linalg.cond(An))
 
         num_states = A.shape[0]
 
