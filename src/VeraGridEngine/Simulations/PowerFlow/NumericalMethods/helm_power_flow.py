@@ -313,6 +313,7 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
 
     # build the reduced system
     Yred = Yseries[np.ix_(no_slack, no_slack)]  # admittance matrix without slack buses
+    Ired = spsolve(Yred, V0[no_slack])
     Yslack = -Yseries[np.ix_(no_slack, sl)]  # yes, it is the negative of this
     G = Yred.real.copy()  # real parts of Yij
     B = Yred.imag.copy()  # imaginary parts of Yij
@@ -338,9 +339,10 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     # .......................CALCULATION OF TERMS [0] ------------------------------------------------------------------
 
     if nsl > 1:
-        U[0, :] = spsolve(Yred, Yslack.sum(axis=1))
+        # U[0, :] = spsolve(Ired, Yslack.sum(axis=1))
+        U[0, :] = Yslack @ Ired
     else:
-        U[0, :] = spsolve(Yred, Yslack)
+        U[0, :] = spsolve(Ired, Yslack)
 
     # U[0, 0] = 1 * np.exp(1j * 30 * np.pi / 180)
     # U[0, 1] = 1 * np.exp(1j * -90 * np.pi / 180)
