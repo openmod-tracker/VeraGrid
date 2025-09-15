@@ -829,7 +829,7 @@ class BlockSolver:
             params0: np.ndarray,
             time: Var,
             method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
-            newton_tol: float = 1e-8,
+            newton_tol: float = 1e-10,
             newton_max_iter: int = 1000,
 
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -897,7 +897,7 @@ class BlockSolver:
                                  x0: np.ndarray,
                                  params0: np.ndarray,
                                  time,
-                                 tol=1e-6,
+                                 tol=1e-8,
                                  max_iter=1000):
         """
         :param t0:
@@ -1030,6 +1030,8 @@ class BlockSolver:
         # I = identity(gy.shape[0], format='csc')
         # gy_inv = spsolve(gy, I)
         gyx = spsolve(gy, gx)
+        df_gyx = pd.DataFrame(gyx.toarray())
+        df_gyx.to_csv("gyx_results.csv", index=False, header=False)
 
         # A = (fx - fy @ gy_inv @ gx) # sparse state matrix csc matrix
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix

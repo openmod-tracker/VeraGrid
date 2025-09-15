@@ -42,10 +42,14 @@ def merge_stability_results ( csv1, csv2):
     print("vera eig ord abs:", np.abs(VeraGrid_Eig_ord))
     print("andes eig ord abs:", np.abs(Andes_Eig_ord))
 
-    rel_err = np.where(np.abs(Andes_Eig_ord) != 0, np.abs(np.abs(Andes_Eig_ord) - np.abs(VeraGrid_Eig_ord)) *100/ np.abs(Andes_Eig_ord), 0)
+    rel_err = np.ndarray(VeraGrid_Eig_ord.shape)
     for i in range(len(Andes_Eig_ord)):
         if np.abs(Andes_Eig_ord[i]) <= 1e-10:
             rel_err[i] = float('inf')
+        else:
+            rel_err[i] = np.where(np.abs(Andes_Eig_ord[i]) != 0,
+                               np.abs(np.abs(Andes_Eig_ord[i]) - np.abs(VeraGrid_Eig_ord[i])) * 100 / np.abs(Andes_Eig_ord[i]),
+                               0)
 
     """
     rel_err = np.zeros_like(VeraGrid_Eig_ord).real.astype(float)

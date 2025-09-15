@@ -535,7 +535,7 @@ class Generator(GeneratorParent):
                     P_g - (v_d * i_d + v_q * i_q),
                     Q_g - (v_q * i_d - v_d * i_q),
                     tm - (self.tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et),
-                    2 * np.pi * self.freq * et -delta, #
+                    2 * np.pi * self.freq * et -delta,
                     # Xad_Ifd - self.vf0, ###
                     # vf - self.vf0, ###
                 ],
