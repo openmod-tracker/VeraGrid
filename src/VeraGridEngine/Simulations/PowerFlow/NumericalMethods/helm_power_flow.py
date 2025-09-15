@@ -275,6 +275,27 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     nsl = len(sl)
     n = Yseries.shape[0]
 
+    # Test --------------------------------
+    # U_vector = np.array([
+    #     1 * np.exp(1j * 0),
+    #     1 * np.exp(1j * -120 * np.pi / 180),
+    #     1 * np.exp(1j * 120 * np.pi / 180),
+    #     1 * np.exp(1j * 30 * np.pi / 180),
+    #     1 * np.exp(1j * -90 * np.pi / 180),
+    #     1 * np.exp(1j * 150 * np.pi / 180)
+    # ])
+    # U_vector = np.array([
+    #     1 * np.exp(1j * 0),
+    #     1 * np.exp(1j * -120 * np.pi / 180),
+    #     1 * np.exp(1j * 120 * np.pi / 180),
+    #     1 * np.exp(1j * 0),
+    #     1 * np.exp(1j * -120 * np.pi / 180),
+    #     1 * np.exp(1j * 120 * np.pi / 180)
+    # ])
+    # zeros = Yseries @ U_vector
+    # print()
+    # -------------------------------------
+
     # --------------------------- PREPARING IMPLEMENTATION -------------------------------------------------------------
     U = np.zeros((max_coeff + 1, n_no_slack), dtype=complex)  # voltages
     X = np.zeros((max_coeff + 1, n_no_slack), dtype=complex)  # compute X=1/conj(U)
@@ -318,9 +339,12 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
 
     if nsl > 1:
         U[0, :] = spsolve(Yred, Yslack.sum(axis=1))
-        # U[0, :] = Vslack
     else:
         U[0, :] = spsolve(Yred, Yslack)
+
+    # U[0, 0] = 1 * np.exp(1j * 30 * np.pi / 180)
+    # U[0, 1] = 1 * np.exp(1j * -90 * np.pi / 180)
+    # U[0, 2] = 1 * np.exp(1j * 150 * np.pi / 180)
 
     X[0, :] = 1 / np.conj(U[0, :])
 

@@ -28,10 +28,11 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="helm_power_flow.py has been updated to support three-phase power flow.">
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Three-phase transformer admittance has been split into series and shunt to support HELM.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/transformer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/transformer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/DataStructures/branch_parent_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/DataStructures/branch_parent_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -92,13 +93,6 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
-  </component>
-  <component name="GithubProjectSettings">
-    <option name="branchProtectionPatterns">
-      <list>
-        <option value="master" />
-      </list>
-    </option>
   </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
@@ -189,6 +183,7 @@
     "Python tests.pytest for test_tower_composition.test_tower_composition.executor": "Run",
     "Python tests.pytest for test_transformer_type.test_psse_conversion3.executor": "Debug",
     "Python tests.pytest for test_transformer_type.test_transformer_type.executor": "Run",
+    "Python tests.pytest in test_3_phase_pf_13bus.py.executor": "Run",
     "Python tests.pytest in test_ac_opf.py.executor": "Run",
     "Python tests.pytest in test_basic.py.executor": "Run",
     "Python tests.pytest in test_contingency.py.executor": "Debug",
@@ -208,6 +203,7 @@
     "Python.ExecuteGridCal.executor": "Run",
     "Python.ExecuteVeraGrid.executor": "Run",
     "Python.GridCalMain.executor": "Run",
+    "Python.IEEE 13-bus Test Feeder Case worker.executor": "Run",
     "Python.LineBuilderDialogue.executor": "Run",
     "Python.auto_document_models.executor": "Run",
     "Python.cgmes_rdfs_graph.executor": "Run",
@@ -256,7 +252,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Shell Script.make.sh.executor": "Run",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "#331 on #425-3ph-Transformers-Dy-Yd",
+    "git-widget-placeholder": "#428 on #425-3ph-Transformers-Dy-Yd",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "/Users/santi/Git/GitHub/GridCal/src/VeraGrid/data",
     "node.js.detected.package.eslint": "true",
@@ -2344,7 +2340,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="699" />
+    <option name="localTasksCounter" value="700" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2390,7 +2386,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added the ability to recolour the schematic with the design values" />
     <MESSAGE value="minor refactorings" />
     <MESSAGE value="Important opf refurbishing&#10;Added tests about generation, battery and load shedding" />
     <MESSAGE value="Added power by technology summary at the OPF results&#10;Much better implementation of the stacked results plot" />
@@ -2415,7 +2410,8 @@
     <MESSAGE value="First steps." />
     <MESSAGE value="Ybus has split into Ybus_series_helm and Ybus_shunt_helm" />
     <MESSAGE value="helm_power_flow.py has been updated to support three-phase power flow." />
-    <option name="LAST_COMMIT_MESSAGE" value="helm_power_flow.py has been updated to support three-phase power flow." />
+    <MESSAGE value="Three-phase transformer admittance has been split into series and shunt to support HELM." />
+    <option name="LAST_COMMIT_MESSAGE" value="Three-phase transformer admittance has been split into series and shunt to support HELM." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2631,25 +2627,27 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py</url>
-          <line>52</line>
+          <line>107</line>
           <option name="timeStamp" value="2619" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
-          <line>456</line>
+          <line>480</line>
           <option name="timeStamp" value="2629" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
-          <line>324</line>
-          <option name="timeStamp" value="2631" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py</url>
-          <line>393</line>
-          <option name="timeStamp" value="2632" />
+          <line>348</line>
+          <option name="timeStamp" value="2643" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">

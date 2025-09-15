@@ -59,8 +59,8 @@ trafo = gce.Transformer2W(name='XFM-1',
                           rate=0.5,
                           r=1.1*2,
                           x=2*2)
-trafo.conn_f = WindingType.Delta
-trafo.conn_t = WindingType.Delta
+trafo.conn_f = WindingType.GroundedStar
+trafo.conn_t = WindingType.GroundedStar
 grid.add_transformer2w(trafo)
 
 # ----------------------------------------------------------------------------------------------------------------------
