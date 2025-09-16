@@ -624,7 +624,6 @@ class SystemVars:
 
             self.system_total_energy_cost = np.nan_to_num(gen_cost).sum(axis=1)
             self.system_total_energy_cost += np.nan_to_num(shedding_cost).sum(axis=1)
-            # self.system_total_energy_cost += np.nan_to_num(overload_cost).sum(axis=1)
 
             self.system_unit_energy_cost = self.system_total_energy_cost / np.nan_to_num(gen_p).sum(axis=1)
 
@@ -746,7 +745,8 @@ def add_linear_generation_formulation(t: Union[int, None],
                                       all_generators_fixed: bool,
                                       vd: IntVec,
                                       nodal_capacity_active: bool,
-                                      generation_expansion_planning: bool):
+                                      generation_expansion_planning: bool,
+                                      use_glsk_as_cost: bool):
     """
     Add MIP generation formulation
     :param t: time step
@@ -764,6 +764,7 @@ def add_linear_generation_formulation(t: Union[int, None],
     :param vd: slack indices
     :param nodal_capacity_active: nodal capacity active?
     :param generation_expansion_planning: generation expansion plan?
+    :param use_glsk_as_cost: if true, the GLSK values are used instead of the traditional costs
     :return objective function
     """
     f_obj = 0.0
@@ -808,8 +809,11 @@ def add_linear_generation_formulation(t: Union[int, None],
                                                                 join("gen_shutting_down_", [t, k], "_"))
 
                     # operational cost (linear...)
-                    gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]
-                                            + gen_data_t.cost_0[k] * gen_vars.producing[t, k])
+                    if use_glsk_as_cost:
+                        gen_vars.cost[t, k] += gen_data_t.shift_key[k] * gen_vars.p[t, k]
+                    else:
+                        gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]
+                                                + gen_data_t.cost_0[k] * gen_vars.producing[t, k])
 
                     # start-up cost
                     gen_vars.cost[t, k] += gen_data_t.startup_cost[k] * gen_vars.starting_up[t, k]
@@ -844,7 +848,10 @@ def add_linear_generation_formulation(t: Union[int, None],
                     # No unit commitment
 
                     # Operational cost (linear...)
-                    gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]) + gen_data_t.cost_0[k]
+                    if use_glsk_as_cost:
+                        gen_vars.cost[t, k] += gen_data_t.shift_key[k] * gen_vars.p[t, k]
+                    else:
+                        gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]) + gen_data_t.cost_0[k]
 
                     if not skip_generation_limits:
                         prob.set_var_bounds(var=gen_vars.p[t, k],
@@ -900,13 +907,14 @@ def add_linear_generation_formulation(t: Union[int, None],
                         gen_vars.shedding[t, k] = 0
 
                         gen_vars.p[t, k] = p
-
-                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
                     else:
                         gen_vars.shedding[t, k] = prob.add_var(0, p, join("gen_shedding_", [t, k], "_"))
 
                         gen_vars.p[t, k] = p - gen_vars.shedding[t, k]
 
+                    if use_glsk_as_cost:
+                        gen_vars.cost[t, k] += gen_data_t.shift_key[k] * gen_vars.shedding[t, k]
+                    else:
                         gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
 
                 elif p < 0:
@@ -916,13 +924,15 @@ def add_linear_generation_formulation(t: Union[int, None],
 
                         gen_vars.p[t, k] = p
 
-                        gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
                     else:
                     # the negative sign is because P is already negative here, to make it positive
                         gen_vars.shedding[t, k] = prob.add_var(0, -p, join("gen_shedding_", [t, k], "_"))
 
                         gen_vars.p[t, k] = p + gen_vars.shedding[t, k]
 
+                    if use_glsk_as_cost:
+                        gen_vars.cost[t, k] += gen_data_t.shift_key[k] * gen_vars.shedding[t, k]
+                    else:
                         gen_vars.cost[t, k] += gen_data_t.cost_1[k] * gen_vars.shedding[t, k]
 
                 else:
@@ -934,7 +944,10 @@ def add_linear_generation_formulation(t: Union[int, None],
                 gen_vars.starting_up[t, k] = 0
 
                 # Operational cost (linear...)
-                gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]) + gen_data_t.cost_0[k]
+                if use_glsk_as_cost:
+                    gen_vars.cost[t, k] += gen_data_t.shift_key[k] * gen_vars.p[t, k]
+                else:
+                    gen_vars.cost[t, k] += (gen_data_t.cost_1[k] * gen_vars.p[t, k]) + gen_data_t.cost_0[k]
 
             # add to the balance
             bus_vars.Pbalance[t, bus_idx] += gen_vars.p[t, k]
@@ -1802,6 +1815,7 @@ def run_linear_opf_ts(grid: MultiCircuit,
                       optimize_nodal_capacity: bool = False,
                       nodal_capacity_sign: float = 1.0,
                       capacity_nodes_idx: Union[IntVec, None] = None,
+                      use_glsk_as_cost: bool = False,
                       logger: Logger = Logger(),
                       progress_text: Union[None, Callable[[str], None]] = None,
                       progress_func: Union[None, Callable[[float], None]] = None,
@@ -1961,6 +1975,7 @@ def run_linear_opf_ts(grid: MultiCircuit,
             vd=indices.vd,
             nodal_capacity_active=active_nodal_capacity,
             generation_expansion_planning=generation_expansion_planning,
+            use_glsk_as_cost=use_glsk_as_cost
         )
 
         # formulate batteries --------------------------------------------------------------------------------------
