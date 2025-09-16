@@ -24,7 +24,7 @@ def main():
     start = time.time()
 
     # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
-    ss = andes.load('Gen_Load/simple_system.json', default_config=True)
+    ss = andes.load('Gen_Load/simple_system1_1.json', default_config=True)
     n_xy = len(ss.dae.xy_name)
     print(f"Andes variables = {n_xy}")
     ss.files.no_output = True
@@ -80,7 +80,7 @@ def main():
     while tds.t < tds.config.tf:
 
         if tds.t > 2.5 and one == True:
-            ss.PQ.set(src='Ppf', idx='PQ_1', attr='v', value=9.0)
+            # ss.PQ.set(src='Ppf', idx='PQ_1', attr='v', value=9.0)
             one = False
             # Log current state
         time_history.append(tds.t)
@@ -128,9 +128,12 @@ def main():
     a_df = pd.DataFrame(list(zip(*a_history)))      # shape: [T, n_loads]
     a_df.columns = [f"a_andes_Bus_{i+1}" for i in range(len(a_history))]
 
+    vf_df = pd.DataFrame(list(zip(*vf_history)))  # shape: [T, n_loads]
+    vf_df.columns = [f"vf_andes_gen_{i + 1}" for i in range(len(vf_history))]
+
     # Combine all into a single DataFrame
     df = pd.DataFrame({'Time [s]': time_history})
-    df = pd.concat([df, omega_df, tm_df, te_df, Ppf_df, v_df, a_df], axis=1)
+    df = pd.concat([df, omega_df, tm_df, te_df, Ppf_df, v_df, a_df, vf_df], axis=1)
     df.to_csv("simulation_andes_output.csv", index=False)
     print('simulation results saved in simulation_andes_output.csv')
 
