@@ -48,10 +48,13 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
 
     # SIMPLE SYSTEM
     order_cols_fx_V = [0, 1]
+    # syst0: gen-trafo-load
     # order_cols_fy_V = [1,3,0,2,12,13,10,11,16,8,9,14,15,17,18,19,20,4,5,6,7]
-    order_cols_fy_V = [1,3,5,0,2,4,18,19,16,17,22,14,15,20,21,23,24,25,26,6,7,8,9,10,11,12,13]
-    order_cols_gx_V = [0, 1]
     # order_cols_gy_V = [1,3,0,2,12,13,10,11,16,8,9,14,15,17,18,19,20,4,5,6,7]
+
+    order_cols_gx_V = [0, 1]
+    # syst1: gen-trafo-line-load
+    order_cols_fy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
     order_cols_gy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
     order_cols_A_V = [0, 1]
 
@@ -79,10 +82,12 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     # simple system
     order_rows_fx_V = [0, 1]
     order_rows_fy_V = [0, 1]
+    #syst0: gen-trafo-load
     # order_rows_gx_V = [1,3,0,2,10,11,12,13,14,15,16,8,9,18,17,19,20,4,5,6,7]
     # order_rows_gy_V = [1,3,0,2,10,11,12,13,14,15,16,8,9,18,17,19,20,4,5,6,7]
-    order_rows_gx_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,24,23,25,26,6,7,8,9,10,11,12,13]
-    order_rows_gy_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,24,23,25,26,6,7,8,9,10,11,12,13]
+    #syst1: gen-trafo-line-load
+    order_rows_gx_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
+    order_rows_gy_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
     order_rows_A_V = [0, 1]
 
     V_fx_r = V_fx_rc[order_rows_fx_V, :]
@@ -106,11 +111,13 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
 
     #simple system
     order_cols_fx_A = [0, 1]
+    # syst0: gen-trafo-load
     # order_cols_fy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
-    order_cols_fy_A = [0, 1, 2, 3, 6, 7, 8, 9,10,11,13,16,17,18,19,6,7,12,14,15]
-    order_cols_gx_A = [0, 1]
     # order_cols_gy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
-    order_cols_gy_A = [0, 1, 2, 3, 6, 7, 8, 9,10,11,13,16,17,18,19,6,7,12,14,15]
+    order_cols_gx_A = [0, 1]
+    # syst1: gen-trafo-line-load
+    order_cols_fy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+    order_cols_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
     order_cols_A_A = [0, 1]
 
 
@@ -138,10 +145,12 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     # simple system
     order_rows_fx_A = [0, 1]
     order_rows_fy_A = [0, 1]
+    # syst0: gen-trafo-load
     # order_rows_gx_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
-    order_rows_gx_A = [0, 1, 2, 3, 6, 7, 8, 9,10,11,13,16,17,18,19,6,7,12,14,15]
     # order_rows_gy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
-    order_rows_gy_A = [0, 1, 2, 3, 6, 7, 8, 9,10,11,13,16,17,18,19,6,7,12,14,15]
+    # syst1: gen-trafo-line-load
+    order_rows_gx_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+    order_rows_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
     order_rows_A_A = [0, 1]
 
 
