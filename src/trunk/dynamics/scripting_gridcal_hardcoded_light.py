@@ -48,10 +48,10 @@ import VeraGridEngine.api as gce
 grid = MultiCircuit()
 
 # Buses
-bus1 = Bus(name="Bus1", Vnom=20)
-bus2 = Bus(name="Bus2", Vnom=20)
-bus3 = Bus(name="Bus3", Vnom=20, is_slack=True)
-bus4 = Bus(name="Bus4", Vnom=20)
+bus1 = Bus(name="Bus1", Vnom=230)
+bus2 = Bus(name="Bus2", Vnom=230)
+bus3 = Bus(name="Bus3", Vnom=230, is_slack=True)
+bus4 = Bus(name="Bus4", Vnom=230)
 bus5 = Bus(name="Bus5", Vnom=230)
 bus6 = Bus(name="Bus6", Vnom=230)
 bus7 = Bus(name="Bus7", Vnom=230)
@@ -131,6 +131,8 @@ line13 = grid.add_line(
 
 # Transformers
 
+
+#
 trafo_G1 = grid.add_line(
     Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
@@ -146,6 +148,30 @@ trafo_G3 = grid.add_line(
 trafo_G4 = grid.add_line(
     Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
+
+# trafo_G1_line = Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
+#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
+#
+# trafo_G2_line = Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
+#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
+#
+# trafo_G3_line = Line(name="trafo 11-3", bus_from=bus11, bus_to=bus3,
+#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
+#
+# trafo_G4_line = Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
+#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
+#
+# trafo_G1 = trafo_G1_line.get_equivalent_transformer()
+# trafo_G2 = trafo_G2_line.get_equivalent_transformer()
+# trafo_G3 = trafo_G3_line.get_equivalent_transformer()
+# trafo_G4 = trafo_G4_line.get_equivalent_transformer()
+#
+#
+# grid.add_transformer2w(trafo_G1)
+# grid.add_transformer2w(trafo_G2)
+# grid.add_transformer2w(trafo_G3)
+# grid.add_transformer2w(trafo_G4)
+
 
 # load
 load1 = Load(name="load1", P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969)
