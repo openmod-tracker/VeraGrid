@@ -176,6 +176,7 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
         Ysh_bus[np.ix_(f3, f3)] += nc.load_data.Y3_star[np.ix_(k3, idx3)] / (nc.Sbase / 3)
 
     Ybus = Cf.T @ Yf + Ct.T @ Yt + Ysh_bus
+    Ybus[3:6, 3:6] += np.eye(3) * 1e-10
     Ybus = Ybus[binary_bus_mask, :][:, binary_bus_mask]
     Ysh_bus = Ysh_bus[binary_bus_mask, :][:, binary_bus_mask]
     Yf = Yf[R, :][:, binary_bus_mask]
@@ -915,7 +916,6 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         ###
         C = self.Ybus[3:6,0:3]
         C = np.array(C.todense())
-
         D = self.Ybus[3:6,3:6]
         D = np.array(D.todense())
 
@@ -925,21 +925,9 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         V1 = self.V[3:6]
 
         V1 = D_inv @ (Il - C @ Vs)
-        print(np.abs(V1).round(5))
-
+        # print(np.abs(V1).round(5))
         Il_pu = (D @ V1) + (C @ Vs)
-
         # print(Il_pu)
-
-        voltage_angle_a = np.angle(self.V[3])
-        voltage_angle_b = np.angle(self.V[4])
-        voltage_angle_c = np.angle(self.V[5])
-        Il_pu[0] = -np.conj(Il_pu[0]) * 1 * np.exp(1j * voltage_angle_a)
-        Il_pu[1] = -np.conj(Il_pu[1]) * 1 * np.exp(1j * voltage_angle_b)
-        Il_pu[2] = -np.conj(Il_pu[2]) * 1 * np.exp(1j * voltage_angle_c)
-
-        Il = Il_pu * (self.nc.Sbase / 3)
-        # print("\n", Il.round(3))
 
         ###
         # Impedance loads
@@ -956,6 +944,10 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         C = np.array(C.todense())
         D = self.Ybus[3:6,3:6]
         D = np.array(D.todense())
+
+        # cond_number = np.linalg.cond(D)
+        # print(cond_number)
+        # print(np.linalg.det(D))
 
         Us = self.V[0:3]
         Ul = np.linalg.inv(D) @ ( -C @ Us )

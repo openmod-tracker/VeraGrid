@@ -27,7 +27,7 @@ load_634 = gce.Load(G1=0.140*5,
                     B2=0.090*5,
                     G3=0.100*5,
                     B3=0.080*5)
-load_634.conn = ShuntConnectionType.Delta
+load_634.conn = ShuntConnectionType.GroundedStar
 grid.add_load(bus=bus_634, api_obj=load_634)
 
 # shunt_634 = gce.Shunt(G1=1e-9,
@@ -80,7 +80,7 @@ trafo = gce.Transformer2W(name='XFM-1',
                           r=1.1*2,
                           x=2*2)
 trafo.conn_f = WindingType.GroundedStar
-trafo.conn_t = WindingType.Delta
+trafo.conn_t = WindingType.GroundedStar
 grid.add_transformer2w(trafo)
 
 # ----------------------------------------------------------------------------------------------------------------------

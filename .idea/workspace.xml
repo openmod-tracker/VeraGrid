@@ -28,12 +28,11 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="HELM three-phase Ired">
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Solving Delta transformers">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/voltage_opendss.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/voltage_opendss.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,7 +211,7 @@
     "Python.demo_code2.executor": "Debug",
     "Python.demo_code3.executor": "Run",
     "Python.estabanell.executor": "Debug",
-    "Python.full_trafo_validation.executor": "Debug",
+    "Python.full_trafo_validation.executor": "Run",
     "Python.grid_merge.executor": "Run",
     "Python.helm_power_flow.executor": "Debug",
     "Python.ieee9.executor": "Run",
@@ -247,6 +246,7 @@
     "Python.update_gui_file (2).executor": "Run",
     "Python.update_gui_file.executor": "Run",
     "Python.upload_to_pypi.executor": "Run",
+    "Python.voltage_opendss.executor": "Run",
     "Python.y_bus_composition.executor": "Debug",
     "Python.y_bus_composition_2.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
@@ -2342,7 +2342,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="701" />
+    <option name="localTasksCounter" value="702" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2388,7 +2388,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Important opf refurbishing&#10;Added tests about generation, battery and load shedding" />
     <MESSAGE value="Added power by technology summary at the OPF results&#10;Much better implementation of the stacked results plot" />
     <MESSAGE value="Split storage vars, and now it works as expected" />
     <MESSAGE value="More refactoring" />
@@ -2413,7 +2412,8 @@
     <MESSAGE value="helm_power_flow.py has been updated to support three-phase power flow." />
     <MESSAGE value="Three-phase transformer admittance has been split into series and shunt to support HELM." />
     <MESSAGE value="HELM three-phase Ired" />
-    <option name="LAST_COMMIT_MESSAGE" value="HELM three-phase Ired" />
+    <MESSAGE value="Solving Delta transformers" />
+    <option name="LAST_COMMIT_MESSAGE" value="Solving Delta transformers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2639,8 +2639,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
-          <line>964</line>
-          <option name="timeStamp" value="2687" />
+          <line>856</line>
+          <option name="timeStamp" value="2701" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
+          <line>921</line>
+          <option name="timeStamp" value="2703" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
