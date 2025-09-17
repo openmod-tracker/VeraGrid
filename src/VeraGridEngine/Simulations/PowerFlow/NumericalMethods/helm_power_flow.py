@@ -312,8 +312,9 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
         logger.add_debug(df.to_string())
 
     # build the reduced system
-    Yred = Yseries[np.ix_(no_slack, no_slack)]  # admittance matrix without slack buses
-    Ired = Yred.toarray() @ V0[no_slack]
+    Yred = Yseries[np.ix_(no_slack, no_slack)]
+    Ured = V0[no_slack] # admittance matrix without slack buses
+    Ired = Yred.toarray() @ Ured
     Yslack = -Yseries[np.ix_(no_slack, sl)]  # yes, it is the negative of this
     G = Yred.real.copy()  # real parts of Yij
     B = Yred.imag.copy()  # imaginary parts of Yij
@@ -344,9 +345,9 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     else:
         U[0, :] = spsolve(Ired, Yslack)
 
-    # U[0, 0] = 1 * np.exp(1j * 0 * np.pi / 180)
-    # U[0, 1] = 1 * np.exp(1j * -120 * np.pi / 180)
-    # U[0, 2] = 1 * np.exp(1j * 120 * np.pi / 180)
+    # U[0, 0] = 1 * np.exp(1j * 30 * np.pi / 180)
+    # U[0, 1] = 1 * np.exp(1j * -90 * np.pi / 180)
+    # U[0, 2] = 1 * np.exp(1j * 150 * np.pi / 180)
 
     X[0, :] = 1 / np.conj(U[0, :])
 
@@ -365,13 +366,19 @@ def helm_coefficients_josep(Ybus: CscMat, Yseries: CscMat, V0: CxVec, S0: CxVec,
     # Ysh_test = Ysh.toarray()
     # Ysh_test_1 = Ysh_test[pq_, :][:, pq_]
 
+    # angles = np.array([
+    #     np.exp(1j * 30 * np.pi / 180),
+    #     np.exp(1j * -90 * np.pi / 180),
+    #     np.exp(1j * 150 * np.pi / 180)
+    # ])
+
     valor[pq_] = (I_inj_slack[pq_]
-                  - Yslack[pq_].sum(axis=1).A1
+                  - U[0, pq_] * Yslack[pq_].sum(axis=1).A1
                   + (vec_P[pq_] - vec_Q[pq_] * 1j) * X[0, pq_]
                   - U[0, pq_] * Ysh[pq_, :][:, pq_])
 
     valor[pv_] = (I_inj_slack[pv_]
-                  - Yslack[pv_].sum(axis=1).A1
+                  - U[0, pv_] * Yslack[pv_].sum(axis=1).A1
                   + (vec_P[pv_]) * X[0, pv_]
                   - U[0, pv_] * Ysh[pv_, :][:, pv_])
 

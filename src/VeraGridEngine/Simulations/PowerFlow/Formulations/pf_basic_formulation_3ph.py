@@ -177,7 +177,7 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
 
     Ybus = Cf.T @ Yf + Ct.T @ Yt + Ysh_bus
     Ybus = Ybus[binary_bus_mask, :][:, binary_bus_mask]
-    Ysh_bus = Ysh_bus[binary_bus_mask]
+    Ysh_bus = Ysh_bus[binary_bus_mask, :][:, binary_bus_mask]
     Yf = Yf[R, :][:, binary_bus_mask]
     Yt = Yt[R, :][:, binary_bus_mask]
 
@@ -194,8 +194,15 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
     Ybus_shunt_helm = csc_matrix(Ybus_shunt_helm)
 
     # Comprobación
-    ones_vector = np.ones_like(bus_idx_lookup)
-    print("\nComprobación = \n", Ybus_series_helm @ ones_vector)
+    # ones_vector = np.array([
+    #     np.exp(1j * 0 * np.pi / 180),
+    #     np.exp(1j * -120 * np.pi / 180),
+    #     np.exp(1j * 120 * np.pi / 180),
+    #     np.exp(1j * 30 * np.pi / 180),
+    #     np.exp(1j * -90 * np.pi / 180),
+    #     np.exp(1j * 150 * np.pi / 180)
+    # ])
+    # print("\nComprobación = \n", Ybus_series_helm @ ones_vector)
 
     return Ybus.tocsc(), Yf.tocsc(), Yt.tocsc(), Ysh_bus, binary_bus_mask, bus_idx_lookup, branch_lookup, Ybus_series_helm.tocsc(), Ybus_shunt_helm.tocsc()
 
@@ -321,16 +328,12 @@ def compute_current_loads(bus_idx: IntVec,
             I[a2] += np.conj(Idelta[ca]) / (np.sqrt(3)) * 1 * np.exp(1j * voltage_angle)
 
         elif star and a_connected and b_connected and c_connected:
-            # voltage_angle_a = np.angle(V[a2])
-            # voltage_angle_b = np.angle(V[b2])
-            # voltage_angle_c = np.angle(V[c2])
-            # I[a2] += -np.conj(Istar[ab]) * 1 * np.exp(1j * voltage_angle_a)
-            # I[b2] += -np.conj(Istar[bc]) * 1 * np.exp(1j * voltage_angle_b)
-            # I[c2] += -np.conj(Istar[ca]) * 1 * np.exp(1j * voltage_angle_c)
-
-            I[a2] += -np.conj(Istar[ab])
-            I[b2] += -np.conj(Istar[bc])
-            I[c2] += -np.conj(Istar[ca])
+            voltage_angle_a = np.angle(V[a2])
+            voltage_angle_b = np.angle(V[b2])
+            voltage_angle_c = np.angle(V[c2])
+            I[a2] += -np.conj(Istar[ab]) * 1 * np.exp(1j * voltage_angle_a)
+            I[b2] += -np.conj(Istar[bc]) * 1 * np.exp(1j * voltage_angle_b)
+            I[c2] += -np.conj(Istar[ca]) * 1 * np.exp(1j * voltage_angle_c)
 
         elif star and a_connected:
             voltage_angle = np.angle(V[a2])
@@ -840,7 +843,7 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
                                                      Idelta=self.nc.load_data.I3_delta)
 
         self.I0 = I0 / (self.nc.Sbase / 3)
-        print("\nI0 = ", I0)
+        # print("\nI0 = ", I0)
         self.Y_current_linear = Y_current_linear / (self.nc.Sbase / 3)
 
         ###
@@ -921,8 +924,8 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         Vs = self.V[0:3]
         V1 = self.V[3:6]
 
-        # V1 = D_inv @ (Il - C @ Vs)
-        # print(np.abs(V1).round(5))
+        V1 = D_inv @ (Il - C @ Vs)
+        print(np.abs(V1).round(5))
 
         Il_pu = (D @ V1) + (C @ Vs)
 
@@ -944,8 +947,20 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         Y = self.Yshunt_bus[3:6,3:6]
         I = Y @ V
         suma_I = I[0] + I[1] + I[2]
-        print("\n suma_I =\n", suma_I)
+        # print("\n suma_I =\n", suma_I)
         ###
+
+        # Test Impedance Load #
+
+        C = self.Ybus[3:6,0:3]
+        C = np.array(C.todense())
+        D = self.Ybus[3:6,3:6]
+        D = np.array(D.todense())
+
+        Us = self.V[0:3]
+        Ul = np.linalg.inv(D) @ ( -C @ Us )
+
+        # End Test
 
         return self._error, self._converged, x, self.f
 
