@@ -85,8 +85,6 @@ class InjectionParent(PhysicalDevice):
 
         self._bus = bus
 
-        self.time: Var
-
         self.active = bool(active)
         self._active_prof = Profile(default_value=self.active, data_type=bool)
 

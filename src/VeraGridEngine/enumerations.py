@@ -241,6 +241,9 @@ class SolverType(Enum):
     Constant_Impedance_linear = 'Constant impedance linear'  # for PGM
     NoSolver = 'No Solver'
 
+
+
+
     def __str__(self) -> str:
         """
 
@@ -1819,6 +1822,10 @@ class ResultTypes(Enum):
 
     # Clustering
     ClusteringReport = 'Clustering time series report'
+
+    # RMS Simulation
+
+    RmsSimulationReport = 'Rms time series report'
 
     # inputs analysis
     ZoneAnalysis = 'Zone analysis'

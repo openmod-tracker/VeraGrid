@@ -9,6 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Tuple, Sequence, List, Dict, Any
 
+from VeraGridEngine.Devices.Parents.physical_device import PhysicalDevice
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr
 from VeraGridEngine.enumerations import DynamicVarType
 
@@ -71,6 +72,7 @@ class Block:
     This represents a group of equations or a group of blocks
     """
     uid: int = field(default_factory=_new_uid)
+    vars2device:Dict[int, PhysicalDevice] = field(default_factory=dict)
 
     # internal vars
     state_vars: List[Var] = field(default_factory=list)

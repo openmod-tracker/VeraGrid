@@ -9,6 +9,8 @@ import numba as nb
 import numpy as np
 from pygments.lexers.textfmts import TodotxtLexer
 from scipy.optimize import newton_krylov
+
+from VeraGridEngine.Devices.Parents.physical_device import PhysicalDevice
 from VeraGridEngine.Utils.Symbolic import BlockSolver
 from VeraGridEngine.Utils.Symbolic.symbolic import _emit, _emit_one
 from VeraGridEngine.Utils.Symbolic.block import Block, Expr, Var
@@ -45,11 +47,13 @@ def _compile_equation(eqs: Sequence[Expr],
 
 
 def compose_system_block(grid: MultiCircuit,
-                          power_flow_results: PowerFlowResults) -> Tuple[Block, Dict[Tuple[int, str], float]]:
+                          power_flow_results: PowerFlowResults, vars2device:Dict[int, PhysicalDevice]) -> Tuple[Block, Dict[Tuple[int, str], float]]:
+
     """
     Compose all RMS models
     :param grid:
     :param power_flow_results:
+    :param vars2device: dictionary relating uid of vars with the device they belong to
     :return: System block and initial guess dictionary
     """
     # already computed grid power flow
@@ -60,6 +64,8 @@ def compose_system_block(grid: MultiCircuit,
 
     # create the system block
     sys_block = Block(children=[], in_vars=[])
+
+    sys_block.vars2device = vars2device
 
     # initialize containers
     init_guess: Dict[Tuple[int, str], float] = {}
@@ -223,6 +229,10 @@ def initialize_rms(grid: MultiCircuit, power_flow_results, logger: Logger = Logg
     """
     Initialize all RMS models
     """
+
+    # instantiate vars2device dict
+
+    vars2device:Dict[int, PhysicalDevice] = dict()
     # find events
     rms_events = grid.rms_events
 
@@ -243,6 +253,10 @@ def initialize_rms(grid: MultiCircuit, power_flow_results, logger: Logger = Logg
     for i, elm in enumerate(grid.buses):
         elm.initialize_rms()
         bus_dict[elm] = i
+        for state_var in elm.rms_model.model.state_vars:
+            vars2device[state_var.uid] = elm
+        for algeb_var in elm.rms_model.model.algebraic_vars:
+            vars2device[algeb_var.uid] = elm
 
     # initialize branches
     for elm in grid.get_branches_iter(add_vsc=True, add_hvdc=True, add_switch=True):
@@ -256,19 +270,29 @@ def initialize_rms(grid: MultiCircuit, power_flow_results, logger: Logger = Logg
         setQ(Q, Q_used, f, -mdl.E(DynamicVarType.Qf))
         setQ(Q, Q_used, t, -mdl.E(DynamicVarType.Qt))
 
+        for state_var in elm.rms_model.model.state_vars:
+            vars2device[state_var.uid] = elm
+        for algeb_var in elm.rms_model.model.algebraic_vars:
+            vars2device[algeb_var.uid] = elm
+
     # initialize injections
     for elm in grid.get_injection_devices_iter():
         # resolve events
         # check if there is an event actuating through this element and initialize rms accordingly
         rms_evts = [rms_evt for rms_evt in rms_events if rms_evt.device_idtag == elm.idtag]
         if len(rms_evts) != 0:
-            elm.initialize_rms_with_event(rms_evts)
+            elm.initialize_rms_with_event(rms_evts, grid.time)
         else:
             elm.initialize_rms()
         mdl = elm.rms_model.model
         k = bus_dict[elm.bus]
         setP(P, P_used, k, mdl.E(DynamicVarType.P))
         setQ(Q, Q_used, k, mdl.E(DynamicVarType.Q))
+
+        for state_var in elm.rms_model.model.state_vars:
+            vars2device[state_var.uid] = elm
+        for algeb_var in elm.rms_model.model.algebraic_vars:
+            vars2device[algeb_var.uid] = elm
 
     # add the nodal balance equations
     for i, elm in enumerate(grid.buses):
@@ -281,4 +305,4 @@ def initialize_rms(grid: MultiCircuit, power_flow_results, logger: Logger = Logg
 
 
 
-    return compose_system_block(grid, power_flow_results)
+    return compose_system_block(grid, power_flow_results, vars2device)

@@ -11,6 +11,8 @@ import sys
 import os
 import time
 
+
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../..", "src")))
 
 from typing import Tuple, Any
@@ -23,9 +25,9 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix, csc_matrix
 from scipy.sparse.linalg import gmres, spilu, LinearOperator
 from typing import Dict, List, Literal, Any, Callable, Sequence
-from pathos.multiprocessing import ProcessingPool as Pool
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
+# from VeraGridEngine import RmsResults
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Expr, Const, _emit, _emit_params_eq, _heaviside
 from VeraGridEngine.Utils.Symbolic.block import Block
@@ -269,7 +271,8 @@ class BlockSolver:
         self._state_eqs: List[Expr] = list()
         self._parameters: List[Const] = list()
         self._parameters_eqs: List[Expr] = list()
-        self.glob_time = glob_time
+        self.glob_time: Var = glob_time
+        self.vars2device = block_system.vars2device
 
         for b in self.block_system.get_all_blocks():
             self._algebraic_vars.extend(b.algebraic_vars)
@@ -987,12 +990,11 @@ class BlockSolver:
             h: float,
             x0: np.ndarray,
             params0: np.ndarray,
-            glob_time: Var,
-            method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
+            method: str,
             newton_tol: float = 1e-8,
             newton_max_iter: int = 1000,
 
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray ]:
         """
         :param events_list:
         :param params0:
@@ -1000,7 +1002,6 @@ class BlockSolver:
         :param t_end: end time
         :param h: step
         :param x0: initial values
-        :param glob_time: global time
         :param method: method
         :param newton_tol:
         :param newton_max_iter:
@@ -1012,7 +1013,7 @@ class BlockSolver:
             return self._simulate_fixed(t0, t_end, h, x0, params0, stepper="rk4")
         if method == "implicit_euler":
             return self._simulate_implicit_euler(
-                t0=t0, t_end=t_end, h=h, x0=x0, params0=params0, glob_time=glob_time,
+                t0=t0, t_end=t_end, h=h, x0=x0, params0=params0,
                 tol=newton_tol, max_iter=newton_max_iter,
             )
         raise ValueError(f"Unknown method '{method}'")
@@ -1053,7 +1054,6 @@ class BlockSolver:
     def _simulate_implicit_euler(self, t0: float, t_end: float, h: float,
                                  x0: np.ndarray,
                                  params0: np.ndarray,
-                                 glob_time,
                                  tol=1e-6,
                                  max_iter=1000):
         """
@@ -1141,6 +1141,8 @@ class BlockSolver:
                 y[step_idx + 1] = x_new
                 t[step_idx + 1] = t[step_idx] + h
 
+
+
             else:
                 print(f"Failed to converge at step {step_idx}")
                 break
@@ -1152,6 +1154,7 @@ class BlockSolver:
         print((f"solv_time = {solv_time:.6f} [s]"))
         print((f"total_jac_time = {total_jac_time:.6f} [s]"))
         print((f"total_csc_time = {total_csc_time:.6f} [s]"))
+
 
         return t, y
 
