@@ -24,7 +24,7 @@ def main():
     start = time.time()
 
     # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
-    ss = andes.load('Gen_Load/simple_system1_1.json', default_config=True)
+    ss = andes.load('Gen_Load/simple_system2.json', default_config=True)
     n_xy = len(ss.dae.xy_name)
     print(f"Andes variables = {n_xy}")
     ss.files.no_output = True

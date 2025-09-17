@@ -21,7 +21,8 @@ def main():
 
    start = time.time()
 
-   ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
+   # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
+   ss = andes.load('Gen_Load/simple_system1_1.json', default_config=True)
    n_xy = len(ss.dae.xy_name)
    print(f"Andes variables = {n_xy}")
    ss.files.no_output = True
@@ -88,6 +89,7 @@ def main():
    # print("gx:", dae.gx)
    # print("gy:", dae.gy)
    # print("Tf:", Tf)
+   # print("gyx andes:", eig.gyx)
 
    # sum_pf = np.array([0, 0, 0, 0, 0, 0, 0, 0])
    # for col in range(eig.pfactors.shape[0]):
@@ -100,6 +102,7 @@ def main():
    gx = dae.gx
    gy = dae.gy
    A = eig.As
+   gyx = eig.gyx
 
    dense_fx = np.array([[fx[i, j] for j in range(fx.size[1])] for i in range(fx.size[0])])
    df_fx = pd.DataFrame(dense_fx)
@@ -123,6 +126,10 @@ def main():
 
    df_Eig = pd.DataFrame(eig.mu)
    df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False, header=False)
+
+   dense_gyx = np.array([[gyx[i, j] for j in range(gyx.size[1])] for i in range(gyx.size[0])])
+   df_gyx = pd.DataFrame(dense_gyx)
+   df_gyx.to_csv("gyx_results_Andes.csv", index=False, header=False, float_format="%.10f")
 
    # case_path = get_case('kundur/kundur_full.xlsx')
    # ss = andes.run(case_path, routine='eig')

@@ -17,7 +17,7 @@ from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 import VeraGridEngine.api as gce
 
-# TODO: system with only 1 generator, 2 line, 1 load and 3 buses
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Power flow
@@ -148,106 +148,39 @@ grid = gce.MultiCircuit()
 
 # SIMPLE SYSTEM 1.1: 1 GEN, 1 TRAFO, 2 LINE (series), 1 LOAD
 # Buses
-bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
-bus2 = gce.Bus(name="Bus2", Vnom=230)
-bus3 = gce.Bus(name="Bus3", Vnom=230)
-bus4 = gce.Bus(name="Bus4", Vnom=230)
-
-grid.add_bus(bus1)
-grid.add_bus(bus2)
-grid.add_bus(bus3)
-grid.add_bus(bus4)
-
-# Line
-line_0 = grid.add_line(
-    gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
-             r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-line1 = grid.add_line(
-    gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
-             r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-line2 = grid.add_line(
-    gce.Line(name="line 3-4", bus_from=bus3, bus_to=bus4,
-             r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-
-
-
-
-
-
-
-
-# load
-load1 = gce.Load(name="load1", P=400.0, Q=80.0, Pl0=-4.0, Ql0=-0.8)
-load1.time = t
-load1_grid = grid.add_load(bus=bus4, api_obj=load1)
-# load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
-
-
-# Generators
-fn_1 = 60.0
-M_1 = 13.0 * 9.0
-D_1 = 10.0 * 9.0
-ra_1 = 0.0
-xd_1 = 0.3 * 100.0 / 900.0
-omega_ref_1 = 1.0
-Kp_1 = 0.0
-Ki_1 = 0.0
-
-
-# Generators
-gen1 = gce.Generator(
-    name="Gen1", P=700.0, vset=1.03, Snom=900.0,
-    x1=xd_1, r1=ra_1, freq=fn_1,
-    # vf=1.0,
-    # tm0=700.0/900.0,   # ≈ 0.7778
-    # tm0=6.999999999999923,
-    tm0=4.000000474297278,
-    vf=1.0663347975892765,
-    # vf0=1.141048034212655,
-    M=M_1, D=D_1,
-    omega_ref=omega_ref_1,
-    Kp=Kp_1, Ki=Ki_1
-)
-
-grid.add_generator(bus=bus1, api_obj=gen1)
-
-
-#SIMLE SYSTEM 2: 1 GEN, 1 TRAFO, 2 PARALEL LINES, 1 LOAD
-
 # bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
 # bus2 = gce.Bus(name="Bus2", Vnom=230)
 # bus3 = gce.Bus(name="Bus3", Vnom=230)
+# bus4 = gce.Bus(name="Bus4", Vnom=230)
 #
 # grid.add_bus(bus1)
 # grid.add_bus(bus2)
 # grid.add_bus(bus3)
+# grid.add_bus(bus4)
 #
 # # Line
-#
-#
-# trafo_G1 = grid.add_line(
-#     gce.Line(name="trafo 1-2", bus_from=bus2, bus_to=bus1,
-#              r=0.00000, x=0.0015 * (100.0/900.0), b=0.0, rate=900.0))
-#
+# line_0 = grid.add_line(
+#     gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
+#              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
 # line1 = grid.add_line(
-#     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
-#              r=0.0000, x=0.00011000 * (100.0/400.0), b=0.00019250, rate=400.0))
-# line1 = grid.add_line(
-#     gce.Line(name="line 2-3-2", bus_from=bus2, bus_to=bus3,
-#              r=0.0000, x=0.00011000 * (100.0/400.0), b=0.00019250, rate=400.0))
-# # line1 = grid.add_line(
-# #     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
-# #              r=0.0000, x=0.0011000, b=0.19250, rate=400.0))
-# # line1 = grid.add_line(
-# #     gce.Line(name="line 2-3-2", bus_from=bus2, bus_to=bus3,
-# #              r=0.0000, x=0.0011000, b=0.19250, rate=400.0))
+#     gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
+#              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
+# line2 = grid.add_line(
+#     gce.Line(name="line 3-4", bus_from=bus3, bus_to=bus4,
+#              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
+#
+#
+#
+#
+#
+#
+#
 #
 # # load
-# load1 = gce.Load(name="load1", P=650.0, Q=250.0, Pl0=-6.50, Ql0=-2.50)
+# load1 = gce.Load(name="load1", P=400.0, Q=80.0, Pl0=-4.0, Ql0=-0.8)
 # load1.time = t
-# load1_grid = grid.add_load(bus=bus3, api_obj=load1)
+# load1_grid = grid.add_load(bus=bus4, api_obj=load1)
 # # load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
-#
 #
 #
 # # Generators
@@ -268,8 +201,8 @@ grid.add_generator(bus=bus1, api_obj=gen1)
 #     # vf=1.0,
 #     # tm0=700.0/900.0,   # ≈ 0.7778
 #     # tm0=6.999999999999923,
-#     tm0=6.50000000012592,
-#     vf=1.1307812687576402,
+#     tm0=4.000000474297278,
+#     vf=1.0663347975892765,
 #     # vf0=1.141048034212655,
 #     M=M_1, D=D_1,
 #     omega_ref=omega_ref_1,
@@ -277,6 +210,73 @@ grid.add_generator(bus=bus1, api_obj=gen1)
 # )
 #
 # grid.add_generator(bus=bus1, api_obj=gen1)
+
+
+#SIMLE SYSTEM 2: 1 GEN, 1 TRAFO, 2 PARALEL LINES, 1 LOAD
+
+bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
+bus2 = gce.Bus(name="Bus2", Vnom=230)
+bus3 = gce.Bus(name="Bus3", Vnom=230)
+
+grid.add_bus(bus1)
+grid.add_bus(bus2)
+grid.add_bus(bus3)
+grid.fBase = 60
+# Line
+
+
+trafo_G1 = grid.add_line(
+    gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
+             r=0.00000, x=0.0015 * (100.0/900.0), b=0.0, rate=900.0))
+
+line1 = grid.add_line(
+    gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
+             r=0.0000, x=0.00011000 * (100.0/500.0), b=0.00019250, rate=500.0))
+line2 = grid.add_line(
+    gce.Line(name="line 2-3-2", bus_from=bus2, bus_to=bus3,
+             r=0.0000, x=0.00011000 * (100.0/500.0), b=0.00019250, rate=500.0))
+# line1 = grid.add_line(
+#     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
+#              r=0.0000, x=0.0011000, b=0.19250, rate=400.0))
+# line1 = grid.add_line(
+#     gce.Line(name="line 2-3-2", bus_from=bus2, bus_to=bus3,
+#              r=0.0000, x=0.0011000, b=0.19250, rate=400.0))
+
+# load
+load1 = gce.Load(name="load1", P=400.0, Q=80.0, Pl0=-4.0, Ql0=-0.80)
+load1.time = t
+load1_grid = grid.add_load(bus=bus3, api_obj=load1)
+# load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
+
+
+
+# Generators
+fn_1 = 60.0
+M_1 = 13.0 * 9.0
+D_1 = 10.0 * 9.0
+ra_1 = 0.0
+xd_1 = 0.3 * 100.0 / 900.0
+omega_ref_1 = 1.0
+Kp_1 = 0.0
+Ki_1 = 0.0
+
+
+# Generators
+gen1 = gce.Generator(
+    name="Gen1", P=700.0, vset=1.03, Snom=900.0,
+    x1=xd_1, r1=ra_1, freq=fn_1,
+    # vf=1.0,
+    # tm0=700.0/900.0,   # ≈ 0.7778
+    # tm0=6.999999999999923,
+    tm0=4.000000245157286,
+    vf=1.0752574819142329,
+    # vf0=1.141048034212655,
+    M=M_1, D=D_1,
+    omega_ref=omega_ref_1,
+    Kp=Kp_1, Ki=Ki_1
+)
+
+grid.add_generator(bus=bus1, api_obj=gen1)
 # ---------------------------------------------------------------------------------------
 # Events
 # ---------------------------------------------------------------------------------------
