@@ -499,7 +499,6 @@ class HelmPreparation:
                  vec_P, vec_Q, Ysh, vec_W, pq, pv, pqpv, sl,
                  npqpv, nbus):
         """
-
         :param sys_mat_factorization:
         :param Uini:
         :param Xini:

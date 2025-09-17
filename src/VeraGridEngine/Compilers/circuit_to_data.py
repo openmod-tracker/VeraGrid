@@ -55,7 +55,7 @@ def delta2StarAdmittance(Yab: complex,
     :param Yab:
     :param Ybc:
     :param Yca:
-    :return: Ya, Yb, Yc
+    :return:
     """
     return 1 / 3 * np.array([
         [Yab + Yca, -Yab, -Yca],

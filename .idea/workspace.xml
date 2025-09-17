@@ -29,8 +29,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="HELM three-phase Ired">
-      <change afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/initial_voltage_helm.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Compilers/circuit_to_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/NumericalMethods/helm_power_flow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/unbalanced_pf/full_trafo_validation.py" afterDir="false" />
@@ -74,7 +74,7 @@
     </favorite-branches>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="#426-shortcircuit-split-branch" />
+        <entry key="$PROJECT_DIR$" value="devel" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -212,7 +212,7 @@
     "Python.demo_code2.executor": "Debug",
     "Python.demo_code3.executor": "Run",
     "Python.estabanell.executor": "Debug",
-    "Python.full_trafo_validation.executor": "Run",
+    "Python.full_trafo_validation.executor": "Debug",
     "Python.grid_merge.executor": "Run",
     "Python.helm_power_flow.executor": "Debug",
     "Python.ieee9.executor": "Run",
@@ -254,7 +254,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Shell Script.make.sh.executor": "Run",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "#428 on #425-3ph-Transformers-Dy-Yd",
+    "git-widget-placeholder": "#331 on #425-3ph-Transformers-Dy-Yd",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "/Users/santi/Git/GitHub/GridCal/src/VeraGrid/data",
     "node.js.detected.package.eslint": "true",
@@ -2623,11 +2623,6 @@
           <option name="timeStamp" value="2580" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/trunk/three_phase/transformer_primitives.py</url>
-          <line>106</line>
-          <option name="timeStamp" value="2587" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/trunk/unbalanced_pf/estabanell.py</url>
           <line>107</line>
           <option name="timeStamp" value="2619" />
@@ -2645,7 +2640,7 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/PowerFlow/Formulations/pf_basic_formulation_3ph.py</url>
           <line>964</line>
-          <option name="timeStamp" value="2684" />
+          <option name="timeStamp" value="2687" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

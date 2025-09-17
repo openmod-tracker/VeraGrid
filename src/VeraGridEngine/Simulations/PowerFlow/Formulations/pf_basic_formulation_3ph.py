@@ -947,7 +947,7 @@ class PfBasicFormulation3Ph(PfFormulationTemplate):
         Y = self.Yshunt_bus[3:6,3:6]
         I = Y @ V
         suma_I = I[0] + I[1] + I[2]
-        # print("\n suma_I =\n", suma_I)
+        print("\n suma_I =\n", suma_I)
         ###
 
         # Test Impedance Load #
