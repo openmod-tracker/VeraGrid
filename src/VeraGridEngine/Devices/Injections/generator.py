@@ -90,11 +90,11 @@ class Generator(GeneratorParent):
                  r2: float = 1e-20,
                  x2: float = 1e-20,
                  freq=60.0,
-                 tm0=0.0,
+                 tm0=0.0750281479189543,
                  M=1.0 / 100.0 * 900.0, # from Machine to System base
                  D=4.0 / 100.0 * 900.0, # from Machine to System base
                  omega_ref=1.0,
-                 vf=0.0,
+                 vf=0.9967798127873505,
                  Kp=0.0,
                  Ki=0.0,
                  capex: float = 0,
