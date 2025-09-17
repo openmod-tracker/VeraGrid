@@ -580,7 +580,7 @@ class Load(LoadParent):
                 }
             )
 
-    def initialize_rms_with_event(self, rms_events: List):
+    def initialize_rms_with_event(self, rms_events: List, glob_time):
         if self.rms_model.empty():
             Ql = Var("Ql")
             Pl = Var("Pl")
@@ -605,7 +605,7 @@ class Load(LoadParent):
                 var = Var(rms_event.parameter)
                 setattr(self, rms_event.parameter, var)
                 self.rms_model.model.parameters.append(var)
-                self.rms_model.model.parameters_eqs.append(piecewise(self.time, rms_event.times, rms_event.values, default_value))
+                self.rms_model.model.parameters_eqs.append(piecewise(glob_time, rms_event.times, rms_event.values, default_value))
 
             self.rms_model.model.algebraic_eqs.append(Pl - self.Pl0)
             self.rms_model.model.algebraic_eqs.append(Ql - self.Ql0)

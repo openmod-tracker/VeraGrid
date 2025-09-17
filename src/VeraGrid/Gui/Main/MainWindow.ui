@@ -10,6 +10,12 @@
     <height>742</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>1198</width>
+    <height>742</height>
+   </size>
+  </property>
   <property name="baseSize">
    <size>
     <width>0</width>
@@ -25,7 +31,7 @@
    <string>VeraGrid</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
+   <iconset>
     <normaloff>:/Program icon/VeraGrid_icon.svg</normaloff>:/Program icon/VeraGrid_icon.svg</iconset>
   </property>
   <property name="autoFillBackground">
@@ -66,6 +72,80 @@
     <property name="bottomMargin">
      <number>2</number>
     </property>
+    <item row="3" column="0">
+     <widget class="QFrame" name="progress_frame">
+      <property name="frameShape">
+       <enum>QFrame::Shape::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_7">
+       <item row="2" column="3">
+        <widget class="QLabel" name="progress_label">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QProgressBar" name="progressBar">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QProgressBar {
+	border: 1px solid rgb(186, 189, 182);
+    border-radius: 5px;
+	text-align: center;
+}
+QProgressBar::chunk{
+	background-color: rgb(0, 180, 136)
+}</string>
+         </property>
+         <property name="value">
+          <number>20</number>
+         </property>
+         <property name="invertedAppearance">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QPushButton" name="cancelButton">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>Cancel process</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/Icons/icons/delete.svg</normaloff>:/Icons/icons/delete.svg</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="font">
@@ -74,11 +154,11 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="GridTab">
        <attribute name="icon">
-        <iconset resource="icons.qrc">
+        <iconset>
          <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
        </attribute>
        <attribute name="title">
@@ -114,7 +194,7 @@
            <enum>QTabWidget::TabShape::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="elideMode">
            <enum>Qt::TextElideMode::ElideNone</enum>
@@ -124,7 +204,7 @@
           </property>
           <widget class="QWidget" name="GridSectionTab">
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -237,11 +317,11 @@
                       <enum>QTabWidget::TabPosition::North</enum>
                      </property>
                      <property name="currentIndex">
-                      <number>0</number>
+                      <number>2</number>
                      </property>
                      <widget class="QWidget" name="tab_3">
                       <attribute name="icon">
-                       <iconset resource="icons.qrc">
+                       <iconset>
                         <normaloff>:/Icons/icons/show_color_controls.svg</normaloff>:/Icons/icons/show_color_controls.svg</iconset>
                       </attribute>
                       <attribute name="title">
@@ -279,7 +359,7 @@
                      </widget>
                      <widget class="QWidget" name="tab">
                       <attribute name="icon">
-                       <iconset resource="icons.qrc">
+                       <iconset>
                         <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
                       </attribute>
                       <attribute name="title">
@@ -309,7 +389,7 @@
                      </widget>
                      <widget class="QWidget" name="tab_4">
                       <attribute name="icon">
-                       <iconset resource="icons.qrc">
+                       <iconset>
                         <normaloff>:/Icons/icons/gear.svg</normaloff>:/Icons/icons/gear.svg</iconset>
                       </attribute>
                       <attribute name="title">
@@ -924,7 +1004,7 @@
                                 <string/>
                                </property>
                                <property name="pixmap">
-                                <pixmap resource="icons.qrc">:/Icons/icons/picture.svg</pixmap>
+                                <pixmap>:/Icons/icons/picture.svg</pixmap>
                                </property>
                                <property name="scaledContents">
                                 <bool>true</bool>
@@ -1022,7 +1102,7 @@
                                 <string/>
                                </property>
                                <property name="pixmap">
-                                <pixmap resource="icons.qrc">:/Icons/icons/map.svg</pixmap>
+                                <pixmap>:/Icons/icons/map.svg</pixmap>
                                </property>
                                <property name="scaledContents">
                                 <bool>true</bool>
@@ -1156,7 +1236,7 @@
                                 <string/>
                                </property>
                                <property name="pixmap">
-                                <pixmap resource="icons.qrc">:/Icons/icons/schematic.svg</pixmap>
+                                <pixmap>:/Icons/icons/schematic.svg</pixmap>
                                </property>
                                <property name="scaledContents">
                                 <bool>true</bool>
@@ -1354,7 +1434,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/color_grid.svg</normaloff>:/Icons/icons/color_grid.svg</iconset>
                         </property>
                        </widget>
@@ -1383,7 +1463,7 @@
           </widget>
           <widget class="QWidget" name="DataTab">
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -1466,7 +1546,7 @@
                   </property>
                   <widget class="QWidget" name="tab_15">
                    <attribute name="icon">
-                    <iconset resource="icons.qrc">
+                    <iconset>
                      <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
                    </attribute>
                    <attribute name="title">
@@ -1534,7 +1614,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/magnifying_glass.svg</normaloff>:/Icons/icons/magnifying_glass.svg</iconset>
                          </property>
                         </widget>
@@ -1561,7 +1641,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/histogram.svg</normaloff>:/Icons/icons/histogram.svg</iconset>
                          </property>
                         </widget>
@@ -1608,7 +1688,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/copy2left.svg</normaloff>:/Icons/icons/copy2left.svg</iconset>
                          </property>
                         </widget>
@@ -1666,7 +1746,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/plus.svg</normaloff>:/Icons/icons/plus.svg</iconset>
                          </property>
                         </widget>
@@ -1680,7 +1760,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/minus.svg</normaloff>:/Icons/icons/minus.svg</iconset>
                          </property>
                         </widget>
@@ -1692,7 +1772,7 @@
                   </widget>
                   <widget class="QWidget" name="tab_2">
                    <attribute name="icon">
-                    <iconset resource="icons.qrc">
+                    <iconset>
                      <normaloff>:/Icons/icons/area_transfer.svg</normaloff>:/Icons/icons/area_transfer.svg</iconset>
                    </attribute>
                    <attribute name="title">
@@ -1808,7 +1888,7 @@
                   </widget>
                   <widget class="QWidget" name="tab_16">
                    <attribute name="icon">
-                    <iconset resource="icons.qrc">
+                    <iconset>
                      <normaloff>:/Icons/icons/time_series.svg</normaloff>:/Icons/icons/time_series.svg</iconset>
                    </attribute>
                    <attribute name="title">
@@ -1870,7 +1950,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/new.svg</normaloff>:/Icons/icons/new.svg</iconset>
                          </property>
                         </widget>
@@ -1884,7 +1964,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/new (delete).svg</normaloff>:/Icons/icons/new (delete).svg</iconset>
                          </property>
                         </widget>
@@ -1898,7 +1978,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/import_profiles.svg</normaloff>:/Icons/icons/import_profiles.svg</iconset>
                          </property>
                          <property name="flat">
@@ -1915,7 +1995,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/import_models.svg</normaloff>:/Icons/icons/import_models.svg</iconset>
                          </property>
                          <property name="flat">
@@ -1945,7 +2025,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/plot.svg</normaloff>:/Icons/icons/plot.svg</iconset>
                          </property>
                         </widget>
@@ -2004,7 +2084,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/copy.svg</normaloff>:/Icons/icons/copy.svg</iconset>
                          </property>
                         </widget>
@@ -2018,7 +2098,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/paste.svg</normaloff>:/Icons/icons/paste.svg</iconset>
                          </property>
                         </widget>
@@ -2032,7 +2112,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/copy2right.svg</normaloff>:/Icons/icons/copy2right.svg</iconset>
                          </property>
                         </widget>
@@ -2072,7 +2152,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/plus.svg</normaloff>:/Icons/icons/plus.svg</iconset>
                          </property>
                         </widget>
@@ -2086,7 +2166,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/minus.svg</normaloff>:/Icons/icons/minus.svg</iconset>
                          </property>
                         </widget>
@@ -2100,7 +2180,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/multiply.svg</normaloff>:/Icons/icons/multiply.svg</iconset>
                          </property>
                         </widget>
@@ -2114,7 +2194,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/divide.svg</normaloff>:/Icons/icons/divide.svg</iconset>
                          </property>
                         </widget>
@@ -2128,7 +2208,7 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="icons.qrc">
+                          <iconset>
                            <normaloff>:/Icons/icons/copy2up.svg</normaloff>:/Icons/icons/copy2up.svg</iconset>
                          </property>
                         </widget>
@@ -2161,7 +2241,7 @@
           </widget>
           <widget class="QWidget" name="compiledArraysTab">
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/spmat.svg</normaloff>:/Icons/icons/spmat.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -2214,7 +2294,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
                   </property>
                  </widget>
@@ -2234,7 +2314,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/Icons/icons/calculator.svg</normaloff>:/Icons/icons/calculator.svg</iconset>
                   </property>
                  </widget>
@@ -2290,7 +2370,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/Icons/icons/array.svg</normaloff>:/Icons/icons/array.svg</iconset>
                   </property>
                  </widget>
@@ -2310,7 +2390,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/Icons/icons/plot.svg</normaloff>:/Icons/icons/plot.svg</iconset>
                   </property>
                  </widget>
@@ -2330,7 +2410,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/Icons/icons/copy.svg</normaloff>:/Icons/icons/copy.svg</iconset>
                   </property>
                  </widget>
@@ -2343,7 +2423,7 @@
           </widget>
           <widget class="QWidget" name="commentsTab">
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/edit.svg</normaloff>:/Icons/icons/edit.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -2365,7 +2445,7 @@
       </widget>
       <widget class="QWidget" name="ResultsTab">
        <attribute name="icon">
-        <iconset resource="icons.qrc">
+        <iconset>
          <normaloff>:/Icons/icons/plot.svg</normaloff>:/Icons/icons/plot.svg</iconset>
        </attribute>
        <attribute name="title">
@@ -2528,7 +2608,7 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="icons.qrc">
+                      <iconset>
                        <normaloff>:/Icons/icons/minus.svg</normaloff>:/Icons/icons/minus.svg</iconset>
                      </property>
                     </widget>
@@ -2643,7 +2723,7 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="icons.qrc">
+                      <iconset>
                        <normaloff>:/Icons/icons/loadc.svg</normaloff>:/Icons/icons/loadc.svg</iconset>
                      </property>
                     </widget>
@@ -2666,7 +2746,7 @@
               </property>
               <widget class="QWidget" name="tab_7">
                <attribute name="icon">
-                <iconset resource="icons.qrc">
+                <iconset>
                  <normaloff>:/Icons/icons/array.svg</normaloff>:/Icons/icons/array.svg</iconset>
                </attribute>
                <attribute name="title">
@@ -2785,7 +2865,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/magnifying_glass.svg</normaloff>:/Icons/icons/magnifying_glass.svg</iconset>
                         </property>
                        </widget>
@@ -2819,7 +2899,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/transpose.svg</normaloff>:/Icons/icons/transpose.svg</iconset>
                         </property>
                        </widget>
@@ -2836,7 +2916,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/cdf.svg</normaloff>:/Icons/icons/cdf.svg</iconset>
                         </property>
                        </widget>
@@ -2853,7 +2933,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/abs.svg</normaloff>:/Icons/icons/abs.svg</iconset>
                         </property>
                        </widget>
@@ -2870,7 +2950,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/stacked_plot.svg</normaloff>:/Icons/icons/stacked_plot.svg</iconset>
                         </property>
                        </widget>
@@ -2884,7 +2964,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/copy.svg</normaloff>:/Icons/icons/copy.svg</iconset>
                         </property>
                        </widget>
@@ -2898,7 +2978,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/array.svg</normaloff>:/Icons/icons/array.svg</iconset>
                         </property>
                        </widget>
@@ -2912,7 +2992,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
                         </property>
                        </widget>
@@ -2926,7 +3006,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="icons.qrc">
+                         <iconset>
                           <normaloff>:/Icons/icons/plot.svg</normaloff>:/Icons/icons/plot.svg</iconset>
                         </property>
                        </widget>
@@ -2941,7 +3021,7 @@
               </widget>
               <widget class="QWidget" name="tab_14">
                <attribute name="icon">
-                <iconset resource="icons.qrc">
+                <iconset>
                  <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
                </attribute>
                <attribute name="title">
@@ -3006,7 +3086,7 @@
                       <string/>
                      </property>
                      <property name="icon">
-                      <iconset resource="icons.qrc">
+                      <iconset>
                        <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
                      </property>
                     </widget>
@@ -3026,7 +3106,7 @@
       </widget>
       <widget class="QWidget" name="main_console_tab">
        <attribute name="icon">
-        <iconset resource="icons.qrc">
+        <iconset>
          <normaloff>:/Icons/icons/console.svg</normaloff>:/Icons/icons/console.svg</iconset>
        </attribute>
        <attribute name="title">
@@ -3121,7 +3201,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="icons.qrc">
+                     <iconset>
                       <normaloff>:/Icons/icons/new2c.svg</normaloff>:/Icons/icons/new2c.svg</iconset>
                     </property>
                    </widget>
@@ -3135,7 +3215,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="icons.qrc">
+                     <iconset>
                       <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
                     </property>
                    </widget>
@@ -3170,7 +3250,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="icons.qrc">
+                     <iconset>
                       <normaloff>:/Icons/icons/next.svg</normaloff>:/Icons/icons/next.svg</iconset>
                     </property>
                    </widget>
@@ -3230,7 +3310,7 @@
                   </property>
                   <widget class="QWidget" name="pythonConsoleTab">
                    <attribute name="icon">
-                    <iconset resource="icons.qrc">
+                    <iconset>
                      <normaloff>:/Icons/icons/console.svg</normaloff>:/Icons/icons/console.svg</iconset>
                    </attribute>
                    <attribute name="title">
@@ -3313,7 +3393,7 @@
                              <string/>
                             </property>
                             <property name="icon">
-                             <iconset resource="icons.qrc">
+                             <iconset>
                               <normaloff>:/Icons/icons/clear_runs.svg</normaloff>:/Icons/icons/clear_runs.svg</iconset>
                             </property>
                            </widget>
@@ -3331,7 +3411,7 @@
                   </widget>
                   <widget class="QWidget" name="sourceCodeTab">
                    <attribute name="icon">
-                    <iconset resource="icons.qrc">
+                    <iconset>
                      <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
                    </attribute>
                    <attribute name="title">
@@ -3373,7 +3453,7 @@
       </widget>
       <widget class="QWidget" name="SettingsTab">
        <attribute name="icon">
-        <iconset resource="icons.qrc">
+        <iconset>
          <normaloff>:/Icons/icons/gear.svg</normaloff>:/Icons/icons/gear.svg</iconset>
        </attribute>
        <attribute name="title">
@@ -3440,7 +3520,7 @@
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap resource="icons.qrc">:/Icons/icons/gear.svg</pixmap>
+                 <pixmap>:/Icons/icons/gear.svg</pixmap>
                 </property>
                 <property name="scaledContents">
                  <bool>true</bool>
@@ -3731,7 +3811,7 @@
                     <string/>
                    </property>
                    <property name="pixmap">
-                    <pixmap resource="icons.qrc">:/Icons/icons/piece.svg</pixmap>
+                    <pixmap>:/Icons/icons/piece.svg</pixmap>
                    </property>
                    <property name="scaledContents">
                     <bool>true</bool>
@@ -3851,7 +3931,7 @@
                     <string/>
                    </property>
                    <property name="pixmap">
-                    <pixmap resource="icons.qrc">:/Icons/icons/plot.svg</pixmap>
+                    <pixmap>:/Icons/icons/plot.svg</pixmap>
                    </property>
                    <property name="scaledContents">
                     <bool>true</bool>
@@ -3957,7 +4037,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QTabWidget" name="settings_tabWidget">
+         <widget class="QTabWidget" name="tabWidget_7">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -3967,16 +4047,19 @@
            </font>
           </property>
           <property name="toolTip">
-           <string/>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial time for the simulation. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="autoFillBackground">
            <bool>false</bool>
+          </property>
+          <property name="inputMethodHints">
+           <set>Qt::InputMethodHint::ImhFormattedNumbersOnly</set>
           </property>
           <property name="tabPosition">
            <enum>QTabWidget::TabPosition::South</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>7</number>
           </property>
           <property name="iconSize">
            <size>
@@ -4004,7 +4087,7 @@
             <string>Power flow settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/pf.svg</normaloff>:/Icons/icons/pf.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -4032,7 +4115,7 @@
                <string/>
               </property>
               <property name="pixmap">
-               <pixmap resource="icons.qrc">:/Icons/icons/pf.svg</pixmap>
+               <pixmap>:/Icons/icons/pf.svg</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -4141,221 +4224,6 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0" colspan="3">
-             <widget class="QFrame" name="frame_19">
-              <property name="frameShape">
-               <enum>QFrame::Shape::NoFrame</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Shadow::Raised</enum>
-              </property>
-              <layout class="QGridLayout" name="gridLayout_22">
-               <item row="11" column="0">
-                <widget class="QLabel" name="label_23">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Verbosity</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="14" column="0">
-                <spacer name="verticalSpacer_10">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="10" column="0">
-                <widget class="QLabel" name="label_6">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Max. iterations</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="1" colspan="2">
-                <widget class="QDoubleSpinBox" name="muSpinBox">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Factor that multiplies each increment solution. &lt;/p&gt;&lt;p&gt;In practice this is used to slow down troublesome solutions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="decimals">
-                  <number>4</number>
-                 </property>
-                 <property name="minimum">
-                  <double>0.000100000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>1.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.100000000000000</double>
-                 </property>
-                 <property name="value">
-                  <double>1.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="1" colspan="2">
-                <widget class="QSpinBox" name="verbositySpinBox">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>Level of console information. 0: None, 1: some information, 2: all the information</string>
-                 </property>
-                 <property name="maximum">
-                  <number>2</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="13" column="0" colspan="2">
-                <widget class="QLabel" name="label_22">
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="0">
-                <widget class="QLabel" name="label_5">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Tolerance</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="2">
-                <widget class="QPushButton" name="find_automatic_precission_Button">
-                 <property name="maximumSize">
-                  <size>
-                   <width>50</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>Find the tolerance that best represents the load values for power flow</string>
-                 </property>
-                 <property name="text">
-                  <string>Find</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="1" colspan="2">
-                <widget class="QSpinBox" name="max_iterations_spinBox">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum numberof iterations to use.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Tipical values: &lt;/p&gt;&lt;p&gt;Newton Raphson: 5&lt;/p&gt;&lt;p&gt;Levenberg-Marquards: 20&lt;/p&gt;&lt;p&gt;Fast decoupled: 10&lt;/p&gt;&lt;p&gt;Others: 20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <number>1000</number>
-                 </property>
-                 <property name="value">
-                  <number>40</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_2">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Solver</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="1">
-                <widget class="QSpinBox" name="tolerance_spinBox">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error tolerance of the method&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="prefix">
-                  <string>1e-</string>
-                 </property>
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <number>15</number>
-                 </property>
-                 <property name="value">
-                  <number>4</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1" colspan="2">
-                <widget class="QComboBox" name="solver_comboBox">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="0">
-                <widget class="QLabel" name="label_11">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Trust radius</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
             <item row="2" column="6">
              <spacer name="horizontalSpacer_5">
               <property name="orientation">
@@ -4387,7 +4255,7 @@
                <string/>
               </property>
               <property name="pixmap">
-               <pixmap resource="icons.qrc">:/Icons/icons/ptdf.svg</pixmap>
+               <pixmap>:/Icons/icons/ptdf.svg</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -4931,6 +4799,221 @@
               </layout>
              </widget>
             </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QFrame" name="frame_19">
+              <property name="frameShape">
+               <enum>QFrame::Shape::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_22">
+               <item row="11" column="0">
+                <widget class="QLabel" name="label_23">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Verbosity</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="0">
+                <spacer name="verticalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_6">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Max. iterations</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1" colspan="2">
+                <widget class="QDoubleSpinBox" name="muSpinBox">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Factor that multiplies each increment solution. &lt;/p&gt;&lt;p&gt;In practice this is used to slow down troublesome solutions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.000100000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>1.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>1.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1" colspan="2">
+                <widget class="QSpinBox" name="verbositySpinBox">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>Level of console information. 0: None, 1: some information, 2: all the information</string>
+                 </property>
+                 <property name="maximum">
+                  <number>2</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0" colspan="2">
+                <widget class="QLabel" name="label_22">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_5">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Tolerance</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="2">
+                <widget class="QPushButton" name="find_automatic_precission_Button">
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>Find the tolerance that best represents the load values for power flow</string>
+                 </property>
+                 <property name="text">
+                  <string>Find</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1" colspan="2">
+                <widget class="QSpinBox" name="max_iterations_spinBox">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum numberof iterations to use.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Tipical values: &lt;/p&gt;&lt;p&gt;Newton Raphson: 5&lt;/p&gt;&lt;p&gt;Levenberg-Marquards: 20&lt;/p&gt;&lt;p&gt;Fast decoupled: 10&lt;/p&gt;&lt;p&gt;Others: 20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1000</number>
+                 </property>
+                 <property name="value">
+                  <number>40</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Solver</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QSpinBox" name="tolerance_spinBox">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error tolerance of the method&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="prefix">
+                  <string>1e-</string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>15</number>
+                 </property>
+                 <property name="value">
+                  <number>4</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" colspan="2">
+                <widget class="QComboBox" name="solver_comboBox">
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label_11">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Trust radius</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
            </layout>
           </widget>
           <widget class="QWidget" name="cpf_tab">
@@ -4938,7 +5021,7 @@
             <string>Continuation power flow settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/continuation_power_flow.svg</normaloff>:/Icons/icons/continuation_power_flow.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -5226,7 +5309,7 @@
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="icons.qrc">:/Icons/icons/continuation_power_flow.svg</pixmap>
+                     <pixmap>:/Icons/icons/continuation_power_flow.svg</pixmap>
                     </property>
                     <property name="scaledContents">
                      <bool>true</bool>
@@ -5351,7 +5434,7 @@
             <string>Optimal power flow settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/dcopf.svg</normaloff>:/Icons/icons/dcopf.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -6058,7 +6141,7 @@
                <string/>
               </property>
               <property name="pixmap">
-               <pixmap resource="icons.qrc">:/Icons/icons/dcopf.svg</pixmap>
+               <pixmap>:/Icons/icons/dcopf.svg</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -6072,7 +6155,7 @@
             <string>Net transfer capacity settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/ntc_opf.svg</normaloff>:/Icons/icons/ntc_opf.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -6531,7 +6614,7 @@
                <string/>
               </property>
               <property name="pixmap">
-               <pixmap resource="icons.qrc">:/Icons/icons/ntc_opf.svg</pixmap>
+               <pixmap>:/Icons/icons/ntc_opf.svg</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -6694,7 +6777,7 @@
             <string>Nodal capacity hosting options</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/nodal_capacity.svg</normaloff>:/Icons/icons/nodal_capacity.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -6822,7 +6905,7 @@
                <string/>
               </property>
               <property name="pixmap">
-               <pixmap resource="icons.qrc">:/Icons/icons/nodal_capacity.svg</pixmap>
+               <pixmap>:/Icons/icons/nodal_capacity.svg</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -6951,7 +7034,7 @@
             <string>Area transfer settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/area_transfer.svg</normaloff>:/Icons/icons/area_transfer.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -7087,7 +7170,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/area_transfer.svg</pixmap>
+                  <pixmap>:/Icons/icons/area_transfer.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -7179,7 +7262,7 @@
             <string>Contingencies settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/otdf.svg</normaloff>:/Icons/icons/otdf.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -7264,6 +7347,170 @@
                     </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Filter contingencies&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This option allows you to only consider the contingencies that fall in ceratain groupings such as Area, Zone or Country. The filtering is performed based on the information stored in the Buses.&lt;/p&gt;&lt;p&gt;This is highly discouraged. We trully advise you to not to filter the contingencies and select All Contingencies. Use this feature at your own risk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="2" column="0" colspan="4">
+                <widget class="Line" name="line_25">
+                 <property name="palette">
+                  <palette>
+                   <active>
+                    <colorrole role="WindowText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>186</red>
+                       <green>189</green>
+                       <blue>182</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </active>
+                   <inactive>
+                    <colorrole role="WindowText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>186</red>
+                       <green>189</green>
+                       <blue>182</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </inactive>
+                   <disabled>
+                    <colorrole role="WindowText">
+                     <brush brushstyle="SolidPattern">
+                      <color alpha="255">
+                       <red>190</red>
+                       <green>190</green>
+                       <blue>190</blue>
+                      </color>
+                     </brush>
+                    </colorrole>
+                   </disabled>
+                  </palette>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Shadow::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="3">
+                <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>828</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="0" colspan="2">
+                <widget class="QFrame" name="frame_78">
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Shadow::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_41">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_109">
+                    <property name="minimumSize">
+                     <size>
+                      <width>24</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>24</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="pixmap">
+                     <pixmap>:/Icons/icons/otdf.svg</pixmap>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_117">
+                    <property name="palette">
+                     <palette>
+                      <active>
+                       <colorrole role="WindowText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>85</red>
+                          <green>87</green>
+                          <blue>83</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </active>
+                      <inactive>
+                       <colorrole role="WindowText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>85</red>
+                          <green>87</green>
+                          <blue>83</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </inactive>
+                      <disabled>
+                       <colorrole role="WindowText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>190</red>
+                          <green>190</green>
+                          <blue>190</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </disabled>
+                     </palette>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>16</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Contingencies</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft</set>
                     </property>
                    </widget>
                   </item>
@@ -7501,171 +7748,467 @@
                  </layout>
                 </widget>
                </item>
-               <item row="0" column="0" colspan="2">
-                <widget class="QFrame" name="frame_78">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::NoFrame</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Raised</enum>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_41">
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_109">
-                    <property name="minimumSize">
-                     <size>
-                      <width>24</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>24</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="icons.qrc">:/Icons/icons/otdf.svg</pixmap>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_117">
-                    <property name="palette">
-                     <palette>
-                      <active>
-                       <colorrole role="WindowText">
-                        <brush brushstyle="SolidPattern">
-                         <color alpha="255">
-                          <red>85</red>
-                          <green>87</green>
-                          <blue>83</blue>
-                         </color>
-                        </brush>
-                       </colorrole>
-                      </active>
-                      <inactive>
-                       <colorrole role="WindowText">
-                        <brush brushstyle="SolidPattern">
-                         <color alpha="255">
-                          <red>85</red>
-                          <green>87</green>
-                          <blue>83</blue>
-                         </color>
-                        </brush>
-                       </colorrole>
-                      </inactive>
-                      <disabled>
-                       <colorrole role="WindowText">
-                        <brush brushstyle="SolidPattern">
-                         <color alpha="255">
-                          <red>190</red>
-                          <green>190</green>
-                          <blue>190</blue>
-                         </color>
-                        </brush>
-                       </colorrole>
-                      </disabled>
-                     </palette>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <pointsize>16</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Contingencies</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item row="3" column="3">
-                <spacer name="horizontalSpacer_28">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>828</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="2" column="0" colspan="4">
-                <widget class="Line" name="line_25">
-                 <property name="palette">
-                  <palette>
-                   <active>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>186</red>
-                       <green>189</green>
-                       <blue>182</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </active>
-                   <inactive>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>186</red>
-                       <green>189</green>
-                       <blue>182</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </inactive>
-                   <disabled>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>190</red>
-                       <green>190</green>
-                       <blue>190</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </disabled>
-                  </palette>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
               </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="rms_tab">
+           <attribute name="icon">
+            <iconset>
+             <normaloff>:/Icons/icons/dyn.svg</normaloff>:/Icons/icons/dyn.svg</iconset>
+           </attribute>
+           <attribute name="title">
+            <string>Rms</string>
+           </attribute>
+           <attribute name="toolTip">
+            <string>Rms simulation settings</string>
+           </attribute>
+           <layout class="QHBoxLayout" name="horizontalLayout_53">
+            <item>
+             <widget class="QFrame" name="frame_109">
+              <property name="frameShape">
+               <enum>QFrame::Shape::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <widget class="QFrame" name="frame_110">
+               <property name="geometry">
+                <rect>
+                 <x>469</x>
+                 <y>63</y>
+                 <width>18</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <layout class="QFormLayout" name="formLayout_6"/>
+              </widget>
+              <widget class="Line" name="line_62">
+               <property name="geometry">
+                <rect>
+                 <x>9</x>
+                 <y>54</y>
+                 <width>914</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>186</red>
+                     <green>189</green>
+                     <blue>182</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>186</red>
+                     <green>189</green>
+                     <blue>182</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>190</red>
+                     <green>190</green>
+                     <blue>190</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>4</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+              </widget>
+              <widget class="QFrame" name="frame_111">
+               <property name="geometry">
+                <rect>
+                 <x>9</x>
+                 <y>0</y>
+                 <width>174</width>
+                 <height>48</height>
+                </rect>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_52">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_414">
+                  <property name="minimumSize">
+                   <size>
+                    <width>127</width>
+                    <height>48</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>127</width>
+                    <height>48</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap>:/Icons/icons/dyn.svg</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_408">
+                  <property name="palette">
+                   <palette>
+                    <active>
+                     <colorrole role="WindowText">
+                      <brush brushstyle="SolidPattern">
+                       <color alpha="255">
+                        <red>85</red>
+                        <green>87</green>
+                        <blue>83</blue>
+                       </color>
+                      </brush>
+                     </colorrole>
+                    </active>
+                    <inactive>
+                     <colorrole role="WindowText">
+                      <brush brushstyle="SolidPattern">
+                       <color alpha="255">
+                        <red>85</red>
+                        <green>87</green>
+                        <blue>83</blue>
+                       </color>
+                      </brush>
+                     </colorrole>
+                    </inactive>
+                    <disabled>
+                     <colorrole role="WindowText">
+                      <brush brushstyle="SolidPattern">
+                       <color alpha="255">
+                        <red>190</red>
+                        <green>190</green>
+                        <blue>190</blue>
+                       </color>
+                      </brush>
+                     </colorrole>
+                    </disabled>
+                   </palette>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>16</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Rms</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QFrame" name="frame_112">
+               <property name="geometry">
+                <rect>
+                 <x>9</x>
+                 <y>63</y>
+                 <width>25</width>
+                 <height>32</height>
+                </rect>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_82">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_410">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QFrame" name="frame_113">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>60</y>
+                 <width>411</width>
+                 <height>469</height>
+                </rect>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <widget class="QLabel" name="label_405">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>100</y>
+                  <width>101</width>
+                  <height>16</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Time interval (h)</string>
+                </property>
+               </widget>
+               <widget class="QDoubleSpinBox" name="sim_time_spinBox">
+                <property name="geometry">
+                 <rect>
+                  <x>130</x>
+                  <y>70</y>
+                  <width>191</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial time for the simulation. &lt;/p&gt;&lt;p&gt;In practice this is used to slow down troublesome solutions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.000000000000000</double>
+                </property>
+               </widget>
+               <widget class="QLabel" name="label_407">
+                <property name="geometry">
+                 <rect>
+                  <x>9</x>
+                  <y>154</y>
+                  <width>16</width>
+                  <height>16</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+               <widget class="QLabel" name="label_409">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>40</y>
+                  <width>61</width>
+                  <height>16</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Tolerance</string>
+                </property>
+               </widget>
+               <widget class="QLabel" name="label_411">
+                <property name="geometry">
+                 <rect>
+                  <x>9</x>
+                  <y>9</y>
+                  <width>81</width>
+                  <height>21</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Int. method</string>
+                </property>
+               </widget>
+               <widget class="QSpinBox" name="tolerance_rms_spinBox">
+                <property name="geometry">
+                 <rect>
+                  <x>130</x>
+                  <y>40</y>
+                  <width>191</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error tolerance of the method&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="prefix">
+                 <string>1e-</string>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>15</number>
+                </property>
+                <property name="value">
+                 <number>4</number>
+                </property>
+               </widget>
+               <widget class="QComboBox" name="rms_int_method_comboBox">
+                <property name="geometry">
+                 <rect>
+                  <x>130</x>
+                  <y>10</y>
+                  <width>200</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="editable">
+                 <bool>false</bool>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>trapezoid</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>implicit euler</string>
+                 </property>
+                </item>
+               </widget>
+               <widget class="QLabel" name="label_412">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>70</y>
+                  <width>91</width>
+                  <height>16</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Simulation time</string>
+                </property>
+               </widget>
+               <widget class="QDoubleSpinBox" name="h_spinBox">
+                <property name="geometry">
+                 <rect>
+                  <x>130</x>
+                  <y>100</y>
+                  <width>191</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial time for the simulation. &lt;/p&gt;&lt;p&gt;In practice this is used to slow down troublesome solutions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.001000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.001000000000000</double>
+                </property>
+               </widget>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -7675,7 +8218,7 @@
             <string>Machine-learning related settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/clustering.svg</normaloff>:/Icons/icons/clustering.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -7968,7 +8511,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/color_grid.svg</pixmap>
+                  <pixmap>:/Icons/icons/color_grid.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -8221,7 +8764,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/clustering.svg</pixmap>
+                  <pixmap>:/Icons/icons/clustering.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -8333,7 +8876,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/expansion_planning.svg</pixmap>
+                  <pixmap>:/Icons/icons/expansion_planning.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -8538,7 +9081,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/blackout.svg</pixmap>
+                  <pixmap>:/Icons/icons/blackout.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -8719,7 +9262,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/reliability.svg</pixmap>
+                  <pixmap>:/Icons/icons/reliability.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -8838,7 +9381,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/stochastic_power_flow.svg</pixmap>
+                  <pixmap>:/Icons/icons/stochastic_power_flow.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -9018,7 +9561,7 @@
             <string>Topology settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/automatic_layout.svg</normaloff>:/Icons/icons/automatic_layout.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -9092,7 +9635,7 @@
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="icons.qrc">:/Icons/icons/grid_reduction.svg</pixmap>
+                     <pixmap>:/Icons/icons/grid_reduction.svg</pixmap>
                     </property>
                     <property name="scaledContents">
                      <bool>true</bool>
@@ -9325,7 +9868,7 @@
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="icons.qrc">:/Icons/icons/rate_br.svg</pixmap>
+                     <pixmap>:/Icons/icons/rate_br.svg</pixmap>
                     </property>
                     <property name="scaledContents">
                      <bool>true</bool>
@@ -9520,7 +10063,7 @@
             <string>File settings</string>
            </property>
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/new2c.svg</normaloff>:/Icons/icons/new2c.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -9723,7 +10266,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/new2c.svg</pixmap>
+                  <pixmap>:/Icons/icons/new2c.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -9878,7 +10421,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/new2c.svg</pixmap>
+                  <pixmap>:/Icons/icons/new2c.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -10174,7 +10717,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="icons.qrc">:/Icons/icons/new2.svg</pixmap>
+                  <pixmap>:/Icons/icons/new2.svg</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -10210,7 +10753,7 @@
           </widget>
           <widget class="QWidget" name="tab_5">
            <attribute name="icon">
-            <iconset resource="icons.qrc">
+            <iconset>
              <normaloff>:/Icons/icons/server.svg</normaloff>:/Icons/icons/server.svg</iconset>
            </attribute>
            <attribute name="title">
@@ -10372,80 +10915,6 @@
         </item>
        </layout>
       </widget>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QFrame" name="progress_frame">
-      <property name="frameShape">
-       <enum>QFrame::Shape::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Raised</enum>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_7">
-       <item row="2" column="3">
-        <widget class="QLabel" name="progress_label">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QPushButton" name="cancelButton">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="toolTip">
-          <string>Cancel process</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="icons.qrc">
-           <normaloff>:/Icons/icons/delete.svg</normaloff>:/Icons/icons/delete.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="3">
-        <widget class="QProgressBar" name="progressBar">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QProgressBar {
-	border: 1px solid rgb(186, 189, 182);
-    border-radius: 5px;
-	text-align: center;
-}
-QProgressBar::chunk{
-	background-color: rgb(0, 180, 136)
-}</string>
-         </property>
-         <property name="value">
-          <number>20</number>
-         </property>
-         <property name="invertedAppearance">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </item>
    </layout>
@@ -10692,7 +11161,7 @@ QProgressBar::chunk{
   </widget>
   <action name="actionOpen_file">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/loadc.svg</normaloff>:/Icons/icons/loadc.svg</iconset>
    </property>
    <property name="text">
@@ -10709,7 +11178,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/savec.svg</normaloff>:/Icons/icons/savec.svg</iconset>
    </property>
    <property name="text">
@@ -10726,7 +11195,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionTakePicture">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/picture.svg</normaloff>:/Icons/icons/picture.svg</iconset>
    </property>
    <property name="text">
@@ -10740,7 +11209,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionNew_project">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/new2c.svg</normaloff>:/Icons/icons/new2c.svg</iconset>
    </property>
    <property name="text">
@@ -10757,7 +11226,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionPower_flow">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/pf.svg</normaloff>:/Icons/icons/pf.svg</iconset>
    </property>
    <property name="text">
@@ -10780,7 +11249,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionPower_Flow_Time_series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/pf_ts.svg</normaloff>:/Icons/icons/pf_ts.svg</iconset>
    </property>
    <property name="text">
@@ -10800,7 +11269,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionBigger_nodes">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/plus (gray).svg</normaloff>:/Icons/icons/plus (gray).svg</iconset>
    </property>
    <property name="text">
@@ -10820,7 +11289,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSmaller_nodes">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/minus (gray).svg</normaloff>:/Icons/icons/minus (gray).svg</iconset>
    </property>
    <property name="text">
@@ -10840,7 +11309,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionPower_flow_Stochastic">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/stochastic_pf.svg</normaloff>:/Icons/icons/stochastic_pf.svg</iconset>
    </property>
    <property name="text">
@@ -10857,7 +11326,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionVoltage_stability">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/continuation_power_flow.svg</normaloff>:/Icons/icons/continuation_power_flow.svg</iconset>
    </property>
    <property name="text">
@@ -10874,7 +11343,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Program icon/VeraGrid_icon.svg</normaloff>:/Program icon/VeraGrid_icon.svg</iconset>
    </property>
    <property name="text">
@@ -10888,7 +11357,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionCenter_view">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/resize.svg</normaloff>:/Icons/icons/resize.svg</iconset>
    </property>
    <property name="text">
@@ -10908,7 +11377,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionShort_Circuit">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/short_circuit.svg</normaloff>:/Icons/icons/short_circuit.svg</iconset>
    </property>
    <property name="text">
@@ -10925,7 +11394,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAutoatic_layout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/automatic_layout.svg</normaloff>:/Icons/icons/automatic_layout.svg</iconset>
    </property>
    <property name="text">
@@ -10945,7 +11414,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/blackout.svg</normaloff>:/Icons/icons/blackout.svg</iconset>
    </property>
    <property name="text">
@@ -10962,7 +11431,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOPF">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/dcopf.svg</normaloff>:/Icons/icons/dcopf.svg</iconset>
    </property>
    <property name="text">
@@ -10982,7 +11451,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOPF_time_series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/dcopf_ts.svg</normaloff>:/Icons/icons/dcopf_ts.svg</iconset>
    </property>
    <property name="text">
@@ -11002,7 +11471,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDetect_transformers">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/detect_tr.svg</normaloff>:/Icons/icons/detect_tr.svg</iconset>
    </property>
    <property name="text">
@@ -11019,7 +11488,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAuto_rate_branches">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/rate_br.svg</normaloff>:/Icons/icons/rate_br.svg</iconset>
    </property>
    <property name="text">
@@ -11036,7 +11505,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionExport_all_the_device_s_profiles">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
    </property>
    <property name="text">
@@ -11053,7 +11522,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/storage_loc.svg</normaloff>:/Icons/icons/storage_loc.svg</iconset>
    </property>
    <property name="text">
@@ -11070,7 +11539,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionLaunch_data_analysis_tool">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/inputs_analysis 2.svg</normaloff>:/Icons/icons/inputs_analysis 2.svg</iconset>
    </property>
    <property name="text">
@@ -11090,7 +11559,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOnline_documentation">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/new.svg</normaloff>:/Icons/icons/new.svg</iconset>
    </property>
    <property name="text">
@@ -11107,7 +11576,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionExport_all_results">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/export_pickle.svg</normaloff>:/Icons/icons/export_pickle.svg</iconset>
    </property>
    <property name="text">
@@ -11124,7 +11593,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSave_as">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
    </property>
    <property name="text">
@@ -11138,7 +11607,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDelete_selected">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/delete_schematic.svg</normaloff>:/Icons/icons/delete_schematic.svg</iconset>
    </property>
    <property name="text">
@@ -11158,7 +11627,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionLinearAnalysis">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/ptdf.svg</normaloff>:/Icons/icons/ptdf.svg</iconset>
    </property>
    <property name="text">
@@ -11178,7 +11647,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionReset_console">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/undo.svg</normaloff>:/Icons/icons/undo.svg</iconset>
    </property>
    <property name="text">
@@ -11195,7 +11664,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/dcopf2ts.svg</normaloff>:/Icons/icons/dcopf2ts.svg</iconset>
    </property>
    <property name="text">
@@ -11212,7 +11681,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionTry_to_fix_buses_location">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/move_bus.svg</normaloff>:/Icons/icons/move_bus.svg</iconset>
    </property>
    <property name="text">
@@ -11229,7 +11698,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSet_OPF_generation_to_profiles">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/dcopf2ts.svg</normaloff>:/Icons/icons/dcopf2ts.svg</iconset>
    </property>
    <property name="text">
@@ -11246,7 +11715,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionPTDF_time_series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/ptdf_ts.svg</normaloff>:/Icons/icons/ptdf_ts.svg</iconset>
    </property>
    <property name="text">
@@ -11266,7 +11735,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_circuit">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load_add.svg</normaloff>:/Icons/icons/load_add.svg</iconset>
    </property>
    <property name="text">
@@ -11289,7 +11758,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/sync.svg</normaloff>:/Icons/icons/sync.svg</iconset>
    </property>
    <property name="text">
@@ -11301,7 +11770,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDrawSchematic">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/grid_icon.svg</normaloff>:/Icons/icons/grid_icon.svg</iconset>
    </property>
    <property name="text">
@@ -11310,7 +11779,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSigma_analysis">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/sigma.svg</normaloff>:/Icons/icons/sigma.svg</iconset>
    </property>
    <property name="text">
@@ -11327,7 +11796,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionClear_stuff_running_right_now">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/clear_runs.svg</normaloff>:/Icons/icons/clear_runs.svg</iconset>
    </property>
    <property name="text">
@@ -11341,7 +11810,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_default_catalogue">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/CatalogueAdd.svg</normaloff>:/Icons/icons/CatalogueAdd.svg</iconset>
    </property>
    <property name="text">
@@ -11358,7 +11827,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/color_grid2.svg</normaloff>:/Icons/icons/color_grid2.svg</iconset>
    </property>
    <property name="text">
@@ -11375,7 +11844,7 @@ QProgressBar::chunk{
   </action>
   <action name="actiongrid_Generator">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/automatic_layout.svg</normaloff>:/Icons/icons/automatic_layout.svg</iconset>
    </property>
    <property name="text">
@@ -11392,7 +11861,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionImportPlexosNodeLoad">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load.svg</normaloff>:/Icons/icons/load.svg</iconset>
    </property>
    <property name="text">
@@ -11401,7 +11870,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionImportPlexosGeneratorGeneration">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load.svg</normaloff>:/Icons/icons/load.svg</iconset>
    </property>
    <property name="text">
@@ -11410,7 +11879,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOTDF_time_series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/otdf_ts.svg</normaloff>:/Icons/icons/otdf_ts.svg</iconset>
    </property>
    <property name="text">
@@ -11430,7 +11899,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionImportPlexosBranchRates">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load.svg</normaloff>:/Icons/icons/load.svg</iconset>
    </property>
    <property name="text">
@@ -11439,7 +11908,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSetSelectedBusArea">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/area.svg</normaloff>:/Icons/icons/area.svg</iconset>
    </property>
    <property name="text">
@@ -11453,7 +11922,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSetSelectedBusZone">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/zone.svg</normaloff>:/Icons/icons/zone.svg</iconset>
    </property>
    <property name="text">
@@ -11467,7 +11936,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSetSelectedBusCountry">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/map.svg</normaloff>:/Icons/icons/map.svg</iconset>
    </property>
    <property name="text">
@@ -11481,7 +11950,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionImport_bus_coordinates">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load_add.svg</normaloff>:/Icons/icons/load_add.svg</iconset>
    </property>
    <property name="text">
@@ -11495,7 +11964,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionATC">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/atc.svg</normaloff>:/Icons/icons/atc.svg</iconset>
    </property>
    <property name="text">
@@ -11512,7 +11981,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionATC_Time_Series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/atc_ts.svg</normaloff>:/Icons/icons/atc_ts.svg</iconset>
    </property>
    <property name="text">
@@ -11529,7 +11998,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionContingency_analysis">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/otdf.svg</normaloff>:/Icons/icons/otdf.svg</iconset>
    </property>
    <property name="text">
@@ -11549,7 +12018,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOptimal_Net_Transfer_Capacity">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/ntc_opf.svg</normaloff>:/Icons/icons/ntc_opf.svg</iconset>
    </property>
    <property name="text">
@@ -11566,7 +12035,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSet_schematic_positions_from_GPS_coordinates">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/map.svg</normaloff>:/Icons/icons/map.svg</iconset>
    </property>
    <property name="text">
@@ -11580,7 +12049,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionInputs_analysis">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/stats.svg</normaloff>:/Icons/icons/stats.svg</iconset>
    </property>
    <property name="text">
@@ -11600,7 +12069,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionFuse_devices">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/fusion.svg</normaloff>:/Icons/icons/fusion.svg</iconset>
    </property>
    <property name="text">
@@ -11617,7 +12086,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDelete_inconsistencies">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/delete.svg</normaloff>:/Icons/icons/delete.svg</iconset>
    </property>
    <property name="text">
@@ -11634,7 +12103,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionOptimal_Net_Transfer_Capacity_Time_Series">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/ntc_opf_ts.svg</normaloff>:/Icons/icons/ntc_opf_ts.svg</iconset>
    </property>
    <property name="text">
@@ -11651,7 +12120,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionre_index_time">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/data.svg</normaloff>:/Icons/icons/data.svg</iconset>
    </property>
    <property name="text">
@@ -11665,7 +12134,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionFix_generators_active_based_on_the_power">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/remedial_action.svg</normaloff>:/Icons/icons/remedial_action.svg</iconset>
    </property>
    <property name="text">
@@ -11679,7 +12148,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionFix_loads_active_based_on_the_power">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/remedial_action.svg</normaloff>:/Icons/icons/remedial_action.svg</iconset>
    </property>
    <property name="text">
@@ -11696,7 +12165,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionImport_contingencies">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/load_add.svg</normaloff>:/Icons/icons/load_add.svg</iconset>
    </property>
    <property name="text">
@@ -11710,7 +12179,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionInitialize_contingencies">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/contingency_wizzard.svg</normaloff>:/Icons/icons/contingency_wizzard.svg</iconset>
    </property>
    <property name="text">
@@ -11727,7 +12196,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionExport_contingencies">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/save.svg</normaloff>:/Icons/icons/save.svg</iconset>
    </property>
    <property name="text">
@@ -11741,7 +12210,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_selected_to_contingency">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/add_contingency.svg</normaloff>:/Icons/icons/add_contingency.svg</iconset>
    </property>
    <property name="text">
@@ -11761,7 +12230,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_selected_as_new_investment">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/investment.svg</normaloff>:/Icons/icons/investment.svg</iconset>
    </property>
    <property name="text">
@@ -11781,7 +12250,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionZoom_in">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/zoom_in.svg</normaloff>:/Icons/icons/zoom_in.svg</iconset>
    </property>
    <property name="text">
@@ -11798,7 +12267,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionZoom_out">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/zoom_out.svg</normaloff>:/Icons/icons/zoom_out.svg</iconset>
    </property>
    <property name="text">
@@ -11815,7 +12284,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionClustering">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/clustering.svg</normaloff>:/Icons/icons/clustering.svg</iconset>
    </property>
    <property name="text">
@@ -11838,7 +12307,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/clustering_use.svg</normaloff>:/Icons/icons/clustering_use.svg</iconset>
    </property>
    <property name="text">
@@ -11855,7 +12324,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionInvestments_evaluation">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/expansion_planning.svg</normaloff>:/Icons/icons/expansion_planning.svg</iconset>
    </property>
    <property name="text">
@@ -11875,7 +12344,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionNew_bus_branch_diagram_from_selection">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
    </property>
    <property name="text">
@@ -11889,7 +12358,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_general_bus_branch_diagram">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
    </property>
    <property name="text">
@@ -11903,7 +12372,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_map">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/map (add).svg</normaloff>:/Icons/icons/map (add).svg</iconset>
    </property>
    <property name="text">
@@ -11917,7 +12386,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionRemove_selected_diagram">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/minus (gray).svg</normaloff>:/Icons/icons/minus (gray).svg</iconset>
    </property>
    <property name="text">
@@ -11926,7 +12395,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionReport_a_bug">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/bug.svg</normaloff>:/Icons/icons/bug.svg</iconset>
    </property>
    <property name="text">
@@ -11940,7 +12409,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSearchDiagram">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/magnifying_glass.svg</normaloff>:/Icons/icons/magnifying_glass.svg</iconset>
    </property>
    <property name="text">
@@ -11954,7 +12423,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionProcess_topology">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
    </property>
    <property name="text">
@@ -11968,7 +12437,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionEdit_simulation_time_limits">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/time_series span.svg</normaloff>:/Icons/icons/time_series span.svg</iconset>
    </property>
    <property name="text">
@@ -11988,7 +12457,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/time_series set.svg</normaloff>:/Icons/icons/time_series set.svg</iconset>
    </property>
    <property name="text">
@@ -12008,7 +12477,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionClean_database">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/clear_runs.svg</normaloff>:/Icons/icons/clear_runs.svg</iconset>
    </property>
    <property name="text">
@@ -12025,7 +12494,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionScale">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/scale.svg</normaloff>:/Icons/icons/scale.svg</iconset>
    </property>
    <property name="text">
@@ -12042,7 +12511,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDisable_all_results_tags">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/uncheck_all.svg</normaloff>:/Icons/icons/uncheck_all.svg</iconset>
    </property>
    <property name="text">
@@ -12056,7 +12525,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionEnable_all_results_tags">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/check_all.svg</normaloff>:/Icons/icons/check_all.svg</iconset>
    </property>
    <property name="text">
@@ -12070,7 +12539,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDetect_substations">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/substation.svg</normaloff>:/Icons/icons/substation.svg</iconset>
    </property>
    <property name="text">
@@ -12084,7 +12553,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionNodal_capacity">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/nodal_capacity.svg</normaloff>:/Icons/icons/nodal_capacity.svg</iconset>
    </property>
    <property name="text">
@@ -12104,7 +12573,7 @@ QProgressBar::chunk{
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/server.svg</normaloff>:/Icons/icons/server.svg</iconset>
    </property>
    <property name="text">
@@ -12118,7 +12587,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionRecord_video">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/record.svg</normaloff>:/Icons/icons/record.svg</iconset>
    </property>
    <property name="text">
@@ -12135,7 +12604,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionExport_circuit_differential">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/export_pickle.svg</normaloff>:/Icons/icons/export_pickle.svg</iconset>
    </property>
    <property name="text">
@@ -12149,7 +12618,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_custom_catalogue">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/CataloguePrivate.svg</normaloff>:/Icons/icons/CataloguePrivate.svg</iconset>
    </property>
    <property name="text">
@@ -12166,7 +12635,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionExportCatalogue">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/CataloguePrivate.svg</normaloff>:/Icons/icons/CataloguePrivate.svg</iconset>
    </property>
    <property name="text">
@@ -12180,7 +12649,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionConsolidate_diagram_coordinates">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/assign_to_profile.svg</normaloff>:/Icons/icons/assign_to_profile.svg</iconset>
    </property>
    <property name="text">
@@ -12194,7 +12663,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionAdd_selected_as_remedial_action">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/add_remedial_action.svg</normaloff>:/Icons/icons/add_remedial_action.svg</iconset>
    </property>
    <property name="text">
@@ -12209,7 +12678,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionDetect_facilities">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/powerplant.svg</normaloff>:/Icons/icons/powerplant.svg</iconset>
    </property>
    <property name="text">
@@ -12218,7 +12687,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionRotate">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/undo.svg</normaloff>:/Icons/icons/undo.svg</iconset>
    </property>
    <property name="text">
@@ -12232,7 +12701,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionReset_coordinates">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/down.svg</normaloff>:/Icons/icons/down.svg</iconset>
    </property>
    <property name="text">
@@ -12246,7 +12715,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionReliability">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/reliability.svg</normaloff>:/Icons/icons/reliability.svg</iconset>
    </property>
    <property name="text">
@@ -12266,7 +12735,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionColor_buses_by">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/grid_icon.svg</normaloff>:/Icons/icons/grid_icon.svg</iconset>
    </property>
    <property name="text">
@@ -12280,7 +12749,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionColor_substations_by">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/grid_icon.svg</normaloff>:/Icons/icons/grid_icon.svg</iconset>
    </property>
    <property name="text">
@@ -12297,7 +12766,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSelect_buses_by">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/grid_icon.svg</normaloff>:/Icons/icons/grid_icon.svg</iconset>
    </property>
    <property name="text">
@@ -12314,7 +12783,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionGrid_reduction">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/schematic.svg</normaloff>:/Icons/icons/schematic.svg</iconset>
    </property>
    <property name="text">
@@ -12326,7 +12795,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionSubstation_wizard">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/substation.svg</normaloff>:/Icons/icons/substation.svg</iconset>
    </property>
    <property name="text">
@@ -12344,7 +12813,7 @@ QProgressBar::chunk{
   </action>
   <action name="actionRun_Dynamic_RMS_Simulation">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/Icons/icons/dyn.svg</normaloff>:/Icons/icons/dyn.svg</iconset>
    </property>
    <property name="text">

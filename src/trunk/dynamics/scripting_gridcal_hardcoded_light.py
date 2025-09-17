@@ -9,11 +9,21 @@ from matplotlib import pyplot as plt
 import sys
 import time
 import os
+
+from VeraGridEngine.Devices.multi_circuit import MultiCircuit
+from VeraGridEngine.Devices.Substation.bus import Bus
+from VeraGridEngine.Devices.Injections.generator import Generator
+from VeraGridEngine.Devices.Injections.load import Load
+from VeraGridEngine.Devices.Branches.line import Line
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from VeraGridEngine.Devices.Aggregation.rms_event import RmsEvent
 from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
+from VeraGridEngine.Simulations.Rms.initialization import initialize_rms
+
+from VeraGridEngine.Simulations.PowerFlow.power_flow_driver import PowerFlowResults, PowerFlowOptions
+from VeraGridEngine.Simulations.PowerFlow.power_flow_driver import PowerFlowDriver
 import VeraGridEngine.api as gce
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -21,9 +31,9 @@ import VeraGridEngine.api as gce
 # ----------------------------------------------------------------------------------------------------------------------
 # Load system
 # In scriptin_gridcal_hardcoded there are also shunt elements!
-grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
+# grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
 # Run power flow
-res_1 = gce.power_flow(grid_1)
+# res_1 = gce.power_flow(grid_1)
 #
 # # # Print results
 # print(res_1.get_bus_df())
@@ -33,22 +43,22 @@ res_1 = gce.power_flow(grid_1)
 
 # Build system
 
-t = Var("t")
 
-grid = gce.MultiCircuit()
+
+grid = MultiCircuit()
 
 # Buses
-bus1 = gce.Bus(name="Bus1", Vnom=20)
-bus2 = gce.Bus(name="Bus2", Vnom=20)
-bus3 = gce.Bus(name="Bus3", Vnom=20, is_slack=True)
-bus4 = gce.Bus(name="Bus4", Vnom=20)
-bus5 = gce.Bus(name="Bus5", Vnom=230)
-bus6 = gce.Bus(name="Bus6", Vnom=230)
-bus7 = gce.Bus(name="Bus7", Vnom=230)
-bus8 = gce.Bus(name="Bus8", Vnom=230)
-bus9 = gce.Bus(name="Bus9", Vnom=230)
-bus10 = gce.Bus(name="Bus10", Vnom=230)
-bus11 = gce.Bus(name="Bus11", Vnom=230)
+bus1 = Bus(name="Bus1", Vnom=20)
+bus2 = Bus(name="Bus2", Vnom=20)
+bus3 = Bus(name="Bus3", Vnom=20, is_slack=True)
+bus4 = Bus(name="Bus4", Vnom=20)
+bus5 = Bus(name="Bus5", Vnom=230)
+bus6 = Bus(name="Bus6", Vnom=230)
+bus7 = Bus(name="Bus7", Vnom=230)
+bus8 = Bus(name="Bus8", Vnom=230)
+bus9 = Bus(name="Bus9", Vnom=230)
+bus10 = Bus(name="Bus10", Vnom=230)
+bus11 = Bus(name="Bus11", Vnom=230)
 
 grid.add_bus(bus1)
 grid.add_bus(bus2)
@@ -64,87 +74,87 @@ grid.add_bus(bus11)
 
 # Line
 line0 = grid.add_line(
-    gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
+    Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 line1 = grid.add_line(
-    gce.Line(name="line 5-6-2", bus_from=bus5, bus_to=bus6,
+    Line(name="line 5-6-2", bus_from=bus5, bus_to=bus6,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 line2 = grid.add_line(
-    gce.Line(name="line 6-7-1", bus_from=bus6, bus_to=bus7,
+    Line(name="line 6-7-1", bus_from=bus6, bus_to=bus7,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line3 = grid.add_line(
-    gce.Line(name="line 6-7-2", bus_from=bus6, bus_to=bus7,
+   Line(name="line 6-7-2", bus_from=bus6, bus_to=bus7,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line4 = grid.add_line(
-    gce.Line(name="line 6-7-3", bus_from=bus6, bus_to=bus7,
+    Line(name="line 6-7-3", bus_from=bus6, bus_to=bus7,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line5 = grid.add_line(
-    gce.Line(name="line 7-8-1", bus_from=bus7, bus_to=bus8,
+   Line(name="line 7-8-1", bus_from=bus7, bus_to=bus8,
              r=0.01100, x=0.11000, b=0.19250, rate=400.0))
 
 line6 = grid.add_line(
-    gce.Line(name="line 7-8-2", bus_from=bus7, bus_to=bus8,
+   Line(name="line 7-8-2", bus_from=bus7, bus_to=bus8,
              r=0.01100, x=0.11000, b=0.19250, rate=400.0))
 
 line7 = grid.add_line(
-    gce.Line(name="line 8-9-1", bus_from=bus8, bus_to=bus9,
+   Line(name="line 8-9-1", bus_from=bus8, bus_to=bus9,
              r=0.01100, x=0.11000, b=0.19250, rate=400.0))
 
 line8 = grid.add_line(
-    gce.Line(name="line 8-9-2", bus_from=bus8, bus_to=bus9,
+    Line(name="line 8-9-2", bus_from=bus8, bus_to=bus9,
              r=0.01100, x=0.11000, b=0.19250, rate=400.0))
 
 line9 = grid.add_line(
-    gce.Line(name="line 9-10-1", bus_from=bus9, bus_to=bus10,
+    Line(name="line 9-10-1", bus_from=bus9, bus_to=bus10,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line10 = grid.add_line(
-    gce.Line(name="line 9-10-2", bus_from=bus9, bus_to=bus10,
+    Line(name="line 9-10-2", bus_from=bus9, bus_to=bus10,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line11 = grid.add_line(
-    gce.Line(name="line 9-10-3", bus_from=bus9, bus_to=bus10,
+    Line(name="line 9-10-3", bus_from=bus9, bus_to=bus10,
              r=0.00300, x=0.03000, b=0.00583, rate=700.0))
 
 line12 = grid.add_line(
-    gce.Line(name="line 10-11-1", bus_from=bus10, bus_to=bus11,
+    Line(name="line 10-11-1", bus_from=bus10, bus_to=bus11,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 line13 = grid.add_line(
-    gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
+   Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 # Transformers
 
 trafo_G1 = grid.add_line(
-    gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
+    Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
 
 trafo_G2 = grid.add_line(
-    gce.Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
+    Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
 
 trafo_G3 = grid.add_line(
-    gce.Line(name="trafo 11-3", bus_from=bus11, bus_to=bus3,
+    Line(name="trafo 11-3", bus_from=bus11, bus_to=bus3,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
 
 trafo_G4 = grid.add_line(
-    gce.Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
+    Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
 
 # load
-load1 = gce.Load(name="load1", P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969)
-load1.time = t
+load1 = Load(name="load1", P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969)
+
 load1_grid = grid.add_load(bus=bus7, api_obj=load1)
 # load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
 
-load2 = gce.Load(name="load2", P=1767.0, Q=100.0, Pl0=-17.6699999999199, Ql0=-0.999999999989467)
-load2.time = t
+load2 = Load(name="load2", P=1767.0, Q=100.0, Pl0=-17.6699999999199, Ql0=-0.999999999989467)
+
 load2_grid = grid.add_load(bus=bus9, api_obj=load2)
 
 # load2 = grid.add_load(name="load2", bus=bus9, api_obj=gce.Load(P=1767.0, Q=100.0, Pl0=-17.6699999999199, Ql0=-0.999999999989467))
@@ -206,7 +216,7 @@ Kp_4 = 0.0
 Ki_4 = 0.0
 
 # Generators
-gen1 = gce.Generator(
+gen1 = Generator(
     name="Gen1", P=700.0, vset=1.03, Snom=900.0,
     x1=xd_1, r1=ra_1, freq=fn_1,
     # vf=1.0,
@@ -218,7 +228,7 @@ gen1 = gce.Generator(
     Kp=Kp_1, Ki=Ki_1
 )
 
-gen2 = gce.Generator(
+gen2 = Generator(
     name="Gen2", P=700.0, vset=1.01, Snom=900.0,
     x1=xd_2, r1=ra_2, freq=fn_2,
     # vf=1.0,
@@ -230,7 +240,7 @@ gen2 = gce.Generator(
     Kp=Kp_2, Ki=Ki_2
 )
 
-gen3 = gce.Generator(
+gen3 = Generator(
     name="Gen3", P=719.091, vset=1.03, Snom=900.0,
     x1=xd_3, r1=ra_3, freq=fn_3,
     # vf=1.0,
@@ -242,7 +252,7 @@ gen3 = gce.Generator(
     Kp=Kp_3, Ki=Ki_3
 )
 
-gen4 = gce.Generator(
+gen4 = Generator(
     name="Gen4", P=700.0, vset=1.01, Snom=900.0,
     x1=xd_4, r1=ra_4, freq=fn_4,
     # vf=1.0,
@@ -273,7 +283,8 @@ grid.add_rms_event(event1)
 # grid.add_rms_event(event2)
 
 # # Run power flow
-options = gce.PowerFlowOptions(
+
+pf_options = PowerFlowOptions(
     solver_type=gce.SolverType.NR,
     retry_with_other_methods=False,
     verbose=0,
@@ -296,7 +307,9 @@ options = gce.PowerFlowOptions(
     generate_report=False,
     three_phase_unbalanced=False
 )
-res = gce.power_flow(grid, options=options)
+power_flow = PowerFlowDriver(grid, pf_options)
+power_flow.run()
+res = power_flow.results
 
 # # Print results
 print(res.get_bus_df())
@@ -307,7 +320,7 @@ print(f"Converged: {res.converged}")
 # Time Domain Simulation
 # ----------------------------------------------------------------------------------------------------------------------
 # TDS initialization
-ss, init_guess = gce.initialize_rms(grid, res)
+ss, init_guess = initialize_rms(grid, res)
 print("init_guess")
 print(init_guess)
 
@@ -318,7 +331,7 @@ params_mapping = {}
 # # Solver
 start_building_system = time.time()
 
-slv = BlockSolver(ss, t)
+slv = BlockSolver(ss, grid.time)
 
 end_building_system = time.time()
 print(f"Automatic build system time = {end_building_system-start_building_system:.6f} [s]")
@@ -335,7 +348,6 @@ t, y = slv.simulate(
     h=0.001,
     x0=x0,
     params0=params0,
-    glob_time=t,
     method="implicit_euler"
 )
 

@@ -755,6 +755,20 @@ class SimulationsMain(TimeEventsMain):
 
         return ops
 
+    def get_selected_rms_simulation_options(self) -> sim.RmsOptions:
+        """
+        Gather rms simulation run options
+        :return: sim.RmsOptions
+        """
+        ops = sim.RmsOptions(
+            time_step=self.ui.h_spinBox.value(),
+            simulation_time=self.ui.sim_time_spinBox.value(),
+            tolerance=self.ui.tolerance_rms_spinBox.value(),
+            integration_method=self.ui.rms_int_method_comboBox.currentText()
+        )
+
+        return ops
+
     def get_opf_results(self, use_opf: bool) -> sim.OptimalPowerFlowResults:
         """
         Get the current OPF results
@@ -3006,28 +3020,42 @@ class SimulationsMain(TimeEventsMain):
 
             if not self.session.is_this_running(SimulationTypes.RmsDynamic_run):
 
-                self.add_simulation(SimulationTypes.RmsDynamic_run)
+                _, pf_results = self.session.power_flow
 
-                self.LOCK()
+                if pf_results is not None:
 
-                # Compile the grid
-                self.ui.progress_label.setText('Compiling the grid...')
-                QtGui.QGuiApplication.processEvents()
 
-                options = sim.RmsOptions()
 
-                drv = sim.RmsSimulationDriver(grid=self.circuit, options=options)
+                    self.add_simulation(SimulationTypes.RmsDynamic_run)
 
-                self.session.run(drv,
+                    self.LOCK()
+
+                     # Compile the grid
+                    self.ui.progress_label.setText('Compiling the grid...')
+                    QtGui.QGuiApplication.processEvents()
+
+                    # get the rms simulation options from the GUI
+                    options = self.get_selected_rms_simulation_options()
+
+                    self.ui.progress_label.setText('Running rms simulation...')
+
+                    drv = sim.RmsSimulationDriver(grid=self.circuit, options=options, pf_results=pf_results)
+
+                    self.session.run(drv,
                                 post_func=self.post_rms,
                                 prog_func=self.ui.progressBar.setValue,
                                 text_func=self.ui.progress_label.setText)
 
+
+                else:
+                    info_msg('Run a power flow simulation first.\n'
+                             'The results are needed to initialize this simulation.')
             else:
                 self.show_warning_toast('Another rms simulation is running already...')
 
         else:
             pass
+
 
     def post_rms(self):
         """
@@ -3040,15 +3068,19 @@ class SimulationsMain(TimeEventsMain):
 
             # delete from the current simulations
             self.remove_simulation(SimulationTypes.RmsDynamic_run)
+            self.update_available_results()
 
-            if results is not None:
-                self.update_available_results()
-                self.colour_diagrams()
+            # if results.converged:
+            #     self.show_info_toast("Power flow converged :)")
+            # else:
+            #     self.show_warning_toast("Power flow not converged :/")
+
         else:
-            pass
+            warning_msg('There are no rms simulation results.', 'Rms simulation')
 
         if not self.session.is_anything_running():
             self.UNLOCK()
+
 
     def automatic_pf_precision(self):
         """

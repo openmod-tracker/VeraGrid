@@ -54,7 +54,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    md = dev.DynamicModel()
+    md = dev.DynamicModelHost()
     window = RmsModelEditorGUI(md)
     window.resize(1.61 * 700.0, 600.0)  # golden ratio
     window.show()
