@@ -24,7 +24,7 @@ import VeraGridEngine.api as gce
 # ----------------------------------------------------------------------------------------------------------------------
 # Load system
 # TODO: be careful! this is _noshunt, such that the initialization it's easier because we have one device per bus. 
-# In scriptin_gridcal_hardcoded there are also shunt elements!
+# In scripting_gridcal_hardcoded there are also shunt elements!
 grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
 # Run power flow
 res_1 = gce.power_flow(grid_1)
@@ -67,6 +67,62 @@ grid.add_bus(bus10)
 grid.add_bus(bus11)
 
 # Line
+# line0 = grid.add_line(
+#     gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
+#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#
+# line1 = grid.add_line(
+#     gce.Line(name="line 5-6-2", bus_from=bus5, bus_to=bus6,
+#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#
+# line2 = grid.add_line(
+#     gce.Line(name="line 6-7-1", bus_from=bus6, bus_to=bus7,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line3 = grid.add_line(
+#     gce.Line(name="line 6-7-2", bus_from=bus6, bus_to=bus7,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line4 = grid.add_line(
+#     gce.Line(name="line 6-7-3", bus_from=bus6, bus_to=bus7,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line5 = grid.add_line(
+#     gce.Line(name="line 7-8-1", bus_from=bus7, bus_to=bus8,
+#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#
+# line6 = grid.add_line(
+#     gce.Line(name="line 7-8-2", bus_from=bus7, bus_to=bus8,
+#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#
+# line7 = grid.add_line(
+#     gce.Line(name="line 8-9-1", bus_from=bus8, bus_to=bus9,
+#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#
+# line8 = grid.add_line(
+#     gce.Line(name="line 8-9-2", bus_from=bus8, bus_to=bus9,
+#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#
+# line9 = grid.add_line(
+#     gce.Line(name="line 9-10-1", bus_from=bus9, bus_to=bus10,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line10 = grid.add_line(
+#     gce.Line(name="line 9-10-2", bus_from=bus9, bus_to=bus10,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line11 = grid.add_line(
+#     gce.Line(name="line 9-10-3", bus_from=bus9, bus_to=bus10,
+#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#
+# line12 = grid.add_line(
+#     gce.Line(name="line 10-11-1", bus_from=bus10, bus_to=bus11,
+#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#
+# line13 = grid.add_line(
+#     gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
+#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+
 line0 = grid.add_line(
     gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
@@ -122,7 +178,6 @@ line12 = grid.add_line(
 line13 = grid.add_line(
     gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
-
 # Transformers
 trafo_G1 = grid.add_line(
     gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
@@ -175,6 +230,8 @@ load2_grid = grid.add_load(bus=bus9, api_obj=load2)
 fn_1 = 60.0
 M_1 = 13.0 * 9.0
 D_1 = 10.0 * 9.0
+# M_1 = 13.0
+# D_1 = 10.0
 ra_1 = 0.0
 xd_1 = 0.3 * 100.0 / 900.0
 omega_ref_1 = 1.0
@@ -184,6 +241,8 @@ Ki_1 = 0.0
 fn_2 = 60.0
 M_2 = 13.0 * 9.0
 D_2 = 10.0 * 9.0
+# M_2 = 13.0
+# D_2 = 10.0
 ra_2 = 0.0
 xd_2 = 0.3 * 100.0 / 900.0
 omega_ref_2 = 1.0
@@ -193,6 +252,8 @@ Ki_2 = 0.0
 fn_3 = 60.0
 M_3 = 12.35 * 9.0
 D_3 = 10.0 * 9.0
+# M_3 = 12.35
+# D_3 = 10.0
 ra_3 = 0.0
 xd_3 = 0.3 * 100.0 / 900.0
 omega_ref_3 = 1.0
@@ -202,6 +263,8 @@ Ki_3 = 0.0
 fn_4 = 60.0
 M_4 = 12.35 * 9.0
 D_4 = 10.0 * 9.0
+# M_4 = 12.35
+# D_4 = 10.0
 ra_4 = 0.0
 xd_4 = 0.3 * 100.0 / 900.0
 omega_ref_4 = 1.0
@@ -216,6 +279,7 @@ gen1 = gce.Generator(
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.999999999999923,
     vf=1.141048034212655,
+    # vf0=1.141048034212655,
     M=M_1, D=D_1,
     omega_ref=omega_ref_1,
     Kp=Kp_1, Ki=Ki_1
@@ -227,7 +291,8 @@ gen2 = gce.Generator(
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.999999999999478,
-    vf=1.180101792122771,
+    vf=1.180101792122771, ###
+    # vf0=1.180101792122771, ###
     M=M_2, D=D_2,
     omega_ref=omega_ref_2,
     Kp=Kp_2, Ki=Ki_2
@@ -239,7 +304,8 @@ gen3 = gce.Generator(
     # vf=1.0,
     # tm0=719.091/900.0,  # ≈ 0.7990
     tm0=7.331832804674334,
-    vf=1.1551307366822237,
+    vf=1.1551307366822237, ###
+    # vf0=1.1551307366822237, ###
     M=M_3, D=D_3,
     omega_ref=omega_ref_3,
     Kp=Kp_3, Ki=Ki_3
@@ -251,7 +317,8 @@ gen4 = gce.Generator(
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
     tm0=6.99999999999765,
-    vf=1.2028205849036708,
+    vf=1.2028205849036708, ###
+    # vf0=1.2028205849036708, ###
     M=M_4, D=D_4,
     omega_ref=omega_ref_4,
     Kp=Kp_4, Ki=Ki_4
@@ -346,7 +413,7 @@ end_simulation = time.time()
 print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
 
-# TODO: check results and implement test once intilize_rms is wokring!
+# TODO: check results and implement test once initialize_rms is working!
 # # Save to csv
 slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 
@@ -365,9 +432,14 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 # plt.tight_layout()
 # plt.show()
 
+# print("x0:", x0)
+# print("size x0:", x0.shape)
+# print("params0:", params0)
+
 #stability assessment
 start_stability = time.time()
 
+# stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=y[1000], params=params0, plot = True)
 stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
 
 end_stability = time.time()
@@ -379,6 +451,10 @@ print("Eigenvalues:", Eigenvalues)
 #print("Right eivenvectors:", V)
 #print("Left eigenvectors:", W)
 print("Participation factors:", PF.toarray())
+
+
+
+
 
 df_Eig = pd.DataFrame(Eigenvalues)
 df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)

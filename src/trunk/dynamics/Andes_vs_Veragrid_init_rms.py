@@ -59,13 +59,14 @@ merged_df = comparison
 
 variable_pairs = [
      [f"omega_andes_gen_1", f"omega_VeraGrid"],
-     [f"omega_andes_gen_2", f"omega_VeraGrid.1"],
-     [f"omega_andes_gen_3", f"omega_VeraGrid.2"],
-     [f"omega_andes_gen_4", f"omega_VeraGrid.3"],
-     # [f"Vline_to_Gridcal", f"Vm_Gridcal.1"],
-     # [f"dline_to_Gridcal", f"Va_Gridcal.1"],
-     # [f"dline_from_Gridcal", f"Va_Gridcal"],
-     # [f"Vline_from_Gridcal", f"Vm_Gridcal"]
+     # [f"omega_andes_gen_2", f"omega_VeraGrid.1"],
+     # [f"omega_andes_gen_3", f"omega_VeraGrid.2"],
+     # [f"omega_andes_gen_4", f"omega_VeraGrid.3"],
+     [f"v_andes_Bus_1", f"Vm_VeraGrid"],
+     # [f"Vline_to_Veragrid", f"Vm_VeraGrid.1"],
+     # [f"dline_to_Gridcal", f"Va_VeraGrid.1"],
+     # [f"dline_from_Gridcal", f"Va_VeraGrid"],
+     # [f"Vline_from_Gridcal", f"Vm_VeraGrid"]
     ]
 
 

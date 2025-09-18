@@ -20,9 +20,10 @@ import math
 import scipy.sparse as sp
 import scipy.linalg
 from scipy.sparse.linalg import spsolve
-from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import gmres, spilu, LinearOperator, inv
+from scipy.sparse import csr_matrix, identity
+from scipy.sparse.linalg import gmres, spilu, LinearOperator, inv, spsolve
 from typing import Dict, List, Literal, Any, Callable, Sequence
+
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
@@ -265,10 +266,9 @@ class BlockSolver:
         uid2sym_t[self.time.uid] = f"time"
         self.uid2idx_t[self.time.uid] = k
 
-
-
         # Compile RHS and Jacobian
         """
+        
                    state Var   algeb var  
         state eq |J11        | J12       |    | ∆ state var|    | ∆ state eq |
                  |           |           |    |            |    |            |
@@ -829,7 +829,7 @@ class BlockSolver:
             params0: np.ndarray,
             time: Var,
             method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
-            newton_tol: float = 1e-8,
+            newton_tol: float = 1e-10,
             newton_max_iter: int = 1000,
 
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -897,7 +897,7 @@ class BlockSolver:
                                  x0: np.ndarray,
                                  params0: np.ndarray,
                                  time,
-                                 tol=1e-6,
+                                 tol=1e-8,
                                  max_iter=1000):
         """
         :param t0:
@@ -929,7 +929,7 @@ class BlockSolver:
 
                 if step_idx == 0:
                     if converged:
-                        print("System well initailzed.")
+                        print("System well initialized.")
                     else:
                         print(f"System bad initilaized. DAE resiudal is {residual}.")
 
@@ -981,57 +981,78 @@ class BlockSolver:
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
 
-    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = False):
+    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = True):
         """
             Stability analisys:
             1. Calculate the state matrix (A) from the state space model. From the DAE model:
                 Tx'=f(x,y)
                 0=g(x,y)
                 the A matrix is computed as:
-                A = T^-1(f_x - f_y * g_y^{-1} * g_x)
+                A = T^-1(f_x - f_y * g_y^{-1} * g_x)   #T is implicit in the jacobian!
 
-            2. Find eigenvalues and right and left eigenvectors
-                for left eigenvectors: bi-orthogonality: W.T@V =I --> W = inv(V).T
+            2. Find eigenvalues and right(V) and left(W) eigenvectors
+                for left eigenvectors (W): bi-orthogonality: W.T@V =I --> W = inv(V).T
 
             3. Perform stability assessment
+
+            4. Calculate participation factors PF = W · V
 
             Returns:
             stability: "Unstable", "Marginally stable" or "Asymptotically stable"
             ndarray with the positive eigenvalues (unstable ones)
-            -------
-            ??
         """
         fx = self._j11_fn(z, params)  # ∂f_state/∂x
         fy = self._j12_fn(z, params)  # ∂f_state/∂y
         gx = self._j21_fn(z, params)  # ∂g/∂x
         gy = self._j22_fn(z, params)  # ∂g/∂y
+        # print("size fx:", fx.shape)
+        # print("size fy:", fy.shape)
+        # print("size gx:", gx.shape)
+        # print("size gy:", gy.shape)
+        # print("fx:",fx.toarray())
+        # print("fx:", fx)
+        # print("fy:", fy.toarray())
+        # print("fy:",fy)
+        # print("gx:",gx.toarray())
+        # print("gx:", gx)
+        # print("gy:",gy.toarray())
+        # print("gy:", gy)
 
-        gxy = inv(gy) @ gx
-        A = (fx - fy @ gxy)  # sparse state matrix csc matrix
+        df_fx = pd.DataFrame(fx.toarray())
+        df_fx.to_csv("fx_results.csv", index=False, header=False)
+        df_fy = pd.DataFrame(fy.toarray())
+        df_fy.to_csv("fy_results.csv", index=False, header=False)
+        df_gx = pd.DataFrame(gx.toarray())
+        df_gx.to_csv("gx_results.csv", index=False, header=False)
+        df_gy = pd.DataFrame(gy.toarray())
+        df_gy.to_csv("gy_results.csv", index=False, header=False)
+
+        # I = identity(gy.shape[0], format='csc')
+        # gy_inv = spsolve(gy, I)
+        gyx = spsolve(gy, gx)
+        df_gyx = pd.DataFrame(gyx.toarray())
+        df_gyx.to_csv("gyx_results.csv", index=False, header=False)
+
+        # A = (fx - fy @ gy_inv @ gx) # sparse state matrix csc matrix
+        A = (fx - fy @ gyx)  # sparse state matrix csc matrix
         An = A.toarray()
+
+        # print("Condició de A:", np.linalg.cond(An))
+
         num_states = A.shape[0]
-        det_A = np.linalg.det(An)
-        #print("determinant A=", det_A)
 
-        Eigenvalues, V = scipy.linalg.eig(An)  # find eigenvalues and right eigenvectors(V)
-        V = sp.csc_matrix(V)
+        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)  #find eigenvalues, right(V) and left(W)  eigenvectors. Returns exactly the same numbers as np.linalg.eig(An)
+        V = sp.csc_matrix(V) #right
+        W = sp.csc_matrix(W) #left
 
-        W = sp.csc_matrix(inv(V).T)  # left eigenvectors
-
-
-        Wabs = sp.lil_matrix((W.shape[0], W.shape[0]))
-        Vabs = sp.lil_matrix((V.shape[0], V.shape[0]))
+        PF = sp.lil_matrix(A.shape)
         for row in range(W.shape[0]):
             for column in range(W.shape[0]):
-                Wabs[row, column] = abs(W[row, column])
-                Vabs[row, column] = abs(V[row, column])
-        Wabs = Wabs.tocsc()
-        Vabs = Vabs.tocsc()
-        PF = Wabs.multiply(Vabs)
-        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
+                PF[row, column] = abs(W[row, column]) * abs(V[row, column])  #find participation factors
 
+        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
         for i in range(len(Eigenvalues)):
-            PF[:, i] /= PF_abs[0, i]
+            PF[:, i] /= PF_abs[0, i] #normalize participation factors
 
         # Stability: select positive and zero eigenvalues
         tol = 1e-6  # numerical tolerance for eigenvalues = 0
