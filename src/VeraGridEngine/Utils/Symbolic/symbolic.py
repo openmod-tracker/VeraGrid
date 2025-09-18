@@ -308,6 +308,46 @@ class Var(Expr):
     def __eq__(self, other: "Expr" | NUMBER) -> Comparison:  # type: ignore[override]
         return Comparison(self, CmpOp.EQ, other)
 
+class UndefinedConst(Expr):
+    name: str = 'name'
+    frozen: bool = False
+    uid: int = field(default_factory=_new_uid)
+
+    def __setattr__(self, key, value):
+        if getattr(self, "_frozen", False):
+            raise AttributeError("Object is frozen, no further changes allowed")
+        object.__setattr__(self, key, value)
+
+    def assign_value(self, value):
+        self.value = value
+        self.frozen = True
+
+    def eval(self, **bindings: NUMBER) -> NUMBER:
+        if not hasattr(self, 'value'):
+            raise('value has not been assigned yet')
+        return self.value
+
+    def eval_uid(self, uid_bindings: Dict[str, NUMBER]) -> NUMBER:
+        if not hasattr(self, 'value'):
+            raise('value has not been assigned yet')
+        return self.value
+
+    def _diff1(self, var: Var | str) -> "Expr":
+        return Const(0)
+
+    def subs(self, mapping: Dict[Any, Expr]) -> Expr:
+        if self in mapping:
+            return mapping[self]
+        if self.name in mapping:
+            return mapping[self.name]
+        return self
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 @dataclass(frozen=True)
 class BinOp(Expr):

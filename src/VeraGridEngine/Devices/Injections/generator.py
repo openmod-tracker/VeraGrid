@@ -15,7 +15,7 @@ from VeraGridEngine.Devices.Parents.generator_parent import GeneratorParent
 from VeraGridEngine.Devices.Injections.generator_q_curve import GeneratorQCurve
 from VeraGridEngine.Devices.profile import Profile
 from VeraGridEngine.Utils.Symbolic.block import Block, Var, Const, DynamicVarType
-from VeraGridEngine.Utils.Symbolic.symbolic import cos, sin, real, imag, conj, angle, exp, log, abs
+from VeraGridEngine.Utils.Symbolic.symbolic import cos, sin, real, imag, conj, angle, exp, log, abs, UndefinedConst
 
 
 class Generator(GeneratorParent):
@@ -528,6 +528,10 @@ class Generator(GeneratorParent):
 
             vf = Var("vf")
 
+            vf0 = UndefinedConst()
+            tm0 = UndefinedConst()
+
+
             Vm = self.bus.rms_model.model.E(DynamicVarType.Vm)
             Va = self.bus.rms_model.model.E(DynamicVarType.Va)
 
@@ -549,7 +553,7 @@ class Generator(GeneratorParent):
                     te - (psid * i_q - psiq * i_d),
                     P_g - (v_d * i_d + v_q * i_q),
                     Q_g - (v_q * i_d - v_d * i_q),
-                    tm - (self.tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et)
+                    tm - (tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et)
                 ],
                 algebraic_vars=[P_g, Q_g, v_d, v_q, i_d, i_q, psid, psiq, te, tm],
                 init_eqs = {
@@ -564,12 +568,12 @@ class Generator(GeneratorParent):
                     te: psid * i_q - psiq * i_d,
                     tm: te,
                     et: Const(0),
-                    vf: Const(self.vf0)
+                    vf: vf0
                 },
                 init_vars = [delta, omega, et, v_d, v_q, i_d, i_q, psid, psiq, te, tm],
-                fix_vars = ["tm0", "vf0"],
-                fix_vars_eqs = {"tm0": tm,
-                                "vf0": psid + self.X1 * i_d},
+                fix_vars = [tm0, vf0],
+                fix_vars_eqs = {tm0.uid: tm,
+                                vf0.uid: psid + self.X1 * i_d},
 
                 external_mapping={
                     DynamicVarType.P: P_g,
