@@ -47,16 +47,31 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     # order_cols_A_V = [0, 2, 4, 6, 1, 3, 5, 7]
 
     # SIMPLE SYSTEM
-    order_cols_fx_V = [0, 1]
+    # order_cols_fx_V = [0, 1]
+    # order_cols_gx_V = [0, 1]
+    # order_cols_A_V = [0, 1]
+
     # syst0: gen-trafo-load
     # order_cols_fy_V = [1,3,0,2,12,13,10,11,16,8,9,14,15,17,18,19,20,4,5,6,7]
     # order_cols_gy_V = [1,3,0,2,12,13,10,11,16,8,9,14,15,17,18,19,20,4,5,6,7]
 
-    order_cols_gx_V = [0, 1]
     # syst1: gen-trafo-line-load
-    order_cols_fy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
-    order_cols_gy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
-    order_cols_A_V = [0, 1]
+    # order_cols_fy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
+    # order_cols_gy_V = [1, 3, 5, 0, 2, 4, 18, 19, 16, 17, 22, 14, 15, 20, 21, 23, 24, 25, 26, 6, 7, 8, 9, 10, 11, 12, 13]
+
+    # syst2: gen-trafo-double equal paralel line-load
+    # order_cols_fy_V = [1,3,5,0,2,4,22,23,20,21,26,18,19,24,25,27,28,29,30,14,15,16,17,6,7,8,9,10,11,12,13]
+    # order_cols_gy_V = [1,3,5,0,2,4,22,23,20,21,26,18,19,24,25,27,28,29,30,14,15,16,17,6,7,8,9,10,11,12,13]
+
+    #syst3: 2 GEN(1 at bus 1, 1 at bus 3 that connects to bus2 by line 3), 1 TRAFO, 1 LINE, 1 LOAD
+    order_cols_fx_V = [0, 2, 1, 3]
+    order_cols_gx_V = [0, 2, 1, 3]
+    order_cols_A_V = [0, 2, 1, 3]
+    order_cols_fy_V = [1,3,5,7,0,2,4,6,24,25,22,23,28,20,21,26,27,35,36,33,34,39,31,32,37,38,29,30,40,41,16,17,18,19,
+                       8,9,10,11,12,13,14,15,42,43]
+    order_cols_gy_V = [1,3,5,7,0,2,4,6,24,25,22,23,28,20,21,26,27,35,36,33,34,39,31,32,37,38,29,30,40,41,16,17,18,19,
+                       8,9,10,11,12,13,14,15,42,43]
+
 
     V_fx_rc = V_fx[:,order_cols_fx_V]
     V_fy_rc = V_fy[:,order_cols_fy_V]
@@ -80,15 +95,30 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     # order_rows_A_V = [0, 2, 4, 6, 1, 3, 5, 7]
 
     # simple system
-    order_rows_fx_V = [0, 1]
-    order_rows_fy_V = [0, 1]
+    # order_rows_fx_V = [0, 1]
+    # order_rows_fy_V = [0, 1]
+    # order_rows_A_V = [0, 1]
+
     #syst0: gen-trafo-load
     # order_rows_gx_V = [1,3,0,2,10,11,12,13,14,15,16,8,9,18,17,19,20,4,5,6,7]
     # order_rows_gy_V = [1,3,0,2,10,11,12,13,14,15,16,8,9,18,17,19,20,4,5,6,7]
+
     #syst1: gen-trafo-line-load
-    order_rows_gx_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
-    order_rows_gy_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
-    order_rows_A_V = [0, 1]
+    # order_rows_gx_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
+    # order_rows_gy_V = [1,3,5,0,2,4,16,17,18,19,20,21,22,14,15,23,24,25,26,6,7,8,9,10,11,12,13]
+
+    # syst2: gen-trafo-double equal paralel line-load
+    # order_rows_gx_V = [1,3,5,0,2,4,20,21,22,23,24,25,26,18,19,27,28,29,30,14,15,16,17,6,7,8,9,10,11,12,13]
+    # order_rows_gy_V = [1,3,5,0,2,4,20,21,22,23,24,25,26,18,19,27,28,29,30,14,15,16,17,6,7,8,9,10,11,12,13]
+
+    # syst3: 2 GEN(1 at bus 1, 1 at bus 3 that connects to bus2 by line 3), 1 TRAFO, 1 LINE, 1 LOAD
+    order_rows_fx_V = [0, 2, 1, 3]
+    order_rows_fy_V = [0, 2, 1, 3]
+    order_rows_A_V = [0, 2, 1, 3]
+    order_rows_gx_V = [1,3,5,7,0,2,4,6,22,23,24,25,26,27,28,20,21,33,34,35,36,37,38,39,31,32,29,30,40,41,16,17,18,19,
+                       8,9,10,11,12,13,14,15,42,43]
+    order_rows_gy_V = [1,3,5,7,0,2,4,6,22,23,24,25,26,27,28,20,21,33,34,35,36,37,38,39,31,32,29,30,40,41,16,17,18,19,
+                       8,9,10,11,12,13,14,15,42,43]
 
     V_fx_r = V_fx_rc[order_rows_fx_V, :]
     V_fy_r = V_fy_rc[order_rows_fy_V, :]
@@ -110,15 +140,28 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     # order_cols_A_A = [0, 1, 2, 3, 4, 5, 6, 7]
 
     #simple system
-    order_cols_fx_A = [0, 1]
+    # order_cols_fx_A = [0, 1]
+    # order_cols_gx_A = [0, 1]
+    # order_cols_A_A = [0, 1]
+
     # syst0: gen-trafo-load
     # order_cols_fy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
     # order_cols_gy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
-    order_cols_gx_A = [0, 1]
+
     # syst1: gen-trafo-line-load
-    order_cols_fy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
-    order_cols_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
-    order_cols_A_A = [0, 1]
+    # order_cols_fy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+    # order_cols_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+
+    # syst2: gen-trafo-double equal paralel line-load
+    # order_cols_fy_A = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 13, 16, 17, 18, 19, 6, 7, 12, 14, 15]
+    # order_cols_gy_A = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 13, 16, 17, 18, 19, 6, 7, 12, 14, 15]
+
+    # syst3: 2 GEN(1 at bus 1, 1 at bus 3 that connects to bus2 by line 3), 1 TRAFO, 1 LINE, 1 LOAD
+    order_cols_fx_A = [0, 1, 2, 3]
+    order_cols_gx_A = [0, 1, 2, 3]
+    order_cols_A_A = [0, 1, 2, 3]
+    order_cols_fy_A = [0,1,2,3,4,5,6,7,11,13,15,17,21,27,29,31,33,12,14,16,18,22,28,30,32,34,19,23,25,20,24,26,8,9,10]
+    order_cols_gy_A = [0,1,2,3,4,5,6,7,11,13,15,17,21,27,29,31,33,12,14,16,18,22,28,30,32,34,19,23,25,20,24,26,8,9,10]
 
 
     A_fx_rc = A_fx[:, order_cols_fx_A]
@@ -142,16 +185,31 @@ def restructure_matrices(fx, fy, gx, gy, fxA, fyA, gxA, gyA, A, A_A ):
     #                    22, 23, 24, 25, 26, 43, 44, 45,
     #                    46, 51, 52, 53, 54, 55, 56, 57, 58]
     # order_rows_A_A = [0, 1, 2, 3, 4, 5, 6, 7]
+
     # simple system
-    order_rows_fx_A = [0, 1]
-    order_rows_fy_A = [0, 1]
+    # order_rows_fx_A = [0, 1]
+    # order_rows_fy_A = [0, 1]
+    # order_rows_A_A = [0, 1]
+
     # syst0: gen-trafo-load
     # order_rows_gx_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
     # order_rows_gy_A = [0, 1, 2, 3, 6, 7, 8, 9, 11, 14, 15, 16, 17, 4, 5, 10, 12, 13]
+
     # syst1: gen-trafo-line-load
-    order_rows_gx_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
-    order_rows_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
-    order_rows_A_A = [0, 1]
+    # order_rows_gx_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+    # order_rows_gy_A = [0,1,2,3,4,5,8,9,10,11,13,16,17,18,19,6,7,12,14,15]
+
+
+    # syst2: gen-trafo-double equal paralel line-load
+    # order_rows_gx_A = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 13, 16, 17, 18, 19, 6, 7, 12, 14, 15]
+    # order_rows_gy_A = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 13, 16, 17, 18, 19, 6, 7, 12, 14, 15]
+
+    # syst3: 2 GEN(1 at bus 1, 1 at bus 3 that connects to bus2 by line 3), 1 TRAFO, 1 LINE, 1 LOAD
+    order_rows_fx_A = [0, 1, 2, 3]
+    order_rows_fy_A = [0, 1, 2, 3]
+    order_rows_A_A = [0, 1, 2, 3]
+    order_rows_gx_A = [0,1,2,3,4,5,6,7,11,13,15,17,21,27,29,31,33,12,14,16,18,22,28,30,32,34,19,23,25,20,24,26,8,9,10]
+    order_rows_gy_A = [0,1,2,3,4,5,6,7,11,13,15,17,21,27,29,31,33,12,14,16,18,22,28,30,32,34,19,23,25,20,24,26,8,9,10]
 
 
     A_fx_r = A_fx_rc[order_rows_fx_A, :]
