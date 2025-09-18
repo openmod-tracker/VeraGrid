@@ -18,6 +18,7 @@ from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Simulations.PowerFlow.power_flow_results import PowerFlowResults
 from VeraGridEngine.enumerations import DynamicVarType
 from VeraGridEngine.basic_structures import Logger, ObjVec, BoolVec
+from VeraGridEngine.Utils.Symbolic.symbolic import cos, sin, real, imag, conj, angle, exp, log, abs
 
 
 def _compile_equation(eqs: Sequence[Expr],
@@ -189,13 +190,11 @@ def compose_system_block(grid: MultiCircuit,
                 init_val = float(eq_fn(x))
                 init_guess[key] = init_val
                 x[uid2idx_vars[var.uid]] = init_val
-        for var in mdl.fix_vars:
-            eq = mdl.fix_vars_eqs[var]
-            eq_fn = _compile_equation([eq], uid2sym_vars)
-            init_val = float(eq_fn(x))
-            setattr(elm, var, init_val)
-
-
+        # for var in mdl.fix_vars:
+        #     eq = mdl.fix_vars_eqs[var]
+        #     eq_fn = _compile_equation([eq], uid2sym_vars)
+        #     init_val = float(eq_fn(x))
+        #     setattr(elm, var, init_val)
         sys_block.add(mdl)
 
     # del buses P, Q

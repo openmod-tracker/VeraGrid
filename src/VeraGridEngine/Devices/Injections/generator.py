@@ -53,11 +53,16 @@ class Generator(GeneratorParent):
         'D',
         'tm0',
         'omega_ref',
-        'vf',
+        'vf0',
         'Kp',
         'Ki',
         'Kw',
-        'init_params'
+        'init_params',
+        'Ka',  # AVR gain
+        'Ta',  # AVR time constant (s)
+        'vf_min',  # minimum field voltage (p.u.)
+        'vf_max',  # maximum field voltage (p.u.)
+
     )
 
     def __init__(self,
@@ -90,17 +95,22 @@ class Generator(GeneratorParent):
                  r2: float = 1e-20,
                  x2: float = 1e-20,
                  freq=60.0,
-                 tm0=0.0750281479189543,
+                 tm0 = 0,
+                 # tm0=0.0750281479189543,
                  M=1.0 / 100.0 * 900.0, # from Machine to System base
                  D=4.0 / 100.0 * 900.0, # from Machine to System base
                  omega_ref=1.0,
-                 vf=0.9967798127873505,
+                 vf0 = 0,
                  Kp=0.0,
                  Ki=0.0,
+                 Ka: float = 200.0,  # AVR gain
+                 Ta: float = 0.02,  # AVR time constant (s) - fast
+                 vf_min: float = -5.0,  # field voltage lower limit (p.u.)
+                 vf_max: float = 5.0,  # field voltage upper limit (p.u.)
                  capex: float = 0,
                  opex: float = 0,
                  srap_enabled: bool = True,
-                 init_params: dict[str, float] = {"tm0": 0.0, "vf": 0.0},
+                 init_params: dict[str, float] = {"tm0": 0.0, "vf0": 0.0},
                  build_status: BuildStatus = BuildStatus.Commissioned):
         """
         Generator.
@@ -238,9 +248,15 @@ class Generator(GeneratorParent):
         self.M = M
         self.D = D
         self.omega_ref = omega_ref
-        self.vf = vf
+        self.vf0 = vf0
         self.Kp = Kp
         self.Ki = Ki
+
+        self.Ka = float(Ka)
+        self.Ta = float(Ta)
+        self.vf_min = float(vf_min)
+        self.vf_max = float(vf_max)
+
         self.init_params = init_params
 
         self.register(key='is_controlled', units='', tpe=bool, definition='Is this generator voltage-controlled?')
@@ -290,6 +306,10 @@ class Generator(GeneratorParent):
 
         self.register(key='fuels', units='t/MWh', tpe=SubObjectType.Associations,
                       definition='List of fuels', display=False)
+        self.register(key='Ka', units='', tpe=float, definition='AVR proportional gain (Ka)')
+        self.register(key='Ta', units='s', tpe=float, definition='AVR time constant (Ta)')
+        self.register(key='vf_min', units='p.u.', tpe=float, definition='Exciter min field voltage')
+        self.register(key='vf_max', units='p.u.', tpe=float, definition='Exciter max field voltage')
 
     @property
     def Pf_prof(self) -> Profile:
@@ -506,6 +526,8 @@ class Generator(GeneratorParent):
             P_g = Var("P_g")
             Q_g = Var("Q_g")
 
+            vf = Var("vf")
+
             Vm = self.bus.rms_model.model.E(DynamicVarType.Vm)
             Va = self.bus.rms_model.model.E(DynamicVarType.Va)
 
@@ -514,12 +536,13 @@ class Generator(GeneratorParent):
                     (2 * np.pi * self.freq) * (omega - self.omega_ref),
                     (tm - te - self.D * (omega - self.omega_ref)) / self.M,
                     (omega - self.omega_ref),
+                    (-vf + self.Ka * (self.Vset - Vm)) / self.Ta
                 ],
-                state_vars=[delta, omega, et],
+                state_vars=[delta, omega, et, vf],
                 algebraic_eqs=[
                     psid - (self.R1 * i_q + v_q),
                     psiq + (self.R1 * i_d + v_d),
-                    0 - (psid + self.X1 * i_d - self.vf),
+                    0 - (psid + self.X1 * i_d - vf),
                     0 - (psiq + self.X1 * i_q),
                     v_d - (Vm * sin(delta - Va)),
                     v_q - (Vm * cos(delta - Va)),
@@ -541,11 +564,12 @@ class Generator(GeneratorParent):
                     te: psid * i_q - psiq * i_d,
                     tm: te,
                     et: Const(0),
+                    vf: Const(self.vf0)
                 },
                 init_vars = [delta, omega, et, v_d, v_q, i_d, i_q, psid, psiq, te, tm],
-                fix_vars = ["tm0", "vf"],
+                fix_vars = ["tm0", "vf0"],
                 fix_vars_eqs = {"tm0": tm,
-                                "vf": psid + self.X1 * i_d},
+                                "vf0": psid + self.X1 * i_d},
 
                 external_mapping={
                     DynamicVarType.P: P_g,
