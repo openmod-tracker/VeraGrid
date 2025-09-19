@@ -820,7 +820,7 @@ def _emit(expr: Expr, uid_map_vars: Dict[int, str], uid_map_params: Dict[int, st
     :return:
     """
 
-    if isinstance(expr, Const):
+    if isinstance(expr, Const) or isinstance(expr, UndefinedConst):
         return repr(expr.value)
     if isinstance(expr, Var):
         if expr.uid in uid_map_vars.keys():
