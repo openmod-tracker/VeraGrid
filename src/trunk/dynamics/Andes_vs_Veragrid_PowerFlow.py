@@ -123,7 +123,6 @@ df_errors_PF = pd.DataFrame({
 df_errors_PF.to_csv("error_PowerFlow.csv", index=False)
 print(df_errors_PF)
 
-
 # variables error comparison
 #state vars
 df_VeraGrid_ini = pd.read_csv('init_guess_VeraGrid_output.csv')
