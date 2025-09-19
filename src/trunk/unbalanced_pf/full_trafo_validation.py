@@ -27,17 +27,8 @@ load_634 = gce.Load(G1=0.140*5,
                     B2=0.090*5,
                     G3=0.100*5,
                     B3=0.080*5)
-load_634.conn = ShuntConnectionType.GroundedStar
+load_634.conn = ShuntConnectionType.Delta
 grid.add_load(bus=bus_634, api_obj=load_634)
-
-# shunt_634 = gce.Shunt(G1=1e-9,
-#                       B1=1e-9,
-#                       G2=1e-9,
-#                       B2=1e-9,
-#                       G3=1e-9,
-#                       B3=1e-9)
-# shunt_634.conn = ShuntConnectionType.GroundedStar
-# grid.add_shunt(bus=bus_634, api_obj=shunt_634)
 
 # load_634 = gce.Load(Ir1=0.140*2,
 #                     Ii1=0.100*2,
@@ -57,16 +48,6 @@ grid.add_load(bus=bus_634, api_obj=load_634)
 # load_634.conn = ShuntConnectionType.GroundedStar
 # grid.add_load(bus=bus_634, api_obj=load_634)
 
-# BALANCED
-# load_634 = gce.Load(Ir1=0.300,
-#                     Ii1=0.100,
-#                     Ir2=0.300,
-#                     Ii2=0.100,
-#                     Ir3=0.300,
-#                     Ii3=0.100)
-# load_634.conn = ShuntConnectionType.GroundedStar
-# grid.add_load(bus=bus_634, api_obj=load_634)
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Transformer
 # ----------------------------------------------------------------------------------------------------------------------
@@ -79,15 +60,15 @@ trafo = gce.Transformer2W(name='XFM-1',
                           rate=0.5,
                           r=1.1*2,
                           x=2*2)
-trafo.conn_f = WindingType.GroundedStar
-trafo.conn_t = WindingType.GroundedStar
+trafo.conn_f = WindingType.Delta
+trafo.conn_t = WindingType.Delta
 grid.add_transformer2w(trafo)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run power flow
 # ----------------------------------------------------------------------------------------------------------------------
 res = gce.power_flow(grid=grid, options=gce.PowerFlowOptions(three_phase_unbalanced=True,
-                                                             solver_type=SolverType.NR,
+                                                             solver_type=SolverType.LM,
                                                              retry_with_other_methods=False))
 
 # ----------------------------------------------------------------------------------------------------------------------

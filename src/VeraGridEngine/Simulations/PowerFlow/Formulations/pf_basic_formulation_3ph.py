@@ -178,7 +178,6 @@ def compute_ybus(nc: NumericalCircuit) -> Tuple[csc_matrix, csc_matrix, csc_matr
     Ybus = Cf.T @ Yf + Ct.T @ Yt + Ysh_bus
     Ybus[3:6, 3:6] += np.eye(3) * 1e-10
     Ybus = Ybus[binary_bus_mask, :][:, binary_bus_mask]
-    Ysh_bus = Ysh_bus[binary_bus_mask, :][:, binary_bus_mask]
     Yf = Yf[R, :][:, binary_bus_mask]
     Yt = Yt[R, :][:, binary_bus_mask]
 
