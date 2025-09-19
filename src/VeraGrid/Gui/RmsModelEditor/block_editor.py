@@ -22,6 +22,8 @@ from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 from VeraGridEngine.Utils.Symbolic.symbolic import Var
 
 
+
+
 @dataclass
 class BlockBridge:
     gui: "BlockItem"  # visual node
@@ -50,6 +52,26 @@ class BlockType(Enum):
     SOURCE = auto()
     DRAIN = auto()
     GENERIC = auto()
+
+
+BLOCKTYPE_TO_CLASS = {
+    BlockType.SUM: adder,
+    BlockType.GAIN: gain,
+    BlockType.INTEGRATOR: integrator,
+    BlockType.CONSTANT: constant,
+    # add more as your engine grows...
+}
+
+
+def create_block_from_type(block_type: BlockType) -> Block:
+    block_cls = BLOCKTYPE_TO_CLASS.get(block_type)
+    if block_cls is None:
+        # fallback if not mapped yet
+        return Block(name=block_type.name)
+    return block_cls()
+
+
+
 
 
 class BlockTypeDialog(QDialog):
@@ -359,7 +381,7 @@ class DiagramScene(QGraphicsScene):
             self.add_block(event.scenePos(), ins, outs, block_type)
         return None
 
-    def add_block(self, pos, ins, outs, block_type=BlockType.GENERIC):
+    def add_block(self, pos, ins, outs, block_type): # block_type=BlockType.GENERIC by default
         """
 
         :param pos:
@@ -368,7 +390,8 @@ class DiagramScene(QGraphicsScene):
         :param block_type:
         :return:
         """
-        block = Block()
+
+        block = create_block_from_type(block_type)
         block_item = BlockItem(block)
         self._main_block.add(block)
         self.addItem(block_item)
