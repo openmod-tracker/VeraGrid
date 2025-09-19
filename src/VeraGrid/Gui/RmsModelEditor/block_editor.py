@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsItem,
                                QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QMenu, QGraphicsPathItem,
-                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox)
+                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QInputDialog)
 from PySide6.QtGui import QPen, QBrush, QPainterPath, QAction, QPainter
 from PySide6.QtCore import Qt, QPointF
 from VeraGridEngine.Utils.Symbolic.block import (
@@ -228,6 +228,18 @@ class BlockItem(QGraphicsRectItem):
 
         self._resizing_from_handle = False
 
+        def mouseDoubleClickEvent(self, event):
+            # Only handle constants
+            if hasattr(self.subsys, "out_vars") and len(self.subsys.out_vars) == 1:
+                var = self.subsys.out_vars[0]
+                if "const" in var.name.lower() or getattr(self.subsys, "name", "").lower() == "const":
+                    value, ok = QInputDialog.getDouble(None, "Edit Constant",
+                                                       f"Value for {var.name}:", float(getattr(var, "value", 0.0)))
+                    if ok:
+                        var.value = value  # set new value
+                        print(f"Constant {var.name} set to {var.value}")
+            super().mouseDoubleClickEvent(event)
+
     def resize_block(self, width, height):
         # Update geometry safely
         self.prepareGeometryChange()
@@ -343,13 +355,22 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int) -> Block:
         return [Var(f"{base}{i}") for i in range(n)]
 
     # CONSTANT
+    # if block_type == BlockType.CONSTANT:
+    #     y, blk = constant(0.0, name="const")
+    #     # ensure the block exposes in_vars / out_vars for the GUI
+    #     if not getattr(blk, "out_vars", None):
+    #         blk.out_vars = [y]
+    #     if not getattr(blk, "in_vars", None):
+    #         blk.in_vars = []
+    #     return blk
+
     if block_type == BlockType.CONSTANT:
         y, blk = constant(0.0, name="const")
         # ensure the block exposes in_vars / out_vars for the GUI
         if not getattr(blk, "out_vars", None):
             blk.out_vars = [y]
-        if not getattr(blk, "in_vars", None):
-            blk.in_vars = []
+        if not hasattr(y, "value"):
+            y.value = 0.0  # add a value attribute if Var doesn't have one
         return blk
 
     # GAIN (single input -> single output)
