@@ -5,6 +5,7 @@
 
 import numpy as np
 import pandas as pd
+import scipy.linalg
 
 
 import sys
@@ -69,59 +70,59 @@ grid.add_bus(bus11)
 # Line
 # line0 = grid.add_line(
 #     gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
-#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#              r=0.00500, x=0.05000* (100.0/900.0), b=0.02187, rate=750.0))
 #
 # line1 = grid.add_line(
 #     gce.Line(name="line 5-6-2", bus_from=bus5, bus_to=bus6,
-#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#              r=0.00500, x=0.05000* (100.0/900.0), b=0.02187, rate=750.0))
 #
 # line2 = grid.add_line(
 #     gce.Line(name="line 6-7-1", bus_from=bus6, bus_to=bus7,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line3 = grid.add_line(
 #     gce.Line(name="line 6-7-2", bus_from=bus6, bus_to=bus7,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line4 = grid.add_line(
 #     gce.Line(name="line 6-7-3", bus_from=bus6, bus_to=bus7,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line5 = grid.add_line(
 #     gce.Line(name="line 7-8-1", bus_from=bus7, bus_to=bus8,
-#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#              r=0.01100, x=0.11000* (100.0/900.0), b=0.19250, rate=400.0))
 #
 # line6 = grid.add_line(
 #     gce.Line(name="line 7-8-2", bus_from=bus7, bus_to=bus8,
-#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#              r=0.01100, x=0.11000* (100.0/900.0), b=0.19250, rate=400.0))
 #
 # line7 = grid.add_line(
 #     gce.Line(name="line 8-9-1", bus_from=bus8, bus_to=bus9,
-#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#              r=0.01100, x=0.11000* (100.0/900.0), b=0.19250, rate=400.0))
 #
 # line8 = grid.add_line(
 #     gce.Line(name="line 8-9-2", bus_from=bus8, bus_to=bus9,
-#              r=0.01100, x=0.11000* (100.0/400.0), b=0.19250, rate=400.0))
+#              r=0.01100, x=0.11000* (100.0/900.0), b=0.19250, rate=400.0))
 #
 # line9 = grid.add_line(
 #     gce.Line(name="line 9-10-1", bus_from=bus9, bus_to=bus10,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line10 = grid.add_line(
 #     gce.Line(name="line 9-10-2", bus_from=bus9, bus_to=bus10,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line11 = grid.add_line(
 #     gce.Line(name="line 9-10-3", bus_from=bus9, bus_to=bus10,
-#              r=0.00300, x=0.03000* (100.0/700.0), b=0.00583, rate=700.0))
+#              r=0.00300, x=0.03000* (100.0/900.0), b=0.00583, rate=700.0))
 #
 # line12 = grid.add_line(
 #     gce.Line(name="line 10-11-1", bus_from=bus10, bus_to=bus11,
-#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#              r=0.00500, x=0.05000* (100.0/900.0), b=0.02187, rate=750.0))
 #
 # line13 = grid.add_line(
 #     gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
-#              r=0.00500, x=0.05000* (100.0/750.0), b=0.02187, rate=750.0))
+#              r=0.00500, x=0.05000* (100.0/900.0), b=0.02187, rate=750.0))
 
 line0 = grid.add_line(
     gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
@@ -179,9 +180,10 @@ line13 = grid.add_line(
     gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 # Transformers
+xt1 = 0.15 * (100.0/900.0)
 trafo_G1 = grid.add_line(
     gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
-             r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
+             r=0.00000, x=xt1, b=0.0, rate=900.0))
 
 trafo_G2 = grid.add_line(
     gce.Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
@@ -277,8 +279,8 @@ gen1 = gce.Generator(
     x1=xd_1, r1=ra_1, freq=fn_1,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.999999999999923,
-    vf=1.141048034212655,
+    tm0=6.999999999999999,
+    vf=1.1410480598099169,
     # vf0=1.141048034212655,
     M=M_1, D=D_1,
     omega_ref=omega_ref_1,
@@ -290,8 +292,8 @@ gen2 = gce.Generator(
     x1=xd_2, r1=ra_2, freq=fn_2,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.999999999999478,
-    vf=1.180101792122771, ###
+    tm0=6.999999999999998,
+    vf=1.1801018702912192, ###
     # vf0=1.180101792122771, ###
     M=M_2, D=D_2,
     omega_ref=omega_ref_2,
@@ -303,8 +305,8 @@ gen3 = gce.Generator(
     x1=xd_3, r1=ra_3, freq=fn_3,
     # vf=1.0,
     # tm0=719.091/900.0,  # ≈ 0.7990
-    tm0=7.331832804674334,
-    vf=1.1551307366822237, ###
+    tm0=7.331838148595014,
+    vf=1.15513088317088697, ###
     # vf0=1.1551307366822237, ###
     M=M_3, D=D_3,
     omega_ref=omega_ref_3,
@@ -316,8 +318,8 @@ gen4 = gce.Generator(
     x1=xd_4, r1=ra_4, freq=fn_4,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.99999999999765,
-    vf=1.2028205849036708, ###
+    tm0=6.999999999999998,
+    vf=1.2028207647478641, ###
     # vf0=1.2028205849036708, ###
     M=M_4, D=D_4,
     omega_ref=omega_ref_4,
@@ -348,7 +350,7 @@ options = gce.PowerFlowOptions(
     retry_with_other_methods=False,
     verbose=0,
     initialize_with_existing_solution=True,
-    tolerance=1e-6,
+    tolerance=1e-13,
     max_iter=25,
     control_q=False,
     control_taps_modules=True,
@@ -440,7 +442,7 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 start_stability = time.time()
 
 # stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=y[1000], params=params0, plot = True)
-stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
+stab, Eigenvalues, A, V, W, PFactors = slv.stability_assessment(z=x0, params=params0, plot = True)
 
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
@@ -450,7 +452,7 @@ print("Stability assessment:", stab)
 print("Eigenvalues:", Eigenvalues)
 #print("Right eivenvectors:", V)
 #print("Left eigenvectors:", W)
-print("Participation factors:", PF.toarray())
+print("Participation factors:", PFactors.toarray())
 
 
 
@@ -460,3 +462,111 @@ df_Eig = pd.DataFrame(Eigenvalues)
 df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
 df_A = pd.DataFrame(A.toarray())
 df_A.to_csv("A_results.csv", index=False , header = False)
+df_PFactors = pd.DataFrame(PFactors.toarray())
+df_PFactors.to_csv("pfactors_results.csv", index=False , header = False)
+df_V = pd.DataFrame(V.toarray())
+df_V.to_csv("V_results.csv", index=False , header = False)
+df_W = pd.DataFrame(W.toarray())
+df_W.to_csv("W_results.csv", index=False , header = False)
+
+#PowerFlow results
+v_PF = np.abs(res.voltage)
+a_PF = np.angle(res.voltage)
+p_PF = res.Sbus.real/100
+q_PF = res.Sbus.imag/100
+v_PFdf = pd.DataFrame([v_PF])  # shape: [T, n_loads]
+v_PFdf.columns = [f"v_PF_VeraGrid_Bus_{i + 1}" for i in range(v_PF.shape[0])]
+a_PFdf = pd.DataFrame([a_PF])  # shape: [T, n_loads]
+a_PFdf.columns = [f"a_PF_VeraGrid_Bus_{i + 1}" for i in range(a_PF.shape[0])]
+p_PFdf = pd.DataFrame([p_PF])  # shape: [T, n_loads]
+p_PFdf.columns = [f"p_PF_VeraGrid_Bus_{i + 1}" for i in range(p_PF.shape[0])]
+q_PFdf = pd.DataFrame([q_PF])  # shape: [T, n_loads]
+q_PFdf.columns = [f"q_PF_VeraGrid_Bus_{i + 1}" for i in range(q_PF.shape[0])]
+
+PFdf = pd.concat([v_PFdf, a_PFdf, p_PFdf, q_PFdf], axis=1)
+PFdf.to_csv("PowerFlow_VeraGrid_output.csv", index=False)
+print('Power Flow results saved in PowerFlow_VeraGrid_output.csv')
+
+#initialization results
+#bus
+Vm_bus_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Vm']
+Va_bus_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Va']
+#line
+Pf_line_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Pf']
+Qf_line_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Qf']
+Pt_line_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Pt']
+Qt_line_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Qt']
+#gencls
+delta_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'delta']
+omega_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'omega']
+Id_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'i_d']
+Iq_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'i_q']
+vd_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'v_d']
+vq_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'v_q']
+tm_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'tm']
+te_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'te']
+Pg_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'P_g']
+Qg_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Q_g']
+psid_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'psid']
+psiq_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'psiq']
+et_gen_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'et']
+
+#load
+Pl_load_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Pl']
+Ql_load_init_guess = [v for (k1, k2), v in init_guess.items() if k2 == 'Ql']
+
+#bus
+Vm_bus_init_guessdf = pd.DataFrame([Vm_bus_init_guess])  # shape: [T, n_loads]
+Vm_bus_init_guessdf.columns = [f"Vm_VeraGrid_Bus_{i + 1}" for i in range(len(Vm_bus_init_guess))]
+Va_bus_init_guessdf = pd.DataFrame([Va_bus_init_guess])  # shape: [T, n_loads]
+Va_bus_init_guessdf.columns = [f"Va_VeraGrid_Bus_{i + 1}" for i in range(len(Va_bus_init_guess))]
+#load
+Pf_line_init_guessdf = pd.DataFrame([Pf_line_init_guess])  # shape: [T, n_loads]
+Pf_line_init_guessdf.columns = [f"Pf_VeraGrid_line_{i + 1}" for i in range(len(Pf_line_init_guess))]
+Qf_line_init_guessdf = pd.DataFrame([Qf_line_init_guess])  # shape: [T, n_loads]
+Qf_line_init_guessdf.columns = [f"Qf_VeraGrid_line_{i + 1}" for i in range(len(Qf_line_init_guess))]
+Pt_line_init_guessdf = pd.DataFrame([Pt_line_init_guess])  # shape: [T, n_loads]
+Pt_line_init_guessdf.columns = [f"Pt_VeraGrid_line_{i + 1}" for i in range(len(Pt_line_init_guess))]
+Qt_line_init_guessdf = pd.DataFrame([Qt_line_init_guess])  # shape: [T, n_loads]
+Qt_line_init_guessdf.columns = [f"Qt_VeraGrid_line_{i + 1}" for i in range(len(Qt_line_init_guess))]
+#gen
+delta_gen_init_guessdf = pd.DataFrame([delta_gen_init_guess])  # shape: [T, n_loads]
+delta_gen_init_guessdf.columns = [f"delta_VeraGrid_gen_{i + 1}" for i in range(len(delta_gen_init_guess))]
+omega_gen_init_guessdf = pd.DataFrame([omega_gen_init_guess])  # shape: [T, n_loads]
+omega_gen_init_guessdf.columns = [f"omega_VeraGrid_gen_{i + 1}" for i in range(len(omega_gen_init_guess))]
+Id_gen_init_guessdf = pd.DataFrame([Id_gen_init_guess])  # shape: [T, n_loads]
+Id_gen_init_guessdf.columns = [f"Id_VeraGrid_gen_{i + 1}" for i in range(len(Id_gen_init_guess))]
+Iq_gen_init_guessdf = pd.DataFrame([Iq_gen_init_guess])  # shape: [T, n_loads]
+Iq_gen_init_guessdf.columns = [f"Iq_VeraGrid_gen_{i + 1}" for i in range(len(Iq_gen_init_guess))]
+vd_gen_init_guessdf = pd.DataFrame([vd_gen_init_guess])  # shape: [T, n_loads]
+vd_gen_init_guessdf.columns = [f"vd_VeraGrid_gen_{i + 1}" for i in range(len(vd_gen_init_guess))]
+vq_gen_init_guessdf = pd.DataFrame([vq_gen_init_guess])  # shape: [T, n_loads]
+vq_gen_init_guessdf.columns = [f"vq_VeraGrid_gen_{i + 1}" for i in range(len(vq_gen_init_guess))]
+tm_gen_init_guessdf = pd.DataFrame([tm_gen_init_guess])  # shape: [T, n_loads]
+tm_gen_init_guessdf.columns = [f"tm_VeraGrid_gen_{i + 1}" for i in range(len(tm_gen_init_guess))]
+te_gen_init_guessdf = pd.DataFrame([te_gen_init_guess])  # shape: [T, n_loads]
+te_gen_init_guessdf.columns = [f"te_VeraGrid_gen_{i + 1}" for i in range(len(te_gen_init_guess))]
+Pg_gen_init_guessdf = pd.DataFrame([Pg_gen_init_guess])  # shape: [T, n_loads]
+Pg_gen_init_guessdf.columns = [f"Pg_VeraGrid_gen_{i + 1}" for i in range(len(Pg_gen_init_guess))]
+Qg_gen_init_guessdf = pd.DataFrame([Qg_gen_init_guess])  # shape: [T, n_loads]
+Qg_gen_init_guessdf.columns = [f"Qg_VeraGrid_gen_{i + 1}" for i in range(len(Qg_gen_init_guess))]
+psid_gen_init_guessdf = pd.DataFrame([psid_gen_init_guess])  # shape: [T, n_loads]
+psid_gen_init_guessdf.columns = [f"psid_VeraGrid_gen_{i + 1}" for i in range(len(psid_gen_init_guess))]
+psiq_gen_init_guessdf = pd.DataFrame([psiq_gen_init_guess])  # shape: [T, n_loads]
+psiq_gen_init_guessdf.columns = [f"psiq_VeraGrid_gen_{i + 1}" for i in range(len(psiq_gen_init_guess))]
+et_gen_init_guessdf = pd.DataFrame([et_gen_init_guess])  # shape: [T, n_loads]
+et_gen_init_guessdf.columns = [f"et_VeraGrid_gen_{i + 1}" for i in range(len(et_gen_init_guess))]
+#load
+Pl_load_init_guessdf = pd.DataFrame([Pl_load_init_guess])  # shape: [T, n_loads]
+Pl_load_init_guessdf.columns = [f"Pl_VeraGrid_load_{i + 1}" for i in range(len(Pl_load_init_guess))]
+Ql_load_init_guessdf = pd.DataFrame([Ql_load_init_guess])  # shape: [T, n_loads]
+Ql_load_init_guessdf.columns = [f"Ql_VeraGrid_load_{i + 1}" for i in range(len(Ql_load_init_guess))]
+
+#
+init_df = pd.concat([Vm_bus_init_guessdf, Va_bus_init_guessdf, Pf_line_init_guessdf, Qf_line_init_guessdf,
+                     Pt_line_init_guessdf, Qt_line_init_guessdf, delta_gen_init_guessdf,omega_gen_init_guessdf,
+                     Id_gen_init_guessdf, Iq_gen_init_guessdf,vd_gen_init_guessdf,vq_gen_init_guessdf, tm_gen_init_guessdf,
+                     te_gen_init_guessdf, Pg_gen_init_guessdf, Qg_gen_init_guessdf, psid_gen_init_guessdf, psiq_gen_init_guessdf,
+                     et_gen_init_guessdf, Pl_load_init_guessdf, Ql_load_init_guessdf], axis=1)
+init_df.to_csv("init_guess_VeraGrid_output.csv", index=False)
+print('Init guess results saved in init_guess_VeraGrid_output.csv')

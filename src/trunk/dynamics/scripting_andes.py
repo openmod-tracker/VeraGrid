@@ -30,7 +30,7 @@ def main():
     ss.files.no_output = True
     
     # Run PF
-    ss.PFlow.config.tol = 1e-12
+    ss.PFlow.config.tol = 1e-13
     ss.PFlow.run()
 
     print(f"Bus voltages = {ss.Bus.v.v}")
@@ -43,14 +43,11 @@ def main():
     # bus
     v_PF = ss.Bus.v.v
     a_PF = ss.Bus.a.v
-
     # PV
     q_PV_PF = ss.PV.q.v
-
     # Slack
     p_Slack_PF = ss.Slack.p.v
     q_Slack_PF = ss.Slack.q.v
-
     # PQ
     Ppf_PF = ss.PQ.Ppf.v
     Qpf_PF = ss.PQ.Qpf.v
@@ -61,17 +58,14 @@ def main():
     v_PFdf.columns = [f"v_PF_andes_Bus_{i + 1}" for i in range(v_PF.shape[0])]
     a_PFdf = pd.DataFrame([a_PF])  # shape: [T, n_loads]
     a_PFdf.columns = [f"a_PF_andes_Bus_{i + 1}" for i in range(a_PF.shape[0])]
-
     # PV
     q_PV_PFdf = pd.DataFrame([q_PV_PF])  # shape: [T, n_loads]
-    q_PV_PFdf.columns = [f"q_PV_PF_andes_PV_{i + 1}" for i in range(q_PV_PF.shape[0])]
-
+    q_PV_PFdf.columns = [f"q_PV_PF_andes_{i + 1}" for i in range(q_PV_PF.shape[0])]
     # Slack
     p_Slack_PFdf = pd.DataFrame([p_Slack_PF])  # shape: [T, n_loads]
-    p_Slack_PFdf.columns = [f"p_Slack_PF_andes_Slack_{i}" for i in range(p_Slack_PF.shape[0])]
+    p_Slack_PFdf.columns = [f"p_Slack_PF_andes_{i}" for i in range(p_Slack_PF.shape[0])]
     q_Slack_PFdf = pd.DataFrame([q_Slack_PF])  # shape: [T, n_loads]
-    q_Slack_PFdf.columns = [f"q_Slack_PF_andes_Slack_{i}" for i in range(q_Slack_PF.shape[0])]
-
+    q_Slack_PFdf.columns = [f"q_Slack_PF_andes_{i}" for i in range(q_Slack_PF.shape[0])]
     # PQ
     Ppf_PFdf = pd.DataFrame([Ppf_PF])  # shape: [T, n_loads]
     Ppf_PFdf.columns = [f"Ppf_PF_andes_load_{i}" for i in range(Ppf_PF.shape[0])]
@@ -114,10 +108,13 @@ def main():
     vq_history = [[] for _ in range(len(ss.GENCLS))] #
     tm_history = [[] for _ in range(len(ss.GENCLS))]
     te_history = [[] for _ in range(len(ss.GENCLS))]
+    Pe_history = [[] for _ in range(len(ss.GENCLS))]  #
+    Qe_history = [[] for _ in range(len(ss.GENCLS))]  #
+    psid_history = [[] for _ in range(len(ss.GENCLS))]  #
+    psiq_history = [[] for _ in range(len(ss.GENCLS))]  #
     vf_history = [[] for _ in range(len(ss.GENCLS))]
     XadIfd_history = [[] for _ in range(len(ss.GENCLS))] #
-    Pe_history = [[] for _ in range(len(ss.GENCLS))] #
-    Qe_history = [[] for _ in range(len(ss.GENCLS))] #
+
 
 
     #PQ (load)
@@ -168,10 +165,12 @@ def main():
             vq_history[i].append(ss.GENCLS.vq.v[i]) #
             tm_history[i].append(ss.GENCLS.tm.v[i])
             te_history[i].append(ss.GENCLS.te.v[i])
+            Pe_history[i].append(ss.GENCLS.Pe.v[i])  #
+            Qe_history[i].append(ss.GENCLS.Qe.v[i])  #
+            psid_history[i].append(ss.GENCLS.psid.v[i])  #
+            psiq_history[i].append(ss.GENCLS.psiq.v[i])
             vf_history[i].append(ss.GENCLS.vf.v[i])
             XadIfd_history[i].append(ss.GENCLS.XadIfd.v[i]) #
-            Pe_history[i].append(ss.GENCLS.Pe.v[i]) #
-            Qe_history[i].append(ss.GENCLS.Qe.v[i]) #
         for i in range(len(ss.PQ)):
             Ppf_history[i].append(ss.PQ.Ppf.v[i])
             Qpf_history[i].append(ss.PQ.Qpf.v[i]) #
@@ -193,13 +192,13 @@ def main():
 
     #PV
     q_PV_df = pd.DataFrame(list(zip(*q_PV_history)))  # shape: [T, n_loads]
-    q_PV_df.columns = [f"q_PV_andes_Bus_{i + 1}" for i in range(len(q_PV_history))]
+    q_PV_df.columns = [f"q_PV_andes_{i + 1}" for i in range(len(q_PV_history))]
 
     #slack
     p_Slack_df = pd.DataFrame(list(zip(*p_Slack_history)))  # shape: [T, n_loads]
-    p_Slack_df.columns = [f"p_Slack_andes_Bus_{i}" for i in range(len(p_Slack_history))]
+    p_Slack_df.columns = [f"p_Slack_andes_{i}" for i in range(len(p_Slack_history))]
     q_Slack_df = pd.DataFrame(list(zip(*q_Slack_history)))  # shape: [T, n_loads]
-    q_Slack_df.columns = [f"q_Slack_andes_Bus_{i}" for i in range(len(q_Slack_history))]
+    q_Slack_df.columns = [f"q_Slack_andes_{i}" for i in range(len(q_Slack_history))]
 
     #GENCLS
     delta_df = pd.DataFrame(list(zip(*delta_history)))  # shape: [T, n_generators]  #
@@ -218,14 +217,18 @@ def main():
     tm_df.columns = [f"tm_andes_gen_{i+1}" for i in range(len(omega_history))]
     te_df = pd.DataFrame(list(zip(*te_history)))  # shape: [T, n_generators]
     te_df.columns = [f"te_andes_gen_{i+1}" for i in range(len(omega_history))]
+    Pe_df = pd.DataFrame(list(zip(*Pe_history)))  # shape: [T, n_generators] #
+    Pe_df.columns = [f"Pe_andes_gen_{i + 1}" for i in range(len(Pe_history))]  #
+    Qe_df = pd.DataFrame(list(zip(*Qe_history)))  # shape: [T, n_generators] #
+    Qe_df.columns = [f"Qe_andes_gen_{i + 1}" for i in range(len(Qe_history))]  #
+    psid_df = pd.DataFrame(list(zip(*psid_history)))  # shape: [T, n_loads]
+    psid_df.columns = [f"psid_andes_gen_{i + 1}" for i in range(len(psid_history))]
+    psiq_df = pd.DataFrame(list(zip(*psiq_history)))  # shape: [T, n_loads]
+    psiq_df.columns = [f"psiq_andes_gen_{i + 1}" for i in range(len(psiq_history))]
     vf_df = pd.DataFrame(list(zip(*vf_history)))  # shape: [T, n_loads]
     vf_df.columns = [f"vf_andes_gen_{i + 1}" for i in range(len(vf_history))]
     XadIfd_df = pd.DataFrame(list(zip(*XadIfd_history)))  # shape: [T, n_generators] #
     XadIfd_df.columns = [f"XadIfd_andes_gen_{i + 1}" for i in range(len(XadIfd_history))] #
-    Pe_df = pd.DataFrame(list(zip(*Pe_history)))  # shape: [T, n_generators] #
-    Pe_df.columns = [f"Pe_andes_gen_{i + 1}" for i in range(len(Pe_history))] #
-    Qe_df = pd.DataFrame(list(zip(*Qe_history)))  # shape: [T, n_generators] #
-    Qe_df.columns = [f"Qe_andes_gen_{i + 1}" for i in range(len(Qe_history))] #
 
     #PQ
     Ppf_df = pd.DataFrame(list(zip(*Ppf_history)))      # shape: [T, n_loads]
@@ -236,7 +239,7 @@ def main():
     # Combine all into a single DataFrame
     df = pd.DataFrame({'Time [s]': time_history})
     df = pd.concat([ df, v_df, a_df, q_PV_df, p_Slack_df, q_Slack_df, delta_df, omega_df, Id_df, Iq_df, vd_df,
-                     vq_df, tm_df, te_df,vf_df, XadIfd_df, Pe_df, Qe_df, Qpf_df, Ppf_df ], axis=1)
+                     vq_df, tm_df, te_df, Pe_df, Qe_df, psid_df, psiq_df, vf_df, XadIfd_df, Qpf_df, Ppf_df ], axis=1)
     df.to_csv("simulation_andes_output.csv", index=False)
     print('simulation results saved in simulation_andes_output.csv')
 

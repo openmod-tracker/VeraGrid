@@ -6,6 +6,8 @@
 """
 To run this script andes must be installed (pip install andes)
 """
+import math
+
 import andes
 import time
 from andes.io.json import write
@@ -22,12 +24,13 @@ def main():
    start = time.time()
 
    # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
-   ss = andes.load('Gen_Load/simple_system3.json', default_config=True)
+   ss = andes.load('Gen_Load/simple_system0.json', default_config=True)
    n_xy = len(ss.dae.xy_name)
    print(f"Andes variables = {n_xy}")
    ss.files.no_output = True
 
    # Run PF
+   ss.PFlow.config.tol = 1e-14
    ss.PFlow.run()
 
    # print(f"Bus voltages = {ss.Bus.v.v}")
@@ -36,25 +39,6 @@ def main():
    end_pf = time.time()
 
    print(f"ANDES - PF time = {end_pf - start:.6f} [s]")
-
-   # PQ constant power load
-   #ss.PQ.config.p2p = 1.0
-   #ss.PQ.config.p2i = 0
-   #ss.PQ.config.p2z = 0
-   #ss.PQ.pq2z = 0
-   #ss.PQ.config.q2q = 1.0
-   #ss.PQ.config.q2i = 0
-   #ss.PQ.config.q2z = 0
-
-   # Logging
-   #time_history = []
-   #omega_history = [[] for _ in range(len(ss.GENCLS))]
-   #Ppf_history = [[] for _ in range(len(ss.PQ))]
-   #tm_history = [[] for _ in range(len(ss.GENCLS))]
-   #te_history = [[] for _ in range(len(ss.GENCLS))]
-   #v_history = [[] for _ in range(len(ss.Bus))]
-   #a_history = [[] for _ in range(len(ss.Bus))]
-   #vf_history = [[] for _ in range(len(ss.GENCLS))]
 
    start_eig = time.time()
 
@@ -70,7 +54,6 @@ def main():
    # print("Right eigenvectors:", eig.N)
    # print("Left eigenvectors:", eig.W)
    # print("Participation factors:", eig.pfactors)
-   # # print("what the hell is gyx:", eig.gyx)
    # print("Condició de A:", np.linalg.cond(eig.As))
    # print("algebraiques line:",andes.System().Line.doc())
    # print("algebraiques Bus:", andes.System().Bus.doc())
@@ -127,9 +110,15 @@ def main():
    df_Eig = pd.DataFrame(eig.mu)
    df_Eig.to_csv("Eigenvalues_results_Andes.csv", index=False, header=False)
 
-   dense_gyx = np.array([[gyx[i, j] for j in range(gyx.size[1])] for i in range(gyx.size[0])])
-   df_gyx = pd.DataFrame(dense_gyx)
-   df_gyx.to_csv("gyx_results_Andes.csv", index=False, header=False, float_format="%.10f")
+   # dense_pfactors = np.array(eig.pfactors).T
+   df_pfactors = pd.DataFrame(eig.pfactors.T)
+   df_pfactors.to_csv("pfactors_results_Andes.csv", index=False, header=False, float_format="%.10f")
+
+   df_N = pd.DataFrame(eig.N)
+   df_N.to_csv("N_results_Andes.csv", index=False, header=False, float_format="%.10f")
+
+   df_W = pd.DataFrame(eig.W)
+   df_W.to_csv("W_results_Andes.csv", index=False, header=False, float_format="%.10f")
 
    # case_path = get_case('kundur/kundur_full.xlsx')
    # ss = andes.run(case_path, routine='eig')
@@ -141,5 +130,6 @@ def main():
 if __name__ == '__main__':
     As, mu, N, W, pfactors, fx, fy, gx, gy, Tf, gyx =  main()
     print("Participation factors Andes:",pfactors)
+
 
 

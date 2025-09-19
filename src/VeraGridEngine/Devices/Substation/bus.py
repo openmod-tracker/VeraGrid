@@ -506,6 +506,7 @@ class Bus(PhysicalDevice):
                 state_vars=[],
                 algebraic_eqs=[
                 ],
+                # algebraic_vars=[],
                 algebraic_vars=[Vm, Va],
 
                 init_eqs={},
