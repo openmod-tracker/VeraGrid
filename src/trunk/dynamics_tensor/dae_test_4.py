@@ -20,7 +20,7 @@ from matplotlib import pyplot as plt
 
 # from VeraGridEngine.Utils.Symbolic.events import Events, Event
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents, RmsEvent
-from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var, cos, sin
+from VeraGridEngine.Utils.Symbolic.symbolic import Const, Var, cos, sin, piecewise
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.MultiLinear.multilinearize import *
 from VeraGridEngine.Utils.MultiLinear.differential_var import DiffVar, LagVar
@@ -133,6 +133,7 @@ generator_block_ML_0 = DiffBlock(
     algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin],
     parameters=[],
     diff_vars= [delta_dt, dg_dt, du_cos, du_sin],
+    reformulated_vars= [u_sin, u_cos],
 )
 
 #Intregral Generator
@@ -178,10 +179,10 @@ generator_block_integrator = DiffBlock(
         dt_int_sin2 - (delta_dt - dg_dt)*u_sin**2,
         dt_int_sin2cos2 - (delta_dt - dg_dt)*delta_dt*u_sin**2*u_cos**2
     ],
-    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin, int_sin2, int_cos2],
+    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin, int_sin2, int_sin2cos2],
     parameters=[],
     diff_vars= [delta_dt, dg_dt, du_cos, du_sin, dt_int_sin2, dt_int_sin2cos2],
-    reformulated_vars= [u_sin],
+    reformulated_vars= [u_sin, u_cos],
 )
 
 generator_block_integrator2 = DiffBlock(
@@ -216,6 +217,37 @@ generator_block_integrator2 = DiffBlock(
     reformulated_vars= [u_sin, u_cos, delta, dg],
 )
 
+generator_block_integrator3 = DiffBlock(
+    state_eqs=[
+        (2 * pi * fn) * (omega - omega_ref),  # dδ/dt
+        (tm  - t_e - D * (omega - omega_ref)) / M,  # dω/dt
+        (omega - omega_ref),
+    
+    ],
+    state_vars=[delta, omega, et],
+    algebraic_eqs=[
+        psid - (ra * i_q + v_q),
+        psiq + (ra * i_d + v_d),
+        0 - (psid + xd * i_d - vf),
+        0 - (psiq + xd * i_q),
+        v_d - (Vg * sin(delta - dg)),
+        v_q - (Vg * cos(delta - dg)),
+        t_e - (psid * i_q - psiq * i_d),
+        P_g - (v_d * i_d + v_q * i_q),
+        Q_g - (v_q * i_d - v_d * i_q),
+        (tm - tm0) + (Kp * (omega - omega_ref) + Ki * et),
+        int_xsinx - (u_sin - (delta-dg)*u_cos), 
+        int_xcosx - ((delta - dg)*u_sin + u_cos),
+    ],
+    differential_eqs = [
+        dt_int_xsinx - (delta_dt - dg_dt)*(u_sin*(delta - dg)),
+        dt_int_xcosx - ((delta_dt - dg_dt)*(u_cos*(delta - dg))),
+    ],
+    algebraic_vars=[psid, psiq, i_d, i_q, v_d, v_q, t_e, P_g, Q_g, tm, u_cos, u_sin, int_xsinx, int_xcosx],
+    parameters=[],
+    diff_vars= [delta_dt, dg_dt, du_cos, du_sin, dt_int_xsinx, dt_int_xcosx],
+    reformulated_vars= [u_sin, u_cos],
+)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Power flow
@@ -238,12 +270,12 @@ grid.add_generator(bus=bus1, api_obj=gen)
 load = gce.Load(name="Load1", P=10, Q=10)        # PQ
 grid.add_load(bus=bus2, api_obj=load)
 
-if run_powerflow := False:
+if run_powerflow := True:
     res = gce.power_flow(grid)
     with open("pf_results.pkl", "wb") as f:
         pickle.dump(res, f)
 else:
-    with open("src/trunk/dynamics_tensor/pf_results.pkl", "rb") as f:
+    with open("pf_results.pkl", "rb") as f:
         res_loaded = pickle.load(f)
         res = res_loaded
 
@@ -313,19 +345,13 @@ line_block = Block(
 Ql = Var("Ql")
 Pl = Var("Pl")
 
+t = Var("t")
+
 coeff_alfa = Const(1.8)
 Pl0 = Var("Pl0")
 Ql0 = Const(Sb2.imag)
 coeff_beta = Const(8.0)
 print(Sb2.imag)
-load_block = Block(
-    algebraic_eqs=[
-        Pl - Pl0,
-        Ql - Ql0
-    ],
-    algebraic_vars=[Ql, Pl],
-    parameters=[Pl0]
-)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Intialization
@@ -386,7 +412,8 @@ load_block = Block(
         Ql - Ql0
     ],
     algebraic_vars=[Ql, Pl],
-    parameters=[Pl0]
+    parameters=[Pl0],
+    parameters_eqs=[piecewise(t, np.array([1.0]), np.array([0.4]), Sb2.real)],
 )
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -417,14 +444,15 @@ bus2_block = Block(
 # ----------------------------------------------------------------------------------------------------------------------
 
 sys = DiffBlock(
-    children=[line_block, load_block, generator_block_integrator2, bus1_block, bus2_block],
+    children=[line_block, load_block, generator_block_integrator, bus1_block, bus2_block],
     in_vars=[]
 )
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Solver
 # ----------------------------------------------------------------------------------------------------------------------
-slv = DiffBlockSolver(sys)
+
+slv = DiffBlockSolver(sys, t)
 
 
 vars_mapping = {
@@ -462,9 +490,10 @@ vars_mapping = {
     #v_sin: u_sin0,
     #v_cos: u_cos0,
     int_sin2: 0.5*((delta0-dg0)-u_sin0*u_cos0),
-    #int_sin2cos2: 1/32*(4*(delta0-dg0) - (4*u_cos0**3*u_sin0 - 4*u_sin0**3*u_cos0)),
+    int_sin2cos2: 1/32*(4*(delta0-dg0) - (4*u_cos0**3*u_sin0 - 4*u_sin0**3*u_cos0)),
     #int_cos2: 0.5*(-(delta0-dg0)+u_sin0*u_cos0),
-    int_xcosx: (delta0 - dg0)*u_sin0 - u_cos0,
+    #int_xcosx: (delta0 - dg0)*u_sin0 + u_cos0,
+    #int_xsinx: u_sin0 - (delta0 - dg0)*u_cos0,
 }
 
 # Consistency check 
@@ -478,7 +507,9 @@ diff_vars_mapping = {
     du_cos: 0,
     du_sin: 0,
     dt_int_sin2:0,
-    dt_int_xcosx:0,
+    dt_int_sin2cos2:0,
+    #dt_int_xcosx:0,
+    #dt_int_xsinx:0,
     #dt_int_cos2:0,
 }
 # Consistency check 
@@ -510,10 +541,7 @@ for eq, val in residuals.items():
 # ---------------------------------------------------------------------------------------
 # Events
 # ---------------------------------------------------------------------------------------
-
-event1 = RmsEvent('Load', Pl0, 1000, 0.15)
-#event2 = Event(Ql0, 5000, 0.3)
-my_events = RmsEvents([event1])
+my_events = []
 try:
     params_mapping = {
         slv.dt: 0.001,
@@ -555,13 +583,14 @@ if isinstance(slv, DiffBlockSolver):
 vars_in_order = slv.sort_vars(vars_mapping)
 
 if isinstance(slv, DiffBlockSolver):
-    t, y = slv.simulate(
+    t, y, _ = slv.simulate(
         t0=0,
         t_end= 1.2,
         h=0.001,
         x0=x0,
         dx0 = dx0,
         params0=params0,
+        time_var = t,
         events_list=my_events,
         method="implicit_euler",
         followed_vars = [u_cos, u_sin],
@@ -602,7 +631,6 @@ try:
     plt.plot(t, sin_delta_real, label="sin delta real (pu)", color='teal')
 except:
     _ = 0   
-
 
 
 try:
