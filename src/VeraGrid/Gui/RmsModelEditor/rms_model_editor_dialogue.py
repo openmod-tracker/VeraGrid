@@ -5,6 +5,7 @@
 
 import sys
 from PySide6 import QtWidgets
+from PySide6.QtGui import QStandardItemModel, QStandardItem
 
 from VeraGrid.Gui.gui_functions import get_icon_list_model
 from VeraGrid.Gui.RmsModelEditor.rms_model_editor import Ui_MainWindow
@@ -25,25 +26,55 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle('RMS Model editor')
 
-        self.model = model
-
-        self._list_mdl = get_icon_list_model(
-            lst=[
-                ("Index dynamic parameters", ":/Icons/icons/dyn.svg"),
-                ("Numeric dynamic parameters", ":/Icons/icons/dyn.svg"),
-                ("External dynamic parameters", ":/Icons/icons/dyn.svg"),
-                ("State variables", ":/Icons/icons/dyn.svg"),
-                ("Algebraic variables", ":/Icons/icons/dyn.svg"),
-                ("External state variables", ":/Icons/icons/dyn.svg"),
-                ("External algebraic variables", ":/Icons/icons/dyn.svg")
-            ]
-        )
-        self.ui.listView.setModel(self._list_mdl)
 
         self.editor = BlockEditor()
         self.ui.editorLayout.addWidget(self.editor)
+        self.model = self.editor.block_system
 
-        self.ui.actionCheckModel.triggered.connect(self.extract_dae)
+        # Table model for variables/equations (right side)  # I think this can be already set in the .ui file
+        self._data_table_model = QStandardItemModel()
+        self.ui.datatableView.setModel(self._data_table_model)
+
+        # Connect category selection to table update
+        self.ui.datalistWidget.itemSelectionChanged.connect(self.update_table)
+
+        # self.ui.actionCheckModel.triggered.connect(self.extract_dae)
+
+    def update_table(self):
+        items = self.ui.datalistWidget.selectedItems()
+        if not items:
+            return
+
+        category = items[0].text()
+        self._data_table_model.clear()
+        self._data_table_model.setHorizontalHeaderLabels(["Name", "Type", "Equation"])
+
+        if category == "State variables":
+            for submodel in self.model.children:
+                for var, eq in zip(submodel.state_vars, submodel.state_eqs):
+                    self._data_table_model.appendRow([
+                        QStandardItem(var.name),
+                        QStandardItem("state"),
+                        QStandardItem(str(eq)),
+                ])
+
+        elif category == "Algebraic variables":
+            for submodel in self.model.children:
+                for var, eq in zip(submodel.algebraic_vars, submodel.algebraic_eqs):
+                    self._data_table_model.appendRow([
+                        QStandardItem(var.name),
+                        QStandardItem("algebraic"),
+                        QStandardItem(str(eq)),
+                ])
+
+        elif category == "Constants":
+            for submodel in self.model.children:
+                for const in submodel.parameters:
+                    self._data_table_model.appendRow([
+                        QStandardItem(const.name),
+                        QStandardItem("parameter"),
+                        QStandardItem(str(const.value)),
+                ])
 
     def extract_dae(self):
         eqs = self.editor.run()

@@ -23,7 +23,6 @@ from VeraGridEngine.Utils.Symbolic.symbolic import Var
 
 
 
-
 @dataclass
 class BlockBridge:
     gui: "BlockItem"  # visual node
@@ -54,26 +53,6 @@ class BlockType(Enum):
     GENERIC = auto()
 
 
-BLOCKTYPE_TO_CLASS = {
-    BlockType.SUM: adder,
-    BlockType.GAIN: gain,
-    BlockType.INTEGRATOR: integrator,
-    BlockType.CONSTANT: constant,
-    # add more as your engine grows...
-}
-
-
-def create_block_from_type(block_type: BlockType) -> Block:
-    block_cls = BLOCKTYPE_TO_CLASS.get(block_type)
-    if block_cls is None:
-        # fallback if not mapped yet
-        return Block(name=block_type.name)
-    return block_cls()
-
-
-
-
-
 class BlockTypeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -102,7 +81,7 @@ class PortItem(QGraphicsEllipseItem):
     def __init__(self,
                  block: "BlockItem",
                  is_input: bool,
-                 index: int,
+                 index: int, # number of inputs
                  total: int,
                  radius=6):
         """
@@ -121,6 +100,8 @@ class PortItem(QGraphicsEllipseItem):
         self.block = block
         self.is_input = is_input
         self.connection = None
+        self.index = index
+        self.total = total
 
         spacing = block.rect().height() / (total + 1)
         y = spacing * (index + 1)
@@ -352,6 +333,81 @@ class GraphicsView(QGraphicsView):
             super().mouseReleaseEvent(event)
 
 
+def create_block_of_type(block_type: BlockType, ins: int, outs: int) -> Block:
+    """
+    Create a Block appropriate for block_type. Use placeholder Vars for inputs/outputs
+    so that Block.in_vars and Block.out_vars exist for the GUI.
+    """
+
+    def placeholders(n, base):
+        return [Var(f"{base}{i}") for i in range(n)]
+
+    # CONSTANT
+    if block_type == BlockType.CONSTANT:
+        y, blk = constant(0.0, name="const")
+        # ensure the block exposes in_vars / out_vars for the GUI
+        if not getattr(blk, "out_vars", None):
+            blk.out_vars = [y]
+        if not getattr(blk, "in_vars", None):
+            blk.in_vars = []
+        return blk
+
+    # GAIN (single input -> single output)
+    if block_type == BlockType.GAIN:
+        u = Var("gain_u")  # placeholder input var
+        y, blk = gain(1.0, u, name="gain_out")
+        if not getattr(blk, "in_vars", None):
+            blk.in_vars = [u]
+        if not getattr(blk, "out_vars", None):
+            blk.out_vars = [y]
+        return blk
+
+    # SUM / ADDER (N inputs)
+    if block_type == BlockType.SUM or block_type == BlockType.PRODUCT:
+        # for SUM use adder; for PRODUCT you may later implement product()
+        inputs = placeholders(ins, "sum_in_")
+        y, blk = adder(inputs, name="sum_out")
+        if not getattr(blk, "in_vars", None):
+            blk.in_vars = inputs
+        if not getattr(blk, "out_vars", None):
+            blk.out_vars = [y]
+        return blk
+
+    # INTEGRATOR (1 input -> 1 state output)
+    if block_type == BlockType.INTEGRATOR:
+        u = Var("int_u")
+        x, blk = integrator(u, name="x")
+        if not getattr(blk, "in_vars", None):
+            blk.in_vars = [u]
+        if not getattr(blk, "out_vars", None):
+            blk.out_vars = [x]
+        return blk
+
+    # SOURCE: a block with only an output (like a constant/source)
+    if block_type == BlockType.SOURCE:
+        y, blk = constant(0.0, name="source_out")
+        if not getattr(blk, "out_vars", None):
+            blk.out_vars = [y]
+        blk.in_vars = []
+        return blk
+
+    # DRAIN: a sink with inputs but no outputs
+    if block_type == BlockType.DRAIN:
+        ins_vars = placeholders(ins, "drain_in_")
+        blk = Block(name="DRAIN")
+        blk.in_vars = ins_vars
+        blk.out_vars = []
+        return blk
+
+    # GENERIC / fallback: create a block and attach placeholder vars
+    in_vars = placeholders(ins, f"{block_type.name.lower()}_in_")
+    out_vars = [Var(f"{block_type.name.lower()}_out{i}") for i in range(outs)]
+    blk = Block(name=block_type.name)
+    blk.in_vars = in_vars
+    blk.out_vars = out_vars
+    return blk
+
+
 class DiagramScene(QGraphicsScene):
     def __init__(self, editor):
         super().__init__()
@@ -360,6 +416,9 @@ class DiagramScene(QGraphicsScene):
         self.source_port = None
 
         self._main_block = Block()
+
+    def get_main_block(self):
+        return self._main_block
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.scenePos(), self.views()[0].transform())
@@ -381,20 +440,20 @@ class DiagramScene(QGraphicsScene):
             self.add_block(event.scenePos(), ins, outs, block_type)
         return None
 
-    def add_block(self, pos, ins, outs, block_type): # block_type=BlockType.GENERIC by default
+    def add_block(self, pos, ins, outs, block_type):  # block_type=BlockType.GENERIC
         """
-
-        :param pos:
-        :param ins:
-        :param outs:
-        :param block_type:
-        :return:
+        Create a block of the requested type (ensuring its in_vars/out_vars exist),
+        create the GUI item, add to the main block container and to the scene.
         """
+        blk = create_block_of_type(block_type, ins, outs)
 
-        block = create_block_from_type(block_type)
-        block_item = BlockItem(block)
-        self._main_block.add(block)
+        # create GUI item
+        block_item = BlockItem(blk)
+
+        # add to the model and the scene
+        self._main_block.add(blk)
         self.addItem(block_item)
+
         block_item.setPos(pos)
 
     def mousePressEvent(self, event):
@@ -426,8 +485,9 @@ class DiagramScene(QGraphicsScene):
                 if isinstance(item, PortItem) and item.is_input and not item.is_connected():
                     dst_port: PortItem = item
                     connection = ConnectionItem(self.source_port, dst_port)
-                    src_var = self.source_port.block.out_vars[self.source_port.index]
-                    dst_var = dst_port.block.in_vars[dst_port.index]
+                    src_var = self.source_port.block.subsys.out_vars[self.source_port.index]
+                    dst_var = dst_port.block.subsys.in_vars[dst_port.index]
+                    dst_port.block.subsys.in_vars[dst_port.index] = self.source_port.block.subsys.out_vars[self.source_port.index]
                     self.addItem(connection)
                     break
             self.removeItem(self.temp_line)
@@ -446,19 +506,19 @@ class BlockEditor(QMainWindow):
         self.view = GraphicsView(self.scene)
         self.setCentralWidget(self.view)
 
-        self.block_system = Block()
+        self.block_system = self.scene.get_main_block()
 
         self.resize(800, 600)
 
-    def run(self):
-        engine = BlockSolver(block_system=self.block_system)
-        engine.simulate(
-            t0=0,
-            t_end=10,
-            h=0.01,
-            x0=engine.get_dummy_x0(),
-            method="implicit_euler"
-        )
+    # def run(self):
+    #     engine = BlockSolver(block_system=self.block_system)
+    #     engine.simulate(
+    #         t0=0,
+    #         t_end=10,
+    #         h=0.01,
+    #         x0=engine.get_dummy_x0(),
+    #         method="implicit_euler"
+    #     )
 
 
 if __name__ == "__main__":
