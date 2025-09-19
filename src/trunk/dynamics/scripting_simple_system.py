@@ -35,59 +35,59 @@ t = Var("t")
 grid = gce.MultiCircuit()
 # SIMPLE SYSTEM 0: 1 GEN, 1 TRAFO, 1 LOAD
 # Buses
-bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
-bus2 = gce.Bus(name="Bus2", Vnom=230)
-# bus3 = gce.Bus(name="Bus3", Vnom=230)
-
-grid.add_bus(bus1)
-grid.add_bus(bus2)
-# grid.add_bus(bus3)
-
-# Line
-
-
-trafo_G1 = grid.add_line(
-    gce.Line(name="trafo 1-2", bus_from=bus2, bus_to=bus1,
-             r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-
-# line1 = grid.add_line(
-#     gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
+# bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
+# bus2 = gce.Bus(name="Bus2", Vnom=230)
+# # bus3 = gce.Bus(name="Bus3", Vnom=230)
+#
+# grid.add_bus(bus1)
+# grid.add_bus(bus2)
+# # grid.add_bus(bus3)
+#
+# # Line
+#
+#
+# trafo_G1 = grid.add_line(
+#     gce.Line(name="trafo 1-2", bus_from=bus2, bus_to=bus1,
 #              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-
-# load
-load1 = gce.Load(name="load1", P=400.0, Q=80.0, Pl0=-4.0, Ql0=-0.8)
-load1.time = t
-load1_grid = grid.add_load(bus=bus2, api_obj=load1)
-# load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
-
-
-# Generators
-fn_1 = 60.0
-M_1 = 13.0 * 9.0
-D_1 = 10.0 * 9.0
-ra_1 = 0.0
-xd_1 = 0.3 * 100.0 / 900.0
-omega_ref_1 = 1.0
-Kp_1 = 0.0
-Ki_1 = 0.0
-
-
-# Generators
-gen1 = gce.Generator(
-    name="Gen1", P=700.0, vset=1.03, Snom=900.0,
-    x1=xd_1, r1=ra_1, freq=fn_1,
-    # vf=1.0,
-    # tm0=700.0/900.0,   # ≈ 0.7778
-    # tm0=6.999999999999923,
-    tm0=4.000000157249711,
-    vf=1.0646373808567275,
-    # vf0=1.141048034212655,
-    M=M_1, D=D_1,
-    omega_ref=omega_ref_1,
-    Kp=Kp_1, Ki=Ki_1
-)
-
-grid.add_generator(bus=bus1, api_obj=gen1)
+#
+# # line1 = grid.add_line(
+# #     gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
+# #              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
+#
+# # load
+# load1 = gce.Load(name="load1", P=400.0, Q=80.0, Pl0=-4.0, Ql0=-0.8)
+# load1.time = t
+# load1_grid = grid.add_load(bus=bus2, api_obj=load1)
+# # load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
+#
+#
+# # Generators
+# fn_1 = 60.0
+# M_1 = 13.0 * 9.0
+# D_1 = 10.0 * 9.0
+# ra_1 = 0.0
+# xd_1 = 0.3 * 100.0 / 900.0
+# omega_ref_1 = 1.0
+# Kp_1 = 0.0
+# Ki_1 = 0.0
+#
+#
+# # Generators
+# gen1 = gce.Generator(
+#     name="Gen1", P=700.0, vset=1.03, Snom=900.0,
+#     x1=xd_1, r1=ra_1, freq=fn_1,
+#     # vf=1.0,
+#     # tm0=700.0/900.0,   # ≈ 0.7778
+#     # tm0=6.999999999999923,
+#     tm0=4.000000157249711,
+#     vf=1.0646373808567275,
+#     # vf0=1.141048034212655,
+#     M=M_1, D=D_1,
+#     omega_ref=omega_ref_1,
+#     Kp=Kp_1, Ki=Ki_1
+# )
+#
+# grid.add_generator(bus=bus1, api_obj=gen1)
 
 
 # SIMPLE SYSTEM 1: 1 GEN, 1 TRAFO, 1 LINE, 1 LOAD
@@ -306,101 +306,101 @@ grid.add_generator(bus=bus1, api_obj=gen1)
 
 # SIMPLE SYSTEM 3: 2 GEN(1 at bus 1, 1 at bus 3 that connects to bus2 by line 3), 1 TRAFO, 1 LINE, 1 LOAD
 # Buses
-# bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
-# bus2 = gce.Bus(name="Bus2", Vnom=230)
-# bus3 = gce.Bus(name="Bus3", Vnom=230)
-# bus4 = gce.Bus(name="Bus4", Vnom=230)
+bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
+bus2 = gce.Bus(name="Bus2", Vnom=230)
+bus3 = gce.Bus(name="Bus3", Vnom=230)
+bus4 = gce.Bus(name="Bus4", Vnom=230)
+
+grid.add_bus(bus1)
+grid.add_bus(bus2)
+grid.add_bus(bus3)
+grid.add_bus(bus4)
+
+# Line
+# r1 = 0
+# x1 = 0.011
+# r2 = 0
+# x2 = 0.011
 #
-# grid.add_bus(bus1)
-# grid.add_bus(bus2)
-# grid.add_bus(bus3)
-# grid.add_bus(bus4)
+# z1 = complex(r1,x1)
+# z2 = complex(r2,x2)
 #
-# # Line
-# # r1 = 0
-# # x1 = 0.011
-# # r2 = 0
-# # x2 = 0.011
-# #
-# # z1 = complex(r1,x1)
-# # z2 = complex(r2,x2)
-# #
-# # zeq = (z1*z2)/(z1+z2)
-# # print("zeq:",zeq)
-# # req = zeq.real
-# # xeq = zeq.imag
-#
-# trafo_G1 = grid.add_line(
-#     gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
-#              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
-# # line1 = grid.add_line(
-# #     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
-# #              r=req, x=xeq * (100.0/450.0), b=0.0, rate=450.0))
+# zeq = (z1*z2)/(z1+z2)
+# print("zeq:",zeq)
+# req = zeq.real
+# xeq = zeq.imag
+
+trafo_G1 = grid.add_line(
+    gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
+             r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
 # line1 = grid.add_line(
-#     gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
-#              r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
-# line2 = grid.add_line(
-#     gce.Line(name="line 2-4", bus_from=bus2, bus_to=bus4,
-#              r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
-#
-# # load
-# load1 = gce.Load(name="load1", P=900.0, Q=100.0, Pl0=-9.0, Ql0=-1.0)
-# load1.time = t
-# load1_grid = grid.add_load(bus=bus4, api_obj=load1)
-# # load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
-#
-#
-# # Generators
-# fn_1 = 60.0
-# M_1 = 13.0 * 9.0
-# D_1 = 10.0 * 9.0
-# ra_1 = 0.0
-# xd_1 = 0.3 * 100.0 / 900.0
-# omega_ref_1 = 1.0
-# Kp_1 = 0.0
-# Ki_1 = 0.0
-#
-# fn_2 = 60.0
-# M_2 = 13.0 * 9.0
-# D_2 = 10.0 * 9.0
-# ra_2 = 0.0
-# xd_2 = 0.3 * 100.0 / 900.0
-# omega_ref_2 = 1.0
-# Kp_2 = 0.0
-# Ki_2 = 0.0
-#
-#
-# # Generators
-# gen1 = gce.Generator(
-#     name="Gen1", P=700.0, vset=1.03, Snom=900.0,
-#     x1=xd_1, r1=ra_1, freq=fn_1,
-#     # vf=1.0,
-#     # tm0=700.0/900.0,   # ≈ 0.7778
-#     # tm0=6.999999999999923,
-#     tm0=2.0000012904377917,
-#     vf=1.061039353796422,
-#     # vf0=1.141048034212655,
-#     M=M_1, D=D_1,
-#     omega_ref=omega_ref_1,
-#     Kp=Kp_1, Ki=Ki_1
-# )
-#
-# gen2 = gce.Generator(
-#     name="Gen2", P=700.0, vset=1.03, Snom=900.0,
-#     x1=xd_2, r1=ra_2, freq=fn_2,
-#     # vf=1.0,
-#     # tm0=700.0/900.0,   # ≈ 0.7778
-#     # tm0=6.999999999999923,
-#     tm0=7.0,
-#     vf=1.0712033002527792,
-#     # vf0=1.141048034212655,
-#     M=M_2, D=D_2,
-#     omega_ref=omega_ref_2,
-#     Kp=Kp_2, Ki=Ki_2
-# )
-#
-# grid.add_generator(bus=bus1, api_obj=gen1)
-# grid.add_generator(bus=bus3, api_obj=gen2)
+#     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
+#              r=req, x=xeq * (100.0/450.0), b=0.0, rate=450.0))
+line1 = grid.add_line(
+    gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
+             r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
+line2 = grid.add_line(
+    gce.Line(name="line 2-4", bus_from=bus2, bus_to=bus4,
+             r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
+
+# load
+load1 = gce.Load(name="load1", P=900.0, Q=100.0, Pl0=-9.0, Ql0=-1.0)
+load1.time = t
+load1_grid = grid.add_load(bus=bus4, api_obj=load1)
+# load1 = grid.add_load(bus=bus7, api_obj=gce.Load(P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969))
+
+
+# Generators
+fn_1 = 60.0
+M_1 = 13.0 * 9.0
+D_1 = 10.0 * 9.0
+ra_1 = 0.0
+xd_1 = 0.3 * 100.0 / 900.0
+omega_ref_1 = 1.0
+Kp_1 = 0.0
+Ki_1 = 0.0
+
+fn_2 = 60.0
+M_2 = 13.0 * 9.0
+D_2 = 10.0 * 9.0
+ra_2 = 0.0
+xd_2 = 0.3 * 100.0 / 900.0
+omega_ref_2 = 1.0
+Kp_2 = 0.0
+Ki_2 = 0.0
+
+
+# Generators
+gen1 = gce.Generator(
+    name="Gen1", P=700.0, vset=1.03, Snom=900.0,
+    x1=xd_1, r1=ra_1, freq=fn_1,
+    # vf=1.0,
+    # tm0=700.0/900.0,   # ≈ 0.7778
+    # tm0=6.999999999999923,
+    tm0=2.0000012904377917,
+    vf=1.061039353796422,
+    # vf0=1.141048034212655,
+    M=M_1, D=D_1,
+    omega_ref=omega_ref_1,
+    Kp=Kp_1, Ki=Ki_1
+)
+
+gen2 = gce.Generator(
+    name="Gen2", P=700.0, vset=1.03, Snom=900.0,
+    x1=xd_2, r1=ra_2, freq=fn_2,
+    # vf=1.0,
+    # tm0=700.0/900.0,   # ≈ 0.7778
+    # tm0=6.999999999999923,
+    tm0=7.0,
+    vf=1.0712033002527792,
+    # vf0=1.141048034212655,
+    M=M_2, D=D_2,
+    omega_ref=omega_ref_2,
+    Kp=Kp_2, Ki=Ki_2
+)
+
+grid.add_generator(bus=bus1, api_obj=gen1)
+grid.add_generator(bus=bus3, api_obj=gen2)
 # ---------------------------------------------------------------------------------------
 # Events
 # ---------------------------------------------------------------------------------------

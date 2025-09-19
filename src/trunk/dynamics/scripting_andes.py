@@ -22,7 +22,6 @@ def main():
     # write(ss, 'my_system.json', overwrite=True)
 
     start = time.time()
-
     # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
     ss = andes.load('Gen_Load/simple_system3.json', default_config=True)
     n_xy = len(ss.dae.xy_name)
