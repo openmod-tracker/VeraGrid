@@ -1541,7 +1541,7 @@ plt.show()
 
 #stability assessment
 start_stability = time.time()
-stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
+stab, Eigenvalues, A, V, W, PF = slv.stability_assessment(z=x0, params=params0, plot = True)
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
 

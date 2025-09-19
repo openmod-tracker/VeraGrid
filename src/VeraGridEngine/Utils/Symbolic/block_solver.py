@@ -972,6 +972,7 @@ class BlockSolver:
         all_vars = self._state_vars + self._algebraic_vars
         var_names = [str(var) + '_VeraGrid' for var in all_vars]
 
+
         # Create DataFrame with time and variable data
         df_simulation_results = pd.DataFrame(data=y, columns=var_names)
         df_simulation_results.insert(0, 'Time [s]', t)
@@ -995,29 +996,18 @@ class BlockSolver:
 
             3. Perform stability assessment
 
-            4. Calculate participation factors PF = W · V
+            4. Calculate normalized participation factors PF = W · V
 
             Returns:
             stability: "Unstable", "Marginally stable" or "Asymptotically stable"
-            ndarray with the positive eigenvalues (unstable ones)
+            eigenvalues
+            participation factors
+
         """
         fx = self._j11_fn(z, params)  # ∂f_state/∂x
         fy = self._j12_fn(z, params)  # ∂f_state/∂y
         gx = self._j21_fn(z, params)  # ∂g/∂x
         gy = self._j22_fn(z, params)  # ∂g/∂y
-        # print("size fx:", fx.shape)
-        # print("size fy:", fy.shape)
-        # print("size gx:", gx.shape)
-        # print("size gy:", gy.shape)
-        # print("fx:",fx.toarray())
-        # print("fx:", fx)
-        # print("fy:", fy.toarray())
-        # print("fy:",fy)
-        # print("gx:",gx.toarray())
-        # print("gx:", gx)
-        # print("gy:",gy.toarray())
-        # print("gy:", gy)
-
         df_fx = pd.DataFrame(fx.toarray())
         df_fx.to_csv("fx_results.csv", index=False, header=False)
         df_fy = pd.DataFrame(fy.toarray())
@@ -1027,21 +1017,13 @@ class BlockSolver:
         df_gy = pd.DataFrame(gy.toarray())
         df_gy.to_csv("gy_results.csv", index=False, header=False)
 
-        # I = identity(gy.shape[0], format='csc')
-        # gy_inv = spsolve(gy, I)
         gyx = spsolve(gy, gx)
-        df_gyx = pd.DataFrame(gyx.toarray())
-        df_gyx.to_csv("gyx_results.csv", index=False, header=False)
-
-        # A = (fx - fy @ gy_inv @ gx) # sparse state matrix csc matrix
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix
         An = A.toarray()
 
-        # print("Condició de A:", np.linalg.cond(An))
-
         num_states = A.shape[0]
 
-        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)  #find eigenvalues, right(V) and left(W)  eigenvectors. Returns exactly the same numbers as np.linalg.eig(An)
+        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)
         V = sp.csc_matrix(V) #right
         W = sp.csc_matrix(W) #left
 
@@ -1085,4 +1067,4 @@ class BlockSolver:
             plt.tight_layout()
             plt.show()
 
-        return stability, Eigenvalues, V, W, PF, A
+        return stability, Eigenvalues, A, V, W, PF

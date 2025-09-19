@@ -29,8 +29,8 @@ def merge_simulation_results_by_time(csv1, csv2, output_csv= 'merged_data_Andes_
     """
 
     # Load both CSV files
-    df1 = pd.read_csv(csv1)
-    df2 = pd.read_csv(csv2)
+    df1 = pd.read_csv(csv1)  #andes
+    df2 = pd.read_csv(csv2)  #VeraGrid
 
     # Sort both by time column
     df1 = df1.sort_values(by=time_col)
@@ -103,4 +103,6 @@ plt.subplots_adjust(top=0.95)
 plt.show()
 
 # plt.savefig('comparison_plots.png', dpi=300)
+
+
 
