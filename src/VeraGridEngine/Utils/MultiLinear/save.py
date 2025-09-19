@@ -364,3 +364,32 @@
         return
         
         
+def _get_jacobian:
+    if getattr(deriv, 'value', 1) != 0 and diff_var.origin_var.uid == var.uid:
+    name_diff = 'diff_' + diff_var.name
+    diff_2_var = DiffVar.get_or_create(name = name_diff, base_var=diff_var)
+    dx2_dt2, lags1 = diff_2_var.approximation_expr(dt=dt)
+    dx_dt, lags2   = diff_var.approximation_expr(dt=dt)
+    #d_expression = dx_dt*d_expression + dx2_dt2*eq.diff(diff_var).simplify()
+    #To use the expression above we would need to multiply every value by dxdt and change the RHS
+    #TO DO: see if its really needed to ensure multilinearity
+    d_expression += (dx2_dt2/dx_dt)*eq.diff(diff_var).simpli
+    set_lags = set( LagVar.get_or_create(diff_var.origin_var.name+ '_lag_' + str(lag), 
+                            base_var = diff_var.origin_var, lag = lag) for lag in range(1, max(lags1, lags2)))
+    new_lags = set_lags - self._lag_vars
+    #We add the lag to the index
+    self._lag_vars_set.update(new_lags)
+    i = len(self.uid2idx_vars)
+    l = len(self.uid2idx_lag)
+    for v in new_lags:  # deterministic
+        uid2sym_vars[v.uid] = f"vars[{i}]"
+        self.uid2idx_vars[v.uid] = i
+        self.uid2idx_lag[v.uid] = l
+        self._lag_vars.append(v)
+        i += 1
+        l += 1
+    
+    k = len(self.uid2idx_diff)
+    if diff_2_var not in self._diff_vars:
+        self.uid2idx_diff[diff_2_var.uid] = k
+        k += 1

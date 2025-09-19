@@ -2,17 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
-import time
 import numpy as np
 import math
 import uuid
 import warnings
 import scipy.sparse as sp
+import time
 from typing import Optional
 
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
 from VeraGridEngine.Utils.Symbolic.block import Block
-from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
+from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver, _compile_parameters_equations, _compile_equations
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr, Func, cos, sin, _emit
 from VeraGridEngine.Utils.MultiLinear.differential_var import DiffVar, LagVar
 from enum import Enum
@@ -40,31 +40,18 @@ def _new_uid() -> int:
     """Generate a fresh UUID‑v4 string."""
     return uuid.uuid4().int
 
-def _compile_equations(eqs: Sequence[Expr],
-                       uid2sym_vars: Dict[int, str],
-                       uid2sym_params: Dict[int, str],
-                       add_doc_string: bool = True) -> Callable[[np.ndarray, np.ndarray], np.ndarray]:
-
+def pack_blocks_scipy(blocks: dict, n_batches: int):
     """
-    Compile the array of expressions to a function that returns an array of values for those expressions
-    :param eqs: Iterable of expressions (Expr)
-    :param uid2sym_vars: dictionary relating the uid of a var with its array name (i.e. var[0])
-    :param uid2sym_params:
-    :param add_doc_string: add the docstring?
-    :return: Function pointer that returns an array
+    Pack an n_batches x n_batches dict of sparse submatrices into one big csc_matrix.
+    blocks[(i,j)] = submatrix
     """
-    # Build source
-    src = f"def _f(vars, params):\n"
-    src += f"    out = np.zeros({len(eqs)})\n"
-    src += "\n".join([f"    out[{i}] = {_emit(e, uid2sym_vars, uid2sym_params)}" for i, e in enumerate(eqs)]) + "\n"
-    src += f"    return out"
-    ns: Dict[str, Any] = {"math": math, "np": np}
-    exec(src, ns)
-    fn = nb.njit(ns["_f"], fastmath=True)
-
-    if add_doc_string:
-        fn.__doc__ = "def _f(vars)"
-    return fn
+    # row blocks per i
+    row_blocks = []
+    print(blocks.keys())
+    for i in range(n_batches):
+        col_blocks = [blocks[i, j] for j in range(n_batches)]
+        row_blocks.append(sp.hstack(col_blocks, format="csc"))
+    return sp.vstack(row_blocks, format="csc")
 
 @dataclass(frozen=False)
 class DiffBlock(Block):
@@ -73,10 +60,24 @@ class DiffBlock(Block):
     reformulated_vars: List[DiffVar] = field(default_factory=list)
     differential_eqs: List[Expr] = field(default_factory=list)
 
+    @classmethod
+    def from_block(cls, block: Block, **kwargs):
+        obj = cls.__new__(cls)       # create instance without __init__
+        obj.__dict__ = block.__dict__.copy()
+
+        # Ensure DiffBlock-specific fields are always initialised
+        obj.diff_vars = []
+        obj.lag_vars = []
+        obj.reformulated_vars = []
+        obj.differential_eqs = []
+
+        obj.__dict__.update(kwargs)  # add DiffBlock-specific fields
+        return obj
+
 class DiffBlockSolver(BlockSolver):
     differential_vars : List[DiffVar]
 
-    def __init__(self, block_system: Block):
+    def __init__(self, block_system: Block, time: Var):
         """
         Constructor        
         :param block_system: BlockSystem
@@ -96,6 +97,11 @@ class DiffBlockSolver(BlockSolver):
         self._lag_vars_set: Set[LagVar] = set()
         self._reformulated_vars: List[Var] = list()
         self._parameters: List[Var] = list()
+        self._parameters_eqs: List[Expr] = list()
+
+        self.time = time
+        self.substitute = False
+        self.batched = False 
 
         for b in self.block_system.get_all_blocks():
             self._algebraic_vars.extend(b.algebraic_vars)
@@ -103,6 +109,7 @@ class DiffBlockSolver(BlockSolver):
             self._state_vars.extend(b.state_vars)
             self._state_eqs.extend(b.state_eqs)
             self._parameters.extend(b.parameters)
+            self._parameters_eqs.extend(b.parameters_eqs)
 
             if isinstance(b, DiffBlock):
                 self._diff_vars.extend(b.diff_vars)
@@ -116,6 +123,7 @@ class DiffBlockSolver(BlockSolver):
         #We define the parameter dt
         self.dt = Var(name='dt')
         self._parameters.append(self.dt)
+        self._parameters_eqs.append(Const(0.001))
 
         self._n_state = len(self._state_vars)
         self._n_alg = len(self._algebraic_vars)
@@ -130,10 +138,13 @@ class DiffBlockSolver(BlockSolver):
         uid2sym_vars: Dict[int, str] = dict()
         uid2sym_params: Dict[int, str] = dict()
         uid2sym_diff: Dict[int, str] = dict()
+        uid2sym_t: Dict[int, str] = dict()
         self.uid2idx_vars: Dict[int, int] = dict()
         self.uid2idx_params: Dict[int, int] = dict()
         self.uid2idx_diff: Dict[int, int] = dict()
         self.uid2idx_lag: Dict[int, int] = dict()
+        self.uid2idx_t: Dict[int, int] = dict()
+
         i = 0
         for v in self._state_vars:
             uid2sym_vars[v.uid] = f"vars[{i}]"
@@ -157,10 +168,14 @@ class DiffBlockSolver(BlockSolver):
             self.uid2idx_diff[ep.uid] = k
             k += 1
 
+        k = 0
+        uid2sym_t[self.time.uid] = f"time"
+        self.uid2idx_t[self.time.uid] = k
+
         #We substitute the differential variable by the Forward Approximation:
         self.alpha = 1
         alpha = self.alpha
-        lag_can_be_0 = True
+        lag_can_be_0 = False
         if lag_can_be_0:
             lag_init = 0
         else:
@@ -168,6 +183,8 @@ class DiffBlockSolver(BlockSolver):
 
         for iter, eq in enumerate(self._state_eqs_substituted):
             for var in self._algebraic_vars + self._state_vars:
+                if not self.substitute:
+                    continue
                 deriv = eq.diff(var)
                 if getattr(deriv, 'value', 1) == 0:
                     continue 
@@ -193,6 +210,8 @@ class DiffBlockSolver(BlockSolver):
         self._algebraic_eqs_substituted = self._algebraic_eqs.copy() + self._differential_eqs.copy()
         for iter, eq in enumerate(self._algebraic_eqs_substituted):
             for var in self._algebraic_vars + self._state_vars:
+                if not self.substitute:
+                    continue
                 deriv = eq.diff(var)
                 if getattr(deriv, 'value', 1) == 0:
                     continue 
@@ -205,8 +224,7 @@ class DiffBlockSolver(BlockSolver):
                 if iter < n_algebraic:
                     approximation = alpha*var + (1-alpha)*lag_var
                 else:
-                    alpha2 = 0.66
-                    approximation = alpha2*var + (1-alpha2)*lag_var
+                    alpha2 = 0.5
                     approximation = alpha2*var + (1-alpha2)*lag_var
                 self._lag_vars_set.add(lag_var)
                 self._lag_vars_set.add(lag_var_0)
@@ -243,23 +261,54 @@ class DiffBlockSolver(BlockSolver):
         algeb eq |J21        | J22       |    | ∆ algeb var|    | ∆ algeb eq |
                  |           |           |    |            |    |            |
         """
-        print("Compiling...", end="")
-        self._rhs_state_fn = _compile_equations(eqs=self._state_eqs_substituted, uid2sym_vars=uid2sym_vars,
-                                                uid2sym_params=uid2sym_params)
-
+        print("Compiling...")
+        #print(f"Diff are {self.uid2idx_diff}")
+        #print(f"Lags are {self._lag_vars}")
         self._rhs_algeb_fn = _compile_equations(eqs=self._algebraic_eqs_substituted, uid2sym_vars=uid2sym_vars,
                                                 uid2sym_params=uid2sym_params)
 
-        self._j11_fn = self._get_jacobian(eqs=self._state_eqs_substituted, variables=self._state_vars, uid2sym_vars=uid2sym_vars,
+        self._params_fn = _compile_parameters_equations(eqs=self._parameters_eqs, uid2sym_t=uid2sym_t)
+
+        if self.batched and len(self._state_eqs) == 0:
+            n_total = len(self._algebraic_eqs_substituted)
+            n_batches = 3
+            self.n_batches = n_batches
+            batch_length = int(np.floor(n_total / n_batches))
+            self.j_fn_batches = {}
+
+            for i in range(n_batches):
+                for j in range(n_batches):
+                    if i < n_batches - 1:
+                        eqs = self._algebraic_eqs_substituted[batch_length*i:batch_length*(i+1)]
+                    else:
+                        eqs = self._algebraic_eqs_substituted[batch_length*i:]
+                    if j < n_batches - 1:
+                        variables = self._algebraic_vars[batch_length*j:batch_length*(j+1)]
+                    else:
+                        variables = self._algebraic_vars[batch_length*j:]
+
+                    self.j_fn_batches[i,j] = self._get_jacobian(eqs=eqs, variables=variables, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        self._j12_fn = self._get_jacobian(eqs=self._state_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
+                    
+        if len(self._state_eqs) != 0:
+            print("with states")
+            self._rhs_state_fn = _compile_equations(eqs=self._state_eqs_substituted, uid2sym_vars=uid2sym_vars,
+                                     uid2sym_params=uid2sym_params)
+            self._j11_fn = self._get_jacobian(eqs=self._state_eqs_substituted, variables=self._state_vars, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        self._j21_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._state_vars, uid2sym_vars=uid2sym_vars,
+            self._j12_fn = self._get_jacobian(eqs=self._state_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        self._j22_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
+            self._j21_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._state_vars, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        _ = 0
-    
+            self._j22_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
+                                     uid2sym_params=uid2sym_params, dt = self.dt)
+        else:
+            self._j22_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
+                                     uid2sym_params=uid2sym_params, dt = self.dt)
+        self.warm_up_start()
+        print(f"Model compiled with {self._n_vars} variables, {len(self._lag_vars)} lags, {len(self._algebraic_eqs_substituted)}  algebraic eqs and {len(self._state_eqs_substituted)} state eqs")
+
+
     def jacobian_implicit(self, x: np.ndarray, params: np.ndarray, h: float) -> sp.csc_matrix:
         """
         :param x: vector or variables' values
@@ -276,6 +325,18 @@ class DiffBlockSolver(BlockSolver):
         algeb eq |J21         | J22       |    | ∆ algeb var|    | ∆ algeb eq |
                  |            |           |    |            |    |            |
         """
+        if self.batched and len(self._state_eqs) == 0:
+            blocks = {}
+            for (i, j), fn in self.j_fn_batches.items():
+                blocks[i, j] = fn(x, params)  # each returns a sparse csc_matrix
+
+                # reassemble full Jacobian
+            J = pack_blocks_scipy(blocks, self.n_batches)
+
+        elif self.batched:
+            j22: sp.csc_matrix = self._j22_fn(x, params)
+            return j22
+        
         I = sp.eye(m=self._n_state, n=self._n_state)
         j11: sp.csc_matrix = (I - h * self._j11_fn(x, params)).tocsc()
         j12: sp.csc_matrix = - h * self._j12_fn(x, params)
@@ -328,37 +389,6 @@ class DiffBlockSolver(BlockSolver):
                 for diff_var in diff_vars:
                     deriv = eq.diff(diff_var)
                     continue
-                    if getattr(deriv, 'value', 1) != 0 and diff_var.origin_var.uid == var.uid:
-                        name_diff = 'diff_' + diff_var.name
-                        diff_2_var = DiffVar.get_or_create(name = name_diff, base_var=diff_var)
-                        dx2_dt2, lags1 = diff_2_var.approximation_expr(dt=dt)
-                        dx_dt, lags2   = diff_var.approximation_expr(dt=dt)
-                        #d_expression = dx_dt*d_expression + dx2_dt2*eq.diff(diff_var).simplify()
-                        #To use the expression above we would need to multiply every value by dxdt and change the RHS
-                        #TO DO: see if its really needed to ensure multilinearity
-                        d_expression += (dx2_dt2/dx_dt)*eq.diff(diff_var).simplify()
-
-                        set_lags = set( LagVar.get_or_create(diff_var.origin_var.name+ '_lag_' + str(lag), 
-                                                base_var = diff_var.origin_var, lag = lag) for lag in range(1, max(lags1, lags2)))
-                        new_lags = set_lags - self._lag_vars_set
-
-                        #We add the lag to the index
-                        self._lag_vars_set.update(new_lags)
-                        i = len(self.uid2idx_vars)
-                        l = len(self.uid2idx_lag)
-                        for v in new_lags:  # deterministic
-                            uid2sym_vars[v.uid] = f"vars[{i}]"
-                            self.uid2idx_vars[v.uid] = i
-                            self.uid2idx_lag[v.uid] = l
-                            self._lag_vars.append(v)
-                            i += 1
-                            l += 1
-                        
-                        k = len(self.uid2idx_diff)
-                        if diff_2_var not in self._diff_vars:
-                            self.uid2idx_diff[diff_2_var.uid] = k
-                            k += 1
-
                 
                 #We substitute the remaining diff vars in d_expression
                 for diff_var in diff_vars:
@@ -383,34 +413,40 @@ class DiffBlockSolver(BlockSolver):
                 if isinstance(d_expression, Const) and d_expression.value == 0:
                     continue  # structural zero
 
-                function_ptr = _compile_equations(eqs=[d_expression], uid2sym_vars=uid2sym_vars,
-                                                  uid2sym_params=uid2sym_params)
-
-                fn = fn_cache.setdefault(d_expression.uid, function_ptr)
-
-                triplets.append((col, row, fn))
+                triplets.append((col, row, d_expression))
 
         # Sort by column, then row for CSC layout
         triplets.sort(key=lambda t: (t[0], t[1]))
-        cols_sorted, rows_sorted, fns_sorted = zip(*triplets) if triplets else ([], [], [])
+        cols_sorted, rows_sorted, equations_sorted = zip(*triplets) if triplets else ([], [], [])
+        functions_ptr = _compile_equations(eqs=equations_sorted, uid2sym_vars=uid2sym_vars,
+                                                  uid2sym_params=uid2sym_params)
 
-        nnz = len(fns_sorted)
+        nnz = len(cols_sorted)
         indices = np.fromiter(rows_sorted, dtype=np.int32, count=nnz)
-        data = np.empty(nnz, dtype=np.float64)
 
         indptr = np.zeros(len(variables) + 1, dtype=np.int32)
         for c in cols_sorted:
             indptr[c + 1] += 1
         np.cumsum(indptr, out=indptr)
 
-        def jac_fn(values: np.ndarray, params) -> sp.csc_matrix:  # noqa: D401 – simple
+        def jac_fn(values: np.ndarray, params: np.ndarray) -> sp.csc_matrix:  # noqa: D401 – simple
             assert len(values) >= len(variables)
-            for k, fn_ in enumerate(fns_sorted):
-                data[k] = fn_(values, params)
+            #print(f'Signtures are {functions_ptr.signatures}')
+
+            jac_values = functions_ptr(values, params)
+            data = np.array(jac_values, dtype=np.float64)
+
             return sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
+
 
         return jac_fn
     
+    def warm_up_start(self):
+        dummy_vals = np.zeros(len(self._algebraic_vars) + len(self._state_vars) + len(self._lag_vars), dtype=np.float64)
+        dummy_params = np.random.rand(len(self._parameters))
+        self.jacobian_implicit(dummy_vals, dummy_params, 0.001)  # triggers compilation once
+        self._rhs_algeb_fn(dummy_vals, dummy_params)  # triggers compilation once
+
     def sort_vars(self, mapping: dict[Var, float]) -> np.ndarray:
         """
         Helper function to build the initial vector
@@ -464,7 +500,7 @@ class DiffBlockSolver(BlockSolver):
 
     def build_initial_lag_variables(self, x0:np.ndarray, dx0:np.ndarray, h) -> np.ndarray:
         if len(self._lag_vars) == 0:
-            return
+            return np.array([])
 
         x_lag = np.zeros(len(self._lag_vars), dtype=np.float64)
 
@@ -505,10 +541,7 @@ class DiffBlockSolver(BlockSolver):
                             prev_idx_diff = self.uid2idx_diff[prev_diff.uid]
                             dx0_slice[prev_lag-1] = dx0[prev_idx_diff]
                         else:
-                            dx0_slice[prev_lag-1] = 0
-
-
-                    
+                            dx0_slice[prev_lag-1] = 0                    
 
             lag_i = lag_var.populate_initial_lag(x0[x0_uid], dx0_slice, x_lag_last, self.dt, h)
             if isinstance(lag_i, Expr):
@@ -538,6 +571,7 @@ class DiffBlockSolver(BlockSolver):
             dx0: np.ndarray,
             params0: np.ndarray,
             events_list: RmsEvents,
+            time_var: Var,
             method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
             newton_tol: float = 1e-8,
             newton_max_iter: int = 1000,
@@ -557,22 +591,24 @@ class DiffBlockSolver(BlockSolver):
         :param newton_max_iter:
         :return: 1D time array, 2D array of simulated variables
         """
+        print(f'Init simulate')
+        time_start = time.time()
         lag0 = self.build_initial_lag_variables(x0, dx0, h)
         x0   = self.build_initial_guess(x0, dx0, h)
-        params_matrix = self.build_params_matrix(int(np.ceil((t_end - t0) / h)), params0, events_list)
+        time_initialization = time.time() - time_start
         if method == "euler":
             return self._simulate_fixed(t0, t_end, h, x0, params0, stepper="euler")
         if method == "rk4":
             return self._simulate_fixed(t0, t_end, h, x0, params0, stepper="rk4")
         if method == "implicit_euler":
-
+            print(f'Initialization time is {time_initialization}')
             return self._simulate_implicit_euler(
-                t0, t_end, h, x0, dx0, lag0, params0, params_matrix,
-                tol=newton_tol, max_iter=newton_max_iter, verbose = verbose, followed_vars = followed_vars
+                t0, t_end, h, x0, dx0, lag0, params0,
+                time_var=time_var, tol=newton_tol, max_iter=newton_max_iter, verbose = verbose, followed_vars = followed_vars
             )
         raise ValueError(f"Unknown method '{method}'")
 
-    def _simulate_implicit_euler(self, t0, t_end, h, x0, dx0, lag0, params0: np.ndarray, diff_params_matrix, tol=1e-8,
+    def _simulate_implicit_euler(self, t0, t_end, h, x0, dx0, lag0, params0: np.ndarray, time_var :Var, tol=1e-8,
                                  max_iter=1000, followed_vars = None, verbose = False):
         """
         :param t0:
@@ -584,14 +620,25 @@ class DiffBlockSolver(BlockSolver):
         :param max_iter:
         :return:
         """
+        init_time = time.time()
+        print(f'Simulation started at {init_time}')
+
         steps = int(np.ceil((t_end - t0) / h))
         t = np.empty(steps + 1)
         y = np.empty((steps + 1, self._n_vars))
-        speed_up = 1.0
         self.y = y
         self.t = t 
+
+            # timing accumulators
+        timings = {
+            "jacobian_time": 0.0,
+            "rhs_time": 0.0,
+            "lag_update_time": 0.0,
+            "linear_solver_time": 0.0,
+            "initial_step_time":0.0,
+        }
+
         params_current = params0
-        diff_params_matrix = diff_params_matrix
         t[0] = t0
         y[0] = x0.copy()
         dx = dx0.copy()
@@ -599,7 +646,6 @@ class DiffBlockSolver(BlockSolver):
         for step_idx in range(steps):
             self.step_idx = step_idx
             params_previous = params_current.copy()
-            params_current += diff_params_matrix[step_idx, :].toarray().ravel()
             discontinuity = np.linalg.norm(params_current - params_previous, np.inf) > 1e-10
             xn = y[step_idx]
             x_last = y[step_idx-1] if step_idx > 0 else y[step_idx]
@@ -610,15 +656,25 @@ class DiffBlockSolver(BlockSolver):
             lambda_reg = 1e-6  # small regularization factor
             max_reg_tries = 1e6  # limit how much regularization is added
             reg_attempts = 0
-
+            current_time = t[step_idx]
+            params_current = self._params_fn( float(current_time) )
             #We compute dx for the next step
             dx = self.compute_dx(x_new, lag, h)
+            print(f'Step {step_idx} at {time.time() - init_time}')
             if step_idx == 0:
-                tol = 1e-4
+                tol = 1e-7
+                initial_step_start = time.time()
             else:
-                tol = 1e-8
+                tol = 1e-7
             while not converged and n_iter < max_iter:
+
+                # ---------------- lag update ----------------
+                lag_update_start = time.time()
                 self._update_0_lags(x_new, lag)
+                lag_update_end = time.time()
+                timings["lag_update_time"] += lag_update_end - lag_update_start
+                # ------------------------------------------------
+
                 xn_lags = np.r_[xn, lag]
                 xnew_lags = np.r_[x_new, lag]
 
@@ -631,25 +687,29 @@ class DiffBlockSolver(BlockSolver):
                 if followed_vars is not None:
                     for var in followed_vars:
                         idx = self.get_var_idx(var) 
-                        #xnew_lags[idx] = (xnew_lags[idx] + x_last_lags[idx])/2
 
                 params_current = np.asarray(params_current, dtype=np.float64)                    
+                # ---------------- rhs calculation ----------------
+                rhs_start = time.time()
                 rhs = self.rhs_implicit(xnew_lags, xn_lags, params_current, step_idx + 1, h)
-                Jf = self.jacobian_implicit(xnew_lags, params_current, h)  # sparse matrix
-                try:
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("error", MatrixRankWarning)
-                        delta = sp.linalg.spsolve(Jf, -rhs)
-                except MatrixRankWarning as w:
-                    raise np.linalg.LinAlgError(f"Jacobian is singular: {w}")
+                rhs_end = time.time()
+                timings["rhs_time"] += rhs_end - rhs_start
+                # -------------------------------------------------
 
+                # recompute Jacobian for next iteration
+                jac_start = time.time()
+                #Jf = self.jacobian_implicit(xnew_lags, params_current, h)
+                jac_end = time.time()
+                if step_idx == 0:
+                    print(f'jacobian time is {(jac_end - jac_start)}')
+                timings["jacobian_time"] += jac_end - jac_start
 
 
                 residual = np.linalg.norm(rhs, np.inf)
                 converged = residual < tol
 
                 if step_idx == 0:
-                    alpha_update = 0.8
+                    alpha_update = 0.5
                     old_lag = lag
                     lag = self.build_initial_lag_variables(x_new, dx0, h)
                     lag = (1-alpha_update)*old_lag + alpha_update*lag
@@ -661,10 +721,13 @@ class DiffBlockSolver(BlockSolver):
                 if converged:
                     break
                 
-                Jf = self.jacobian_implicit(xnew_lags, params_current, h)  # sparse matrix
                 solved = False
-                
+                linear_start = time.time()
+                Jf = self.jacobian_implicit(xnew_lags, params_current, h)
                 delta = sp.linalg.spsolve(Jf, -rhs)
+                #Jf = self.jacobian_implicit(xnew_lags, params_current, h)
+                linear_end = time.time()
+                timings["linear_solver_time"] += linear_end - linear_start
                 solved = np.all(np.isfinite(delta))
 
                 if not solved:
@@ -682,11 +745,14 @@ class DiffBlockSolver(BlockSolver):
                 x_new += delta
                 n_iter += 1
 
-                print(f'lag is {lag}')
-
             if converged:
+                if step_idx == 0:
+                    initial_step_end = time.time()
+                    timings['initial_step_time'] = initial_step_end - initial_step_end
+                lag_update_start = time.time()
+
                 if verbose:
-                    print(f'converged {converged} and n_iter {n_iter} and iter {n_iter} and rhs is  {rhs}')
+                    print(f'converged {converged} and n_iter {step_idx} and iter {n_iter} and rhs is  {rhs}')
 
                 if discontinuity:
                     _=0
@@ -710,12 +776,15 @@ class DiffBlockSolver(BlockSolver):
                         uid = next_lag_var.uid
                         idx = self.uid2idx_lag[uid]
                         lag[i] = lag[idx] 
+                lag_update_end = time.time()
+                timings["lag_update_time"] += lag_update_end - lag_update_start
+                
             else:
                 print(f"Failed to converge at step {step_idx}")
                 print(f'Jacobian is {Jf}')
                 break
 
-        return t, y
+        return t, y, timings
     
     def _update_0_lags(self, x_new, lag):
         for i, lag_var in enumerate(self._lag_vars):
