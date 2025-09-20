@@ -1016,6 +1016,15 @@ class BlockSolver:
         df_gx.to_csv("gx_results.csv", index=False, header=False)
         df_gy = pd.DataFrame(gy.toarray())
         df_gy.to_csv("gy_results.csv", index=False, header=False)
+        df_gy.to_excel("gy_results.xlsx", index=False, header=False)
+
+        gy_str = [str(e) for e in self._algebraic_eqs]
+        df_gy_str = pd.DataFrame(gy_str)
+        df_gy_str.to_csv("gy_str_results.csv", index=False, header=False)
+
+        gy_vars = [str(e) for e in self._algebraic_vars]
+        df_gy_vars = pd.DataFrame(gy_vars)
+        df_gy_vars.to_csv("gy_vars_results.csv", index=False, header=False)
 
         gyx = spsolve(gy, gx)
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix
