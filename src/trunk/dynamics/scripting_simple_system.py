@@ -32,7 +32,7 @@ import VeraGridEngine.api as gce
 
 t = Var("t")
 
-grid = gce.MultiCircuit()
+grid = gce.MultiCircuit(fbase=60.0)
 # SIMPLE SYSTEM 0: 1 GEN, 1 TRAFO, 1 LOAD
 # Buses
 # bus1 = gce.Bus(name="Bus1", Vnom=20, is_slack=True)
@@ -331,16 +331,16 @@ grid.add_bus(bus4)
 # xeq = zeq.imag
 
 trafo_G1 = grid.add_line(
-    gce.Line(name="trafo 1-2", bus_from=bus1, bus_to=bus2,
+    gce.Line(name="branch1", bus_from=bus1, bus_to=bus2,
              r=0.00000, x=0.015 * (100.0/900.0), b=0.0, rate=900.0))
 # line1 = grid.add_line(
 #     gce.Line(name="line 2-3-1", bus_from=bus2, bus_to=bus3,
 #              r=req, x=xeq * (100.0/450.0), b=0.0, rate=450.0))
 line1 = grid.add_line(
-    gce.Line(name="line 2-3", bus_from=bus2, bus_to=bus3,
+    gce.Line(name="branch2", bus_from=bus2, bus_to=bus3,
              r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
 line2 = grid.add_line(
-    gce.Line(name="line 2-4", bus_from=bus2, bus_to=bus4,
+    gce.Line(name="branch3", bus_from=bus2, bus_to=bus4,
              r=0.00, x=0.03 * (100.0/900.0), b=0.0, rate=900.0))
 
 # load

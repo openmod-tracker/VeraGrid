@@ -24,13 +24,14 @@ def main():
    start = time.time()
 
    # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
-   ss = andes.load('Gen_Load/simple_system0.json', default_config=True)
+   # ss = andes.load('Gen_Load/simple_system0.json', default_config=True)
+   ss = andes.load('src/trunk/dynamics/Gen_Load/simple_system3.json', default_config=True)
    n_xy = len(ss.dae.xy_name)
    print(f"Andes variables = {n_xy}")
    ss.files.no_output = True
 
    # Run PF
-   ss.PFlow.config.tol = 1e-14
+   ss.PFlow.config.tol = 1e-13
    ss.PFlow.run()
 
    # print(f"Bus voltages = {ss.Bus.v.v}")
@@ -80,7 +81,27 @@ def main():
    #     sum_pf[col] = np.sum(eig.pfactors[:, col])
    # print("sum pf:", sum_pf)
 
+   # Josep edits to debug
+
    fx = dae.fx
+   fx_rows = np.array(fx.I).ravel()
+   fx_cols = np.array(fx.J).ravel()
+   fx_vals = np.array(fx.V).ravel()
+
+   dense_fx = sp.coo_matrix((fx_vals, (fx_rows, fx_cols)), shape=fx.size).toarray()
+
+   tf = dae.Tf
+   Tfx = np.diag(1/tf) @ dense_fx
+   print("Tfx:", Tfx)
+
+   gy_str = [str(e) for e in dae.y_name]
+   df_gy_str = pd.DataFrame(gy_str)
+   df_gy_str.to_csv("gy_str_results_Andes.csv", index=False, header=False)
+
+   gy_vars = [str(e) for e in dae.y_name_output]
+   df_gy_vars = pd.DataFrame(gy_vars)
+   df_gy_vars.to_csv("gy_vars_results_Andes.csv", index=False, header=False)
+
    fy = dae.fy
    gx = dae.gx
    gy = dae.gy
@@ -102,6 +123,7 @@ def main():
    dense_gy = np.array([[gy[i, j] for j in range(gy.size[1])] for i in range(gy.size[0])])
    df_gy = pd.DataFrame(dense_gy)
    df_gy.to_csv("gy_results_Andes.csv", index=False, header=False, float_format="%.10f")
+   df_gy.to_excel("gy_results_Andes.xlsx", index=False, header=False, float_format="%.10f")
 
    dense_A = np.array([[A[i, j] for j in range(A.size[1])] for i in range(A.size[0])])
    df_A = pd.DataFrame(dense_A)

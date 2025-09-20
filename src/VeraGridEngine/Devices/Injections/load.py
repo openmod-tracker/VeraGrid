@@ -582,8 +582,8 @@ class Load(LoadParent):
 
     def initialize_rms_with_event(self, rms_events):
         if self.rms_model.empty():
-            Ql = Var("Ql")
-            Pl = Var("Pl")
+            Ql = Var("Ql" + self.name)
+            Pl = Var("Pl" + self.name)
             self.rms_model.model = Block(
                 algebraic_eqs=[
                 ],
