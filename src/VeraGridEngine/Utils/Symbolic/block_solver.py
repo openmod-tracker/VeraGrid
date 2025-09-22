@@ -1008,14 +1008,14 @@ class BlockSolver:
         fy = self._j12_fn(z, params)  # ∂f_state/∂y
         gx = self._j21_fn(z, params)  # ∂g/∂x
         gy = self._j22_fn(z, params)  # ∂g/∂y
-        df_fx = pd.DataFrame(fx.toarray())
-        df_fx.to_csv("fx_results.csv", index=False, header=False)
-        df_fy = pd.DataFrame(fy.toarray())
-        df_fy.to_csv("fy_results.csv", index=False, header=False)
-        df_gx = pd.DataFrame(gx.toarray())
-        df_gx.to_csv("gx_results.csv", index=False, header=False)
-        df_gy = pd.DataFrame(gy.toarray())
-        df_gy.to_csv("gy_results.csv", index=False, header=False)
+        # df_fx = pd.DataFrame(fx.toarray())
+        # df_fx.to_csv("fx_results.csv", index=False, header=False)
+        # df_fy = pd.DataFrame(fy.toarray())
+        # df_fy.to_csv("fy_results.csv", index=False, header=False)
+        # df_gx = pd.DataFrame(gx.toarray())
+        # df_gx.to_csv("gx_results.csv", index=False, header=False)
+        # df_gy = pd.DataFrame(gy.toarray())
+        # df_gy.to_csv("gy_results.csv", index=False, header=False)
 
         gyx = spsolve(gy, gx)
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix
