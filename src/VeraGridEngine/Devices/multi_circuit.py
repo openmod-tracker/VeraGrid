@@ -20,7 +20,7 @@ from VeraGridEngine.Devices.Parents.editable_device import EditableDevice
 from VeraGridEngine.basic_structures import IntVec, Vec, Mat, CxVec, IntMat, CxMat
 
 import VeraGridEngine.Devices as dev
-from VeraGridEngine.Devices.types import ALL_DEV_TYPES, INJECTION_DEVICE_TYPES, FLUID_TYPES, AREA_TYPES
+from VeraGridEngine.Devices.types import ALL_DEV_TYPES, INJECTION_DEVICE_TYPES, FLUID_TYPES, AREA_TYPES, BRANCH_TYPES
 from VeraGridEngine.basic_structures import Logger
 from VeraGridEngine.Topology.topology import find_different_states
 from VeraGridEngine.enumerations import DeviceType, ActionType, SubObjectType, ConverterControlType
@@ -293,7 +293,9 @@ class MultiCircuit(Assets):
                  and that [5, 6, 7, 8] are represented by the topology of 5
         """
 
-        return find_different_states(states_array=self.get_branch_active_time_array())
+        groups, mapping = find_different_states(states_array=self.get_branch_active_time_array())
+
+        return groups
 
     def copy(self) -> "MultiCircuit":
         """
@@ -850,6 +852,20 @@ class MultiCircuit(Assets):
         :return: snapshot datetime string
         """
         return self.snapshot_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    def get_bus_branch_dict(self) -> Dict[dev.Bus, List[BRANCH_TYPES]]:
+        """
+        Get the branch-bus dictionary
+        :return: dict[bus] -> list of branches
+        """
+        d: Dict[dev.Bus, List[dev.BranchType]] = {b: list() for b in self._buses}
+
+        for branch_list in self.get_branch_lists(add_vsc=True, add_hvdc=True, add_switch=True):
+            for br in branch_list:
+                d[br.bus_from].append(br)
+                d[br.bus_to].append(br)
+
+        return d
 
     def get_bus_branch_connectivity_matrix(self) -> Tuple[csc_matrix, csc_matrix, csc_matrix]:
         """
@@ -1688,7 +1704,7 @@ class MultiCircuit(Assets):
         for elm in self.get_injection_devices_iter():
             if elm.bus is not None:
                 k = bus_dict[elm.bus]
-                val[k] = elm.get_S()
+                val[k] += elm.get_S()
 
         return val
 
@@ -1704,7 +1720,7 @@ class MultiCircuit(Assets):
         for elm in self.get_injection_devices_iter():
             if elm.bus is not None:
                 k = bus_dict[elm.bus]
-                val[:, k] = elm.get_Sprof()
+                val[:, k] += elm.get_Sprof()
 
         return val
 
@@ -1720,13 +1736,13 @@ class MultiCircuit(Assets):
         for elm in self.get_load_like_devices():
             if elm.bus is not None:
                 k = bus_dict[elm.bus]
-                val[:, k] = elm.get_Sprof()
+                val[:, k] += elm.get_Sprof()
 
         for elm in self.get_generation_like_devices():
             if elm.bus is not None:
                 if not elm.enabled_dispatch:
                     k = bus_dict[elm.bus]
-                    val[:, k] = elm.get_Sprof()
+                    val[:, k] += elm.get_Sprof()
 
         return val
 
@@ -1743,7 +1759,7 @@ class MultiCircuit(Assets):
             if elm.bus is not None:
                 if elm.enabled_dispatch:
                     k = bus_dict[elm.bus]
-                    val[:, k] = elm.get_Sprof()
+                    val[:, k] += elm.get_Sprof()
 
         return val
 
@@ -2753,6 +2769,9 @@ class MultiCircuit(Assets):
         for i, elm in enumerate(self.get_loads()):
             elm.P_prof.set(results.load_power[:, i])
 
+        for i, elm in enumerate(self.get_hvdc()):
+            elm.Pset_prof.set(results.hvdc_Pf[:, i])
+
     def set_opf_snapshot_results(self, results: OptimalPowerFlowResults):
         """
         Assign OptimalPowerFlowResults to the objects
@@ -2765,8 +2784,11 @@ class MultiCircuit(Assets):
         for i, elm in enumerate(self.get_batteries()):
             elm.P = results.battery_power[i]
 
-        # for i, elm in enumerate(self.get_loads()):
-        #     elm.P = results.load_power[i]
+        for i, elm in enumerate(self.get_loads()):
+            elm.P = results.load_power[i]
+
+        for i, elm in enumerate(self.get_hvdc()):
+            elm.Pset.set(results.hvdc_Pf[i])
 
     def get_reduction_sets(self, reduction_bus_indices: Sequence[int],
                            add_vsc=False, add_hvdc=False, add_switch=True) -> Tuple[IntVec, IntVec, IntVec, IntVec]:

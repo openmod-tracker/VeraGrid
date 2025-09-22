@@ -9,7 +9,9 @@ fname = os.path.join('..', '..', 'tests', 'data', 'grids', 'Matpower', 'case118.
 
 grid = vg.open_file(fname)
 
-pf_res = vg.power_flow(grid=grid)
+pf_opt = vg.PowerFlowOptions(solver_type=vg.SolverType.NR)
+
+pf_res = vg.power_flow(grid=grid, options=pf_opt)
 print("pf error:", pf_res.error)
 
 # build a dictionary with the from flows
@@ -26,14 +28,20 @@ reduction_bus_indices = np.array([
 nc = vg.compile_numerical_circuit_at(circuit=grid, t_idx=None)
 lin = vg.LinearAnalysis(nc=nc)
 
+if grid.has_time_series:
+    lin_ts = vg.LinearAnalysisTs(grid=grid)
+else:
+    lin_ts = None
+
 grid2, logger = ptdf_reduction(
     grid=grid.copy(),
     reduction_bus_indices=reduction_bus_indices,
-    PTDF=lin.PTDF
+    PTDF=lin.PTDF,
+    lin_ts=lin_ts
 )
 
 # run a power flow after
-pf_res2 = vg.power_flow(grid=grid2)
+pf_res2 = vg.power_flow(grid=grid2, options=pf_opt)
 print("pf2 error:", pf_res2.error)
 
 # mount the flows comparison dictionary
@@ -44,15 +52,14 @@ for k, br in enumerate(grid2.get_branches_iter()):
 
     if Sf_pre is not None:
         flow_d2[br.idtag] = {
-        "name": br.name,
-        "Pf pre": Sf_pre.real,
-        "Pf post": pf_res2.Sf[k].real,
-        "Pf err": abs(Sf_pre.real - pf_res2.Sf[k].real),
-        "Qf pre": Sf_pre.imag,
-        "Qf post": pf_res2.Sf[k].imag,
-        "Qf err": abs(Sf_pre.imag - pf_res2.Sf[k].imag),
-    }
-
+            "name": br.name,
+            "Pf pre": Sf_pre.real,
+            "Pf post": pf_res2.Sf[k].real,
+            "Pf err": abs(Sf_pre.real - pf_res2.Sf[k].real),
+            "Qf pre": Sf_pre.imag,
+            "Qf post": pf_res2.Sf[k].imag,
+            "Qf err": abs(Sf_pre.imag - pf_res2.Sf[k].imag),
+        }
 
 df_flow_comp = pd.DataFrame(data=flow_d2).transpose()
 

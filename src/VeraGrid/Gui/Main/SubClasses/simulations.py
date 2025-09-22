@@ -1992,7 +1992,8 @@ class SimulationsMain(TimeEventsMain):
         generate_report = self.ui.addOptimalPowerFlowReportCheckBox.isChecked()
         robust = self.ui.fixOpfCheckBox.isChecked()
         generation_expansion_planning = self.ui.opfGEPCheckBox.isChecked()
-
+        use_glsk_as_cost = self.ui.useGslkAsCostsOpfCheckBox.isChecked()
+        add_losses_approximation = self.ui.approximateLossesOpfCheckBox.isChecked()
         _, pf_results = self.session.power_flow
 
         if self.ui.save_mip_checkBox.isChecked():
@@ -2052,6 +2053,8 @@ class SimulationsMain(TimeEventsMain):
                                               generation_expansion_planning=generation_expansion_planning,
                                               export_model_fname=export_model_fname,
                                               generate_report=generate_report,
+                                              use_glsk_as_cost=use_glsk_as_cost,
+                                              add_losses_approximation=add_losses_approximation,
                                               ips_method=ips_method,
                                               ips_tolerance=ips_tolerance,
                                               ips_iterations=ips_iterations,
@@ -2195,40 +2198,6 @@ class SimulationsMain(TimeEventsMain):
 
         if not self.session.is_anything_running():
             self.UNLOCK()
-
-    def copy_opf_to_time_series(self):
-        """
-        Copy the OPF generation values to the Time series object and execute a time series simulation
-        """
-        if self.circuit.valid_for_simulation():
-
-            if self.circuit.time_profile is not None:
-
-                _, results = self.session.optimal_power_flow_ts
-
-                if results is not None:
-
-                    quit_msg = ("Are you sure that you want overwrite the time events "
-                                "with the simulated by the OPF time series?")
-                    reply = QtWidgets.QMessageBox.question(self, 'Message', quit_msg,
-                                                           QtWidgets.QMessageBox.StandardButton.Yes,
-                                                           QtWidgets.QMessageBox.StandardButton.No)
-
-                    if reply == QtWidgets.QMessageBox.StandardButton.Yes:
-
-                        results.apply_lp_profiles(self.circuit)
-
-                    else:
-                        pass
-
-                else:
-                    info_msg('There are no OPF time series execution.'
-                             '\nRun OPF time series to be able to copy the value to the time series object.')
-
-            else:
-                self.show_warning_toast('There are no time series...')
-        else:
-            pass
 
     def get_opf_ntc_options(self) -> Union[None, sim.OptimalNetTransferCapacityOptions]:
         """

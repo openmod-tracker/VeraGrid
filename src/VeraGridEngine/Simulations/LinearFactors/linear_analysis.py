@@ -8,14 +8,15 @@ import numpy as np
 import numba as nb
 import warnings
 import scipy.sparse as sp
-from typing import Union, List, Dict, Tuple, TYPE_CHECKING
+from typing import List, Dict, Tuple, TYPE_CHECKING
 
 from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import spsolve as scipy_spsolve
 
 from VeraGridEngine.enumerations import DeviceType
-from VeraGridEngine.basic_structures import Logger, Vec, IntVec, CxVec, Mat, ObjVec, CxMat, BoolVec
+from VeraGridEngine.basic_structures import Logger, Vec, IntVec, CxVec, Mat, ObjVec, CxMat, BoolVec, IntMat
 from VeraGridEngine.DataStructures.numerical_circuit import NumericalCircuit
+from VeraGridEngine.Compilers.circuit_to_data import compile_numerical_circuit_at
 from VeraGridEngine.Devices.Aggregation.contingency_group import ContingencyGroup
 from VeraGridEngine.Devices.Aggregation.contingency import Contingency
 from VeraGridEngine.Simulations.Derivatives.ac_jacobian import AC_jacobian
@@ -24,6 +25,7 @@ from VeraGridEngine.Utils.Sparse.csc import dense_to_csc
 import VeraGridEngine.Utils.Sparse.csc2 as csc
 from VeraGridEngine.Utils.MIP.selected_interface import lpDot1D_changes
 from VeraGridEngine.enumerations import ContingencyOperationTypes
+from VeraGridEngine.Topology.topology import find_different_states
 
 if TYPE_CHECKING:
     from VeraGridEngine.Devices.multi_circuit import MultiCircuit
@@ -491,16 +493,45 @@ class LinearAnalysis:
             rates=rates
         )
 
-    def get_flows(self, Sbus: Union[CxVec, CxMat]) -> Union[CxVec, CxMat]:
+    def get_flows(self, Sbus: CxVec, P_hvdc: Vec | None = None, P_vsc: Vec | None = None) -> CxVec:
         """
         Compute the time series branch Sf using the PTDF
-        :param Sbus: Power Injections time series array (nbus) for 1D, (time, nbus) for 2D
-        :return: branch active power Sf (nbus) for 1D, (time, nbus) for 2D
+        :param Sbus: Power Injections time series array (nbus)
+        :param P_hvdc: Power from HvdcLines (nhvdc) (optional)
+        :param P_vsc: Power from Vsc (nvsc) (optional)
+        :return: branch active power Sf (nbranch)
         """
         if Sbus.ndim == 1:
-            return np.dot(self.PTDF, Sbus.real)
-        elif Sbus.ndim == 2:
-            return np.dot(self.PTDF, Sbus.real.T).T
+            Pf = self.PTDF @ Sbus.real
+
+            if P_hvdc is not None:
+                Pf += self.HvdcDF @ P_hvdc
+
+            if P_vsc is not None:
+                Pf += self.VscDF @ P_vsc
+
+            return Pf
+        else:
+            raise Exception(f'Sbus has unsupported dimensions: {Sbus.shape}')
+
+    def get_flows2d(self, Sbus: CxMat, P_hvdc: Mat | None = None, P_vsc: Mat | None = None) -> CxMat:
+        """
+        Compute the time series branch Sf using the PTDF
+        :param Sbus: Power Injections time series array (time, nbus) for 2D
+        :param P_hvdc: Power from HvdcLines (nhvdc) (optional)
+        :param P_vsc: Power from Vsc (nvsc) (optional)
+        :return: branch active power Sf (time, nbranch)
+        """
+        if Sbus.ndim == 2:
+            Pf = np.dot(self.PTDF, Sbus.real.T).T
+
+            if P_hvdc is not None:
+                Pf += np.dot(self.HvdcDF, P_hvdc.T).T
+
+            if P_vsc is not None:
+                Pf += np.dot(self.VscDF, P_vsc.T).T
+
+            return Pf
         else:
             raise Exception(f'Sbus has unsupported dimensions: {Sbus.shape}')
 
@@ -909,3 +940,97 @@ class LinearMultiContingencies:
                     vsc_odf=vsc_odf
                 )
             )
+
+
+class LinearAnalysisTs:
+    """
+    Class to compute the different linear states of a grid
+    """
+
+    def __init__(self, grid: MultiCircuit,
+                 distributed_slack: bool = True,
+                 correct_values: bool = False):
+        """
+        Constructor
+        :param grid: MultiCircuit instance
+        :param distributed_slack: boolean to distribute slack
+        :param correct_values: boolean to fix out layer values
+        """
+
+        if not grid.has_time_series:
+            raise Exception("The grid does not have any time series :(")
+
+        # get the states matrix
+        mat: IntMat = grid.get_branch_active_time_array()
+
+        # analyze how many PTDF's we need to get
+        self.groups, self.mapping = find_different_states(mat)
+
+        self._linear_analysis: Dict[int, LinearAnalysis] = dict()
+
+        # compile the linear analysis for the different time steps
+        for t_idx, list_of_represented_time_steps in self.groups.items():
+            nc = compile_numerical_circuit_at(circuit=grid, t_idx=t_idx)
+            self._linear_analysis[t_idx] = LinearAnalysis(nc=nc,
+                                                          distributed_slack=distributed_slack,
+                                                          correct_values=correct_values)
+
+        self.nbr = grid.get_branch_number()
+        self.nbus = grid.get_bus_number()
+        self.nt = grid.get_time_number()
+
+    def get_flows_at(self, t_idx: int, P: CxVec | Vec) -> CxVec | Vec:
+        """
+        Get the flows at a time step
+        :param t_idx: Time index
+        :param P: Injections vector
+        :return: branch flows vector
+        """
+        # get the base index
+        t_i = self.mapping[t_idx]
+
+        # get the linear analysis
+        lin: LinearAnalysis = self._linear_analysis[t_i]
+
+        return lin.get_flows(Sbus=P)
+
+    def get_time_flow(self, branch_idx: int, bus_idx: int, P: CxVec | Vec) -> CxVec | Vec:
+        """
+        Get the flow time series of a single branch given the injection time series of a single bus
+        :param branch_idx: Branch index
+        :param bus_idx: Bus index
+        :param P: Bus injection time series
+        :return: Branch flow time series
+        """
+        # must have the same size
+        assert len(P) == self.nt
+
+        flow_ts = np.zeros_like(P)
+
+        for t_idx, list_of_represented_time_steps in self.groups.items():
+            # get the linear analysis
+            lin: LinearAnalysis = self._linear_analysis[t_idx]
+
+            flow_ts[list_of_represented_time_steps] = lin.PTDF[branch_idx, bus_idx] * P[list_of_represented_time_steps]
+
+        return flow_ts
+
+    def get_time_flows(self, P: CxVec | Vec) -> CxVec | Vec:
+        """
+        Get the flow time series of all branches given the injection time series all buses
+        :param P: Bus injection time series
+        :return: Branches flow time series
+        """
+        # must have the same size
+        assert P.shape[0] == self.nt
+        assert P.shape[1] == self.nbus
+
+        flow_ts = np.zeros((self.nt, self.nbr))
+
+        for t_idx, list_of_represented_time_steps in self.groups.items():
+            # get the linear analysis
+            lin: LinearAnalysis = self._linear_analysis[t_idx]
+
+            flow_ts[list_of_represented_time_steps, :] = lin.get_flows2d(Sbus=P[list_of_represented_time_steps, :])
+
+        return flow_ts
