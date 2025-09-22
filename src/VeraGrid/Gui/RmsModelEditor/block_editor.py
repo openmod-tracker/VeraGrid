@@ -2,15 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
+from __future__ import annotations
+
 from enum import Enum, auto
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 import sys
-from PySide6.QtWidgets import (QApplication, QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsItem,
+from PySide6.QtWidgets import (QApplication, QHBoxLayout, QGraphicsScene, QGraphicsView, QGraphicsItem,
                                QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QMenu, QGraphicsPathItem,
-                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QInputDialog, QLabel, QDoubleSpinBox)
-from PySide6.QtGui import QPen, QBrush, QPainterPath, QAction, QPainter
-from PySide6.QtCore import Qt, QPointF
+                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QSplitter, QLabel, QDoubleSpinBox,
+                               QListView, QAbstractItemView)
+from PySide6.QtGui import (QPen, QBrush, QPainterPath, QAction, QPainter, QIcon, QStandardItemModel, QStandardItem,
+                           QPixmap, QDropEvent, QDragEnterEvent, QDragMoveEvent)
+from PySide6.QtCore import Qt, QPointF, QByteArray, QDataStream, QIODevice, QModelIndex, QMimeData
 from VeraGridEngine.Utils.Symbolic.block import (
     Block,
     adder,
@@ -22,6 +26,17 @@ from VeraGridEngine.Utils.Symbolic.block import (
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 from VeraGridEngine.Utils.Symbolic.symbolic import Var
 
+
+def change_font_size(obj, font_size: int):
+    """
+
+    :param obj:
+    :param font_size:
+    :return:
+    """
+    font1 = obj.font()
+    font1.setPointSize(font_size)
+    obj.setFont(font1)
 
 
 @dataclass
@@ -53,6 +68,7 @@ class BlockType(Enum):
     SOURCE = auto()
     DRAIN = auto()
     GENERIC = auto()
+
 
 class BlockTypeDialog(QDialog):
     def __init__(self, parent=None):
@@ -108,7 +124,7 @@ class PortItem(QGraphicsEllipseItem):
     def __init__(self,
                  block: "BlockItem",
                  is_input: bool,
-                 index: int, # number of inputs
+                 index: int,  # number of inputs
                  total: int,
                  radius=6):
         """
@@ -255,7 +271,6 @@ class BlockItem(QGraphicsRectItem):
 
         self._resizing_from_handle = False
 
-
     def resize_block(self, width, height):
         # Update geometry safely
         self.prepareGeometryChange()
@@ -322,21 +337,39 @@ class BlockItem(QGraphicsRectItem):
 
 
 class GraphicsView(QGraphicsView):
+    """
+    GraphicsView
+    """
+
     def __init__(self, scene):
         super().__init__(scene)
         self.setRenderHints(self.renderHints() | QPainter.RenderHint.Antialiasing)
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
-        self.setDragMode(QGraphicsView.DragMode.NoDrag)
+        # self.setDragMode(QGraphicsView.DragMode.NoDrag)
+        # self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+
+        # self.setMouseTracking(True)
+        # self.setInteractive(True)
 
         self._panning = False
         self._pan_start = QPointF()
 
     def wheelEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         zoom_in = event.angleDelta().y() > 0
         zoom_factor = 1.15 if zoom_in else 1 / 1.15
         self.scale(zoom_factor, zoom_factor)
 
     def mousePressEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         if event.button() == Qt.MouseButton.MiddleButton:
             self._panning = True
             self._pan_start = event.position()
@@ -345,6 +378,11 @@ class GraphicsView(QGraphicsView):
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         if self._panning:
             delta = event.position() - self._pan_start
             self._pan_start = event.position()
@@ -354,11 +392,19 @@ class GraphicsView(QGraphicsView):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         if event.button() == Qt.MouseButton.MiddleButton:
             self._panning = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
         else:
             super().mouseReleaseEvent(event)
+
+    # def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+    #     pass
 
 
 def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value: Optional[float] = None) -> Block:
@@ -515,7 +561,8 @@ class DiagramScene(QGraphicsScene):
                     connection = ConnectionItem(self.source_port, dst_port)
                     src_var = self.source_port.block.subsys.out_vars[self.source_port.index]
                     dst_var = dst_port.block.subsys.in_vars[dst_port.index]
-                    dst_port.block.subsys.in_vars[dst_port.index] = self.source_port.block.subsys.out_vars[self.source_port.index]
+                    dst_port.block.subsys.in_vars[dst_port.index] = self.source_port.block.subsys.out_vars[
+                        self.source_port.index]
                     self.addItem(connection)
                     break
             self.removeItem(self.temp_line)
@@ -525,28 +572,162 @@ class DiagramScene(QGraphicsScene):
             super().mouseReleaseEvent(event)
 
 
-class BlockEditor(QMainWindow):
+class DynamicLibraryModel(QStandardItemModel):
+    """
+    Items model to host the draggable icons
+    This is the list of draggable items
+    """
+
+    def __init__(self) -> None:
+        """
+        Items model to host the draggable icons
+        """
+        QStandardItemModel.__init__(self)
+
+        self.setColumnCount(1)
+
+        self.mime_dict: Dict[object, BlockType] = dict()
+
+        for bt in BlockType:
+            self.add(name=bt.name, icon_name="dyn")
+            t = self.to_bytes_array(bt.name)
+            self.mime_dict[t] = bt
+
+    def get_type(self, t) -> BlockType | None:
+        return self.mime_dict.get(t, None)
+
+    def add(self, name: str, icon_name: str):
+        """
+        Add element to the library
+        :param name: Name of the element
+        :param icon_name: Icon name, the path is taken care of
+        :return:
+        """
+        _icon = QIcon()
+        _icon.addPixmap(QPixmap(f":/Icons/icons/{icon_name}.svg"))
+        _item = QStandardItem(_icon, name)
+        _item.setToolTip(f"Drag & drop {name} into the schematic")
+        self.appendRow(_item)
+
+    @staticmethod
+    def to_bytes_array(val: str) -> QByteArray:
+        """
+        Convert string to QByteArray
+        :param val: string
+        :return: QByteArray
+        """
+        data = QByteArray()
+        stream = QDataStream(data, QIODevice.WriteOnly)
+        stream.writeQString(val)
+        return data
+
+    def mimeData(self, idxs: List[QModelIndex]) -> QMimeData:
+        """
+
+        @param idxs:
+        @return:
+        """
+        mimedata = QMimeData()
+        for idx in idxs:
+            if idx.isValid():
+                txt = self.data(idx, Qt.ItemDataRole.DisplayRole)
+
+                data = QByteArray()
+                stream = QDataStream(data, QIODevice.WriteOnly)
+                stream.writeQString(txt)
+
+                mimedata.setData('component/name', data)
+        return mimedata
+
+    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
+        """
+
+        :param index:
+        :return:
+        """
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsDragEnabled
+
+
+class BlockEditor(QSplitter):
+    """
+    BlockEditor
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Block Editor with Ports")
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Widget creation
+        # --------------------------------------------------------------------------------------------------------------
+        # Widget layout and child widgets:
+        self.horizontal_layout = QHBoxLayout(self)
+
+        # Actual libraryView object
+        self.library_view = QListView(self)
+        self.library_view.setViewMode(self.library_view.ViewMode.ListMode)
+        self.library_view.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.library_model = DynamicLibraryModel()
+        self.library_view.setModel(self.library_model)
+        change_font_size(self.library_view, 9)
 
         self.scene = DiagramScene(self)
         self.view = GraphicsView(self.scene)
-        self.setCentralWidget(self.view)
+
+        self.view.dragEnterEvent = self.graphicsDragEnterEvent
+        self.view.dragMoveEvent = self.graphicsDragMoveEvent
+        self.view.dropEvent = self.graphicsDropEvent
+
+        self.addWidget(self.library_view)
+        self.addWidget(self.view)
 
         self.block_system = self.scene.get_main_block()
 
+        self.setStretchFactor(0, 1)
+        self.setStretchFactor(1, 1000)
+
         self.resize(800, 600)
 
-    # def run(self):
-    #     engine = BlockSolver(block_system=self.block_system)
-    #     engine.simulate(
-    #         t0=0,
-    #         t_end=10,
-    #         h=0.01,
-    #         x0=engine.get_dummy_x0(),
-    #         method="implicit_euler"
-    #     )
+    def graphicsDragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """
+
+        @param event:
+        @return:
+        """
+        if event.mimeData().hasFormat('component/name'):
+            event.accept()
+
+    def graphicsDragMoveEvent(self, event: QDragMoveEvent) -> None:
+        """
+        Move element
+        @param event:
+        @return:
+        """
+        if event.mimeData().hasFormat('component/name'):
+            event.accept()
+
+    def graphicsDropEvent(self, event: QDropEvent) -> None:
+        """
+        Create an element
+        @param event:
+        @return:
+        """
+        if event.mimeData().hasFormat('component/name'):
+            obj_type = event.mimeData().data('component/name')
+
+            point0 = self.view.mapToScene(int(event.position().x()), int(event.position().y()))
+            x0 = point0.x()
+            y0 = point0.y()
+
+            tpe = self.library_model.get_type(obj_type)
+
+            blk: Block = create_block_of_type(block_type=tpe,
+                                              ins=2,
+                                              outs=1,
+                                              const_value=3)
+            item = BlockItem(blk)
+
+            self.scene.addItem(item)
+            item.setPos(QPointF(x0, y0))
 
 
 if __name__ == "__main__":
