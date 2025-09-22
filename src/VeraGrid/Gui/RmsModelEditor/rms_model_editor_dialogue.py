@@ -10,13 +10,12 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from VeraGrid.Gui.gui_functions import get_icon_list_model
 from VeraGrid.Gui.RmsModelEditor.rms_model_editor import Ui_MainWindow
 from VeraGrid.Gui.RmsModelEditor.block_editor import BlockEditor
-from VeraGridEngine.Utils.Symbolic.block import Block
+from VeraGridEngine.Devices.Dynamic.dynamic_model_host import DynamicModelHost
 import VeraGridEngine.Devices as dev
-
 
 class RmsModelEditorGUI(QtWidgets.QMainWindow):
 
-    def __init__(self, model: Block, parent=None, ):
+    def __init__(self, model_host: DynamicModelHost, parent=None, ):
         """
 
         :param parent:
@@ -26,19 +25,24 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle('RMS Model editor')
 
-
+        self.model_host: DynamicModelHost = model_host
         self.editor = BlockEditor()
         self.ui.editorLayout.addWidget(self.editor)
-        self.model = self.editor.block_system
 
-        # Table model for variables/equations (right side)  # I think this can be already set in the .ui file
+        # Table model for variables/equations (right side)
         self._data_table_model = QStandardItemModel()
         self.ui.datatableView.setModel(self._data_table_model)
 
         # Connect category selection to table update
         self.ui.datalistWidget.itemSelectionChanged.connect(self.update_table)
 
+
         # self.ui.actionCheckModel.triggered.connect(self.extract_dae)
+
+    @property
+    def model(self):
+        return self.editor.block_system
+
 
     def update_table(self):
         items = self.ui.datalistWidget.selectedItems()

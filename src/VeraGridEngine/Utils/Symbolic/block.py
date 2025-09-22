@@ -195,6 +195,11 @@ def constant(value: float, name: str = "const") -> Tuple[Var, Block]:
     blk = Block(algebraic_vars=[y], algebraic_eqs=[y - Const(value)])
     return y, blk
 
+def variable(name: str = "variable") -> Tuple[Var, Block]:
+    y = Var(name)
+    blk = Block(algebraic_vars=[y])
+    return y, blk
+
 
 def gain(k: float, u: Var | Const, name: str = "gain_out") -> Tuple[Var, Block]:
     y = Var(name)
@@ -211,6 +216,19 @@ def adder(inputs: Sequence[Var | Const], name: str = "sum_out") -> Tuple[Var, Bl
         expr += v
     blk = Block(algebraic_vars=[y], algebraic_eqs=[y - expr])
     return y, blk
+
+
+def substract(inputs: Sequence[Var | Const], name: str = "substract_out") -> Tuple[Var, Block]:
+    if len(inputs) == 0:
+        raise ValueError("adder() needs at least one input variable")
+    y = Var(name)
+    expr: Expr = inputs[0]
+    for v in inputs[1:]:
+        expr += v
+    blk = Block(algebraic_vars=[y], algebraic_eqs=[y - expr])
+    return y, blk
+
+
 
 
 def integrator(u: Var | Const, name: str = "x") -> Tuple[Var, Block]:
