@@ -13,8 +13,11 @@ from VeraGrid.Gui.RmsModelEditor.block_editor import BlockEditor
 from VeraGridEngine.Devices.Dynamic.dynamic_model_host import DynamicModelHost
 import VeraGridEngine.Devices as dev
 
-class RmsModelEditorGUI(QtWidgets.QMainWindow):
 
+class RmsModelEditorGUI(QtWidgets.QMainWindow):
+    """
+    RmsModelEditorGUI
+    """
     def __init__(self, model_host: DynamicModelHost, parent=None, ):
         """
 
@@ -36,13 +39,11 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         # Connect category selection to table update
         self.ui.datalistWidget.itemSelectionChanged.connect(self.update_table)
 
-
         # self.ui.actionCheckModel.triggered.connect(self.extract_dae)
 
     @property
     def model(self):
         return self.editor.block_system
-
 
     def update_table(self):
         items = self.ui.datalistWidget.selectedItems()
@@ -60,7 +61,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
                         QStandardItem(var.name),
                         QStandardItem("state"),
                         QStandardItem(str(eq)),
-                ])
+                    ])
 
         elif category == "Algebraic variables":
             for submodel in self.model.children:
@@ -69,7 +70,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
                         QStandardItem(var.name),
                         QStandardItem("algebraic"),
                         QStandardItem(str(eq)),
-                ])
+                    ])
 
         elif category == "Constants":
             for submodel in self.model.children:
@@ -78,7 +79,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
                         QStandardItem(const.name),
                         QStandardItem("parameter"),
                         QStandardItem(str(const.value)),
-                ])
+                    ])
 
     def extract_dae(self):
         eqs = self.editor.run()

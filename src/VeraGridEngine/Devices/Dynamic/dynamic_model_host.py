@@ -2,9 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
+from __future__ import annotations
+
 from typing import List, Dict, Any
+from VeraGridEngine.Devices.Parents.editable_device import EditableDevice
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Devices.Dynamic.rms_template import RmsModelTemplate
+from VeraGridEngine.enumerations import DeviceType
 
 
 class BlockDiagram:
@@ -20,13 +24,17 @@ class BlockDiagram:
         pass
 
 
-
-class DynamicModelHost:
+class DynamicModelHost(EditableDevice):
     """
     This class serves to give flexible access to either a template or a custom model
     """
 
-    def __init__(self):
+    def __init__(self, name=""):
+
+        super().__init__(name=name,
+                         idtag=None,
+                         code="",
+                         device_type=DeviceType.DynamicModelHostDevice)
 
         self._template: Block | None = None
 
@@ -137,4 +145,3 @@ class DynamicModelHost:
         obj._custom_model = self._custom_model.copy()
         obj._template = self._template
         return obj
-
