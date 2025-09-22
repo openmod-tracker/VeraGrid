@@ -863,7 +863,7 @@ class DataBaseTableMain(DiagramsMain):
 
                     elif elm_type == DeviceType.RmsModelTemplateDevice.value:
 
-                        self.rms_model_Editor_window = RmsModelEditorGUI(model=self.circuit.rms_models[idx].block, )
+                        self.rms_model_Editor_window = RmsModelEditorGUI(model_host=self.circuit.rms_models[idx].model_host, )
                         self.rms_model_Editor_window.resize(int(1.81 * 700.0), 700)
                         self.rms_model_Editor_window.show()
 

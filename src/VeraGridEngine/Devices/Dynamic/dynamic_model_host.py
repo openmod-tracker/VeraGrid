@@ -7,6 +7,20 @@ from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Devices.Dynamic.rms_template import RmsModelTemplate
 
 
+class BlockDiagram:
+    """
+    Diagram
+    """
+
+    def __init__(self, idtag=None, name=''):
+        """
+
+        :param name: Diagram name
+        """
+        pass
+
+
+
 class DynamicModelHost:
     """
     This class serves to give flexible access to either a template or a custom model
@@ -18,6 +32,7 @@ class DynamicModelHost:
 
         # a custom model always exits although it may be empty
         self._custom_model: Block = Block()
+        self._diagram: BlockDiagram = BlockDiagram()
 
     @property
     def template(self):
@@ -61,6 +76,11 @@ class DynamicModelHost:
 
         else:
             raise ValueError(f"Cannot set model with {val}")
+
+    @property
+    def diagram(self) -> BlockDiagram:
+
+        return self._diagram
 
     def to_dict(self) -> Dict[str, int | Dict[str, List[Dict[str, Any]]]]:
         """

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from VeraGridEngine.Devices.Parents.editable_device import EditableDevice
-from VeraGridEngine.Utils.Symbolic.block import Block
+from VeraGridEngine.Devices.Dynamic.dynamic_model_host import DynamicModelHost
 from VeraGridEngine.enumerations import DeviceType
 
 
@@ -19,9 +19,13 @@ class RmsModelTemplate(EditableDevice):
                          code="",
                          device_type= DeviceType.RmsModelTemplateDevice)
 
-        self._block: Block = Block()
+        self._model_host: DynamicModelHost = DynamicModelHost()
 
     @property
     def block(self):
-        return self._block
+        return self._model_host.model
+
+    @property
+    def model_host(self):
+        return self._model_host
 

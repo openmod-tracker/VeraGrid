@@ -8,13 +8,14 @@ from dataclasses import dataclass
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsItem,
                                QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QMenu, QGraphicsPathItem,
-                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QInputDialog)
+                               QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QInputDialog, QLabel, QDoubleSpinBox)
 from PySide6.QtGui import QPen, QBrush, QPainterPath, QAction, QPainter
 from PySide6.QtCore import Qt, QPointF
 from VeraGridEngine.Utils.Symbolic.block import (
     Block,
     adder,
     constant,
+    variable,
     gain,
     integrator,
 )
@@ -45,13 +46,13 @@ class BlockType(Enum):
     MAX = auto()
     STEP = auto()
     CONSTANT = auto()
+    VARIABLE = auto()
     SATURATION = auto()
     RELATIONAL = auto()
     LOGICAL = auto()
     SOURCE = auto()
     DRAIN = auto()
     GENERIC = auto()
-
 
 class BlockTypeDialog(QDialog):
     def __init__(self, parent=None):
@@ -64,13 +65,39 @@ class BlockTypeDialog(QDialog):
             self.combo.addItem(bt.name, bt)
         self.layout.addWidget(self.combo)
 
+        # 👇 Extra field for constants
+        self.value_label = QLabel("Constant value:", self)
+        self.value_spin = QDoubleSpinBox(self)
+        self.value_spin.setRange(-1e6, 1e6)
+        self.value_spin.setValue(0.0)
+        self.layout.addWidget(self.value_label)
+        self.layout.addWidget(self.value_spin)
+
+        # Initially hidden
+        self.value_label.hide()
+        self.value_spin.hide()
+
+        self.combo.currentIndexChanged.connect(self._on_block_changed)
+
         self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)
         self.layout.addWidget(self.buttons)
 
+    def _on_block_changed(self, index):
+        block_type = self.combo.itemData(index)
+        if block_type == BlockType.CONSTANT:
+            self.value_label.show()
+            self.value_spin.show()
+        else:
+            self.value_label.hide()
+            self.value_spin.hide()
+
     def selected_block_type(self) -> BlockType:
         return self.combo.currentData()
+
+    def constant_value(self) -> float:
+        return self.value_spin.value()
 
 
 class PortItem(QGraphicsEllipseItem):
@@ -228,17 +255,6 @@ class BlockItem(QGraphicsRectItem):
 
         self._resizing_from_handle = False
 
-        def mouseDoubleClickEvent(self, event):
-            # Only handle constants
-            if hasattr(self.subsys, "out_vars") and len(self.subsys.out_vars) == 1:
-                var = self.subsys.out_vars[0]
-                if "const" in var.name.lower() or getattr(self.subsys, "name", "").lower() == "const":
-                    value, ok = QInputDialog.getDouble(None, "Edit Constant",
-                                                       f"Value for {var.name}:", float(getattr(var, "value", 0.0)))
-                    if ok:
-                        var.value = value  # set new value
-                        print(f"Constant {var.name} set to {var.value}")
-            super().mouseDoubleClickEvent(event)
 
     def resize_block(self, width, height):
         # Update geometry safely
@@ -345,32 +361,26 @@ class GraphicsView(QGraphicsView):
             super().mouseReleaseEvent(event)
 
 
-def create_block_of_type(block_type: BlockType, ins: int, outs: int) -> Block:
+def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value: Optional[float] = None) -> Block:
     """
     Create a Block appropriate for block_type. Use placeholder Vars for inputs/outputs
-    so that Block.in_vars and Block.out_vars exist for the GUI.
+    so that Block.in_vars and Block.out_vars are not empty.
     """
 
     def placeholders(n, base):
         return [Var(f"{base}{i}") for i in range(n)]
 
-    # CONSTANT
-    # if block_type == BlockType.CONSTANT:
-    #     y, blk = constant(0.0, name="const")
-    #     # ensure the block exposes in_vars / out_vars for the GUI
-    #     if not getattr(blk, "out_vars", None):
-    #         blk.out_vars = [y]
-    #     if not getattr(blk, "in_vars", None):
-    #         blk.in_vars = []
-    #     return blk
-
     if block_type == BlockType.CONSTANT:
-        y, blk = constant(0.0, name="const")
-        # ensure the block exposes in_vars / out_vars for the GUI
-        if not getattr(blk, "out_vars", None):
-            blk.out_vars = [y]
-        if not hasattr(y, "value"):
-            y.value = 0.0  # add a value attribute if Var doesn't have one
+        value = const_value if const_value is not None else 0.0
+        y, blk = constant(value, name="const")
+        blk.in_vars = []
+        blk.out_vars = [y]
+        return blk
+
+    if block_type == BlockType.VARIABLE:
+        y, blk = variable(name="variable")
+        blk.in_vars = []
+        blk.out_vars = [y]
         return blk
 
     # GAIN (single input -> single output)
@@ -444,7 +454,7 @@ class DiagramScene(QGraphicsScene):
     def contextMenuEvent(self, event):
         item = self.itemAt(event.scenePos(), self.views()[0].transform())
 
-        # ✅ Let lines, block and ports handle their own context menus
+        # Let lines, block and ports handle their own context menus
         if item is not None:
             if not isinstance(item, DiagramScene):
                 return super().contextMenuEvent(event)
@@ -458,17 +468,14 @@ class DiagramScene(QGraphicsScene):
                 ins = 0
             elif block_type == BlockType.DRAIN:
                 outs = 0
-            self.add_block(event.scenePos(), ins, outs, block_type)
+
+            value = dialog.constant_value() if block_type == BlockType.CONSTANT else None
+            self.add_block(event.scenePos(), ins, outs, block_type, value)
+
         return None
 
-    def add_block(self, pos, ins, outs, block_type):  # block_type=BlockType.GENERIC
-        """
-        Create a block of the requested type (ensuring its in_vars/out_vars exist),
-        create the GUI item, add to the main block container and to the scene.
-        """
-        blk = create_block_of_type(block_type, ins, outs)
-
-        # create GUI item
+    def add_block(self, pos, ins, outs, block_type, const_value=None):
+        blk = create_block_of_type(block_type, ins, outs, const_value)
         block_item = BlockItem(blk)
 
         # add to the model and the scene
