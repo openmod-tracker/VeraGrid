@@ -24,7 +24,6 @@ def main():
     start = time.time()
     # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
     ss = andes.load('Gen_Load/simple_system3.json', default_config=True)
-    ss.prepare()
     n_xy = len(ss.dae.xy_name)
     print(f"Andes variables = {n_xy}")
     ss.files.no_output = True
@@ -254,20 +253,6 @@ def main():
     # plt.grid(True)
     # plt.tight_layout()
     # plt.show()
-
-    eig = ss.EIG
-    eig.run()
-
-    dae = ss.dae
-    np.set_printoptions(precision=15, suppress=False)
-
-    print("fx:", dae.fx)
-    print("fy:", dae.fy)
-    print("gx:", dae.gx)
-    print("gy:", dae.gy)
-    print("A:", eig.As)
-    print("eigenvals:", eig.mu)
-    print("P factors:", eig.pfactors)
 
 if __name__ == '__main__':
     main()

@@ -496,19 +496,19 @@ class Generator(GeneratorParent):
     def initialize_rms(self, rms_event = False):
         if self.rms_model.empty():
 
-            delta = Var("delta")
-            omega = Var("omega")
-            psid = Var("psid")
-            psiq = Var("psiq")
-            i_d = Var("i_d")
-            i_q = Var("i_q")
-            v_d = Var("v_d")
-            v_q = Var("v_q")
-            te = Var("te")
-            et = Var("et")
-            tm = Var("tm")
-            P_g = Var("P_g")
-            Q_g = Var("Q_g")
+            delta = Var("delta" + self.name)
+            omega = Var("omega" + self.name)
+            psid = Var("psid" + self.name)
+            psiq = Var("psiq" + self.name)
+            i_d = Var("i_d" + self.name)
+            i_q = Var("i_q" + self.name)
+            v_d = Var("v_d" + self.name)
+            v_q = Var("v_q" + self.name)
+            te = Var("te" + self.name)
+            et = Var("et" + self.name)
+            tm = Var("tm" + self.name)
+            P_g = Var("P_g" + self.name)
+            Q_g = Var("Q_g" + self.name)
             # Xad_Ifd = Var("Xad_Ifd") ###
             # vf = Var("vf") ###
 
@@ -535,7 +535,7 @@ class Generator(GeneratorParent):
                     P_g - (v_d * i_d + v_q * i_q),
                     Q_g - (v_q * i_d - v_d * i_q),
                     tm - (self.tm0 + self.Kp * (omega - self.omega_ref) + self.Ki * et),
-                    2 * np.pi * self.freq * et -delta,
+                    2 * np.pi * self.freq * et - 0 * delta,
                     # Xad_Ifd - self.vf0, ###
                     # vf - self.vf0, ###
                 ],
