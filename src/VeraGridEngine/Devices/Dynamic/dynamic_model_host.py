@@ -5,10 +5,28 @@
 from __future__ import annotations
 
 from typing import List, Dict, Any
+from dataclasses import dataclass
 from VeraGridEngine.Devices.Parents.editable_device import EditableDevice
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Devices.Dynamic.rms_template import RmsModelTemplate
 from VeraGridEngine.enumerations import DeviceType
+
+
+@dataclass
+class BlockDiagramNode:
+    x: float
+    y: float
+    tpe: str
+    device_uid: int
+
+
+@dataclass
+class BlockDiagramConnection:
+    from_uid: int
+    to_uid: int
+    port_number_from: int
+    port_number_to: int
+    color: str
 
 
 class BlockDiagram:
@@ -21,7 +39,45 @@ class BlockDiagram:
 
         :param name: Diagram name
         """
-        pass
+        self.node_data: Dict[str, BlockDiagramNode] = dict()
+        self.con_data: List[BlockDiagramConnection] = list()
+
+    def add_node(self, x: float, y: float, device_uid: int, tpe: str):
+        """
+
+        :param x:
+        :param y:
+        :param device_uid:
+        :param tpe:
+        :return:
+        """
+        self.node_data[device_uid] = BlockDiagramNode(
+            x=x,
+            y=y,
+            tpe=tpe,
+            device_uid=device_uid
+        )
+
+    def add_branch(self, device_uid_from: int, device_uid_to: int,
+                   port_number_from: int, port_number_to: int, color: str):
+        """
+
+        :param device_uid_from:
+        :param device_uid_to:
+        :param port_number_from:
+        :param port_number_to:
+        :param color:
+        :return:
+        """
+        self.con_data.append(
+            BlockDiagramConnection(
+                from_uid=device_uid_from,
+                to_uid=device_uid_to,
+                port_number_from=port_number_from,
+                port_number_to=port_number_to,
+                color=color
+            )
+        )
 
 
 class DynamicModelHost(EditableDevice):
