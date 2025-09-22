@@ -29,7 +29,8 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self.setWindowTitle('RMS Model editor')
 
         self.model_host: DynamicModelHost = model_host
-        self.editor = BlockEditor()
+        self.editor = BlockEditor(block=model_host.model,
+                                  diagram=model_host.diagram)
         self.ui.editorLayout.addWidget(self.editor)
 
         # Table model for variables/equations (right side)

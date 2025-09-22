@@ -23,8 +23,8 @@ from VeraGridEngine.Utils.Symbolic.block import (
     gain,
     integrator,
 )
-from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 from VeraGridEngine.Utils.Symbolic.symbolic import Var
+from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram
 
 
 def change_font_size(obj, font_size: int):
@@ -403,8 +403,6 @@ class GraphicsView(QGraphicsView):
         else:
             super().mouseReleaseEvent(event)
 
-    # def dragEnterEvent(self, event: QDragEnterEvent) -> None:
-    #     pass
 
 
 def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value: Optional[float] = None) -> Block:
@@ -540,6 +538,11 @@ class DiagramScene(QGraphicsScene):
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         if self.temp_line:
             start = self.source_port.scenePos()
             end = event.scenePos()
@@ -553,18 +556,25 @@ class DiagramScene(QGraphicsScene):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         if self.temp_line:
             # FIX: scan items under mouse for a valid input Port
             for item in self.items(event.scenePos()):
                 if isinstance(item, PortItem) and item.is_input and not item.is_connected():
                     dst_port: PortItem = item
                     connection = ConnectionItem(self.source_port, dst_port)
-                    src_var = self.source_port.block.subsys.out_vars[self.source_port.index]
-                    dst_var = dst_port.block.subsys.in_vars[dst_port.index]
-                    dst_port.block.subsys.in_vars[dst_port.index] = self.source_port.block.subsys.out_vars[
-                        self.source_port.index]
+
+                    dst_var = self.source_port.block.subsys.out_vars[self.source_port.index]
+
+                    dst_port.block.subsys.in_vars[dst_port.index] = dst_var
+
                     self.addItem(connection)
                     break
+
             self.removeItem(self.temp_line)
             self.temp_line = None
             self.source_port = None
@@ -653,8 +663,14 @@ class BlockEditor(QSplitter):
     BlockEditor
     """
 
-    def __init__(self, parent=None):
+    def __init__(self,
+                 block: Block,
+                 diagram: BlockDiagram,
+                 parent=None):
         super().__init__(parent)
+
+        self.block = block
+        self.diagram = diagram
 
         # --------------------------------------------------------------------------------------------------------------
         # Widget creation
@@ -724,14 +740,26 @@ class BlockEditor(QSplitter):
                                               ins=2,
                                               outs=1,
                                               const_value=3)
-            item = BlockItem(blk)
 
-            self.scene.addItem(item)
-            item.setPos(QPointF(x0, y0))
+            if blk is not None:
+                item = BlockItem(blk)
+
+                self.scene.addItem(item)
+                item.setPos(QPointF(x0, y0))
+
+                self.diagram.add_node(
+                    x=x0,
+                    y=y0,
+                    device_uid=blk.uid,
+                    tpe=tpe.name
+                )
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = BlockEditor()
+    window = BlockEditor(
+        block=Block(),
+        diagram=BlockDiagram()
+    )
     window.show()
     sys.exit(app.exec())
