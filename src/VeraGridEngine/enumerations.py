@@ -1112,6 +1112,8 @@ class DeviceType(Enum):
 
     BusOrBranch = "BusOrBranch"
 
+    DynamicModelHostDevice = "Dynamic Model Host"
+
     RmsModelTemplateDevice = "RMS template"
 
     RmsEventDevice = "Rms Event"

@@ -820,10 +820,10 @@ class DataBaseTableMain(DiagramsMain):
                 obj = dev.Facility(name=name)
                 self.circuit.add_facility(obj)
 
-            elif elm_type == DeviceType.RmsModelTemplateDevice.value:
+            elif elm_type == DeviceType.DynamicModelHostDevice.value:
 
                 name = f'RMS model {self.circuit.get_rms_models_number()}'
-                obj = dev.RmsModelTemplate(name=name)
+                obj = dev.DynamicModelHost(name=name)
                 self.circuit.add_rms_model(obj)
 
             else:
@@ -861,9 +861,9 @@ class DataBaseTableMain(DiagramsMain):
                         self.tower_builder_window.resize(int(1.81 * 700.0), 700)
                         self.tower_builder_window.exec()
 
-                    elif elm_type == DeviceType.RmsModelTemplateDevice.value:
+                    elif elm_type == DeviceType.DynamicModelHostDevice.value:
 
-                        self.rms_model_Editor_window = RmsModelEditorGUI(model_host=self.circuit.rms_models[idx].model_host, )
+                        self.rms_model_Editor_window = RmsModelEditorGUI(model_host=self.circuit.rms_models[idx], )
                         self.rms_model_Editor_window.resize(int(1.81 * 700.0), 700)
                         self.rms_model_Editor_window.show()
 
