@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from dataclasses import dataclass
 from VeraGridEngine.Devices.Parents.editable_device import EditableDevice
 from VeraGridEngine.Utils.Symbolic.block import Block
@@ -19,6 +19,16 @@ class BlockDiagramNode:
     tpe: str
     device_uid: int
 
+    def get_node_dict(self):
+        """
+        get as a dictionary point
+        :return:
+        """
+        return {'x': self.x,
+                'y': self.y,
+                'type': self.tpe,
+                'device_uid': self.device_uid}
+
 
 @dataclass
 class BlockDiagramConnection:
@@ -27,6 +37,19 @@ class BlockDiagramConnection:
     port_number_from: int
     port_number_to: int
     color: str
+
+    def get_connection_dict(self):
+        """
+        get as a dictionary point
+        :return:
+        """
+        return {'from_uid': self.from_uid,
+                'to_uid': self.to_uid,
+                'port_number_from': self.port_number_from,
+                'port_number_to': self.port_number_to,
+                'color': self.color}
+
+
 
 
 class BlockDiagram:
@@ -39,7 +62,7 @@ class BlockDiagram:
 
         :param name: Diagram name
         """
-        self.node_data: Dict[str, BlockDiagramNode] = dict()
+        self.node_data: Dict[int, BlockDiagramNode] = dict()
         self.con_data: List[BlockDiagramConnection] = list()
 
     def add_node(self, x: float, y: float, device_uid: int, tpe: str):
@@ -78,6 +101,46 @@ class BlockDiagram:
                 color=color
             )
         )
+    def get_node_data_dict(self) -> Dict[int, Dict[str, int]]:
+        graph_info ={device_uid: node.get_node_dict() for device_uid, node in self.node_data.items()}
+        return graph_info
+
+    def get_con_data_dict(self) -> Dict[int, Dict[str, int]]:
+        graph_info = {index: connection.get_connection_dict() for index, connection in enumerate(self.con_data)}
+        return graph_info
+
+    def parse_nodes(self, nodes_data) -> None:
+        """
+        Parse file data ito this class
+        :param nodes_data: json dictionary
+         """
+
+        self.node_data = dict()
+        for uid, node in nodes_data.items():
+            self.node_data[uid] = BlockDiagramNode(
+            x=node['x'],
+            y=node['y'],
+            tpe=node['tpe'],
+            device_uid=node['device_uid']
+        )
+
+    def parse_branches(self, con_data)-> None:
+        """
+        Parse file data ito this class
+        :param con_data: json dictionary
+         """
+
+        self.con_data = list()
+        for idx, node in con_data.items():
+            self.con_data.append(BlockDiagramConnection(
+                from_uid=con_data['from_uid'],
+                to_uid=con_data['to_uid'],
+                port_number_from=con_data['port_number_from'],
+                port_number_to=con_data['port_number_to'],
+                color=con_data['color'],
+            ))
+
+
 
 
 class DynamicModelHost(EditableDevice):

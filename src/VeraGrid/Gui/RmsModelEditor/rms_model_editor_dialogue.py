@@ -31,6 +31,8 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self.model_host: DynamicModelHost = model_host
         self.editor = BlockEditor(block=model_host.model,
                                   diagram=model_host.diagram)
+        self.editor.rebuild_scene_from_diagram()
+
         self.ui.editorLayout.addWidget(self.editor)
 
         # Table model for variables/equations (right side)
@@ -44,7 +46,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
 
     @property
     def model(self):
-        return self.editor.block_system
+        return self.editor.main_block
 
     def update_table(self):
         items = self.ui.datalistWidget.selectedItems()

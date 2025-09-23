@@ -238,7 +238,7 @@ class BlockItem(QGraphicsRectItem):
         # ------------------------
         # API
         # ------------------------
-        self.subsys = block_sys  # << NEW
+        self.subsys = block_sys
 
         # ---------------------------
         # Graphical stuff
@@ -270,6 +270,35 @@ class BlockItem(QGraphicsRectItem):
         self.update_handle_position()
 
         self._resizing_from_handle = False
+
+    def mouseDoubleClickEvent(self, event):
+        # if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
+            # open editor for constant value
+        dlg = QDialog()
+        dlg.setWindowTitle("Edit Constant Value")
+        layout = QVBoxLayout(dlg)
+
+        spin = QDoubleSpinBox(dlg)
+        spin.setRange(-1e6, 1e6)
+        spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
+        layout.addWidget(QLabel("Constant value:"))
+        layout.addWidget(spin)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+
+        if dlg.exec() == QDialog.Accepted:
+            new_val = spin.value()
+            # update underlying block
+            self.subsys.value = new_val
+            # (optional) update label in scene
+            self.name_item.setPlainText(f"Const({new_val})")
+
+        else:
+            super().mouseDoubleClickEvent(event)
+
 
     def resize_block(self, width, height):
         # Update geometry safely
@@ -526,6 +555,8 @@ class DiagramScene(QGraphicsScene):
         self._main_block.add(blk)
         self.addItem(block_item)
 
+        # add to the diagram
+
         block_item.setPos(pos)
 
     def mousePressEvent(self, event):
@@ -573,6 +604,10 @@ class DiagramScene(QGraphicsScene):
                     dst_port.block.subsys.in_vars[dst_port.index] = dst_var
 
                     self.addItem(connection)
+
+                    color = connection.pen().color().name()
+                    # save branches in diagram
+                    self.editor.diagram.add_branch(self.source_port.block.subsys.uid, dst_port.block.subsys.uid, self.source_port.index, dst_port.index, color)
                     break
 
             self.removeItem(self.temp_line)
@@ -669,7 +704,7 @@ class BlockEditor(QSplitter):
                  parent=None):
         super().__init__(parent)
 
-        self.block = block
+        self.main_block = block
         self.diagram = diagram
 
         # --------------------------------------------------------------------------------------------------------------
@@ -742,17 +777,61 @@ class BlockEditor(QSplitter):
                                               const_value=3)
 
             if blk is not None:
+                self.main_block.add(blk)
                 item = BlockItem(blk)
 
                 self.scene.addItem(item)
                 item.setPos(QPointF(x0, y0))
-
+                # save nodes in diagram
                 self.diagram.add_node(
                     x=x0,
                     y=y0,
                     device_uid=blk.uid,
                     tpe=tpe.name
                 )
+
+    def rebuild_scene_from_diagram(self):
+        """Rebuilds the graphical scene from saved diagram data"""
+        self.scene.clear()
+
+        uid_to_blockitem = {}
+
+        # 1. Recreate nodes
+        for uid, node in self.diagram.node_data.items():
+            block_type = BlockType[node.tpe]
+            ins = 2 if block_type in {BlockType.SUM, BlockType.PRODUCT, BlockType.MIN, BlockType.MAX} else 1
+            outs = 1
+            if block_type == BlockType.SOURCE:
+                ins = 0
+            elif block_type == BlockType.DRAIN:
+                outs = 0
+
+            blk = create_block_of_type(block_type, ins=ins, outs=outs)
+            blk.uid = uid
+
+            block_item = BlockItem(blk)
+            self.scene.addItem(block_item)
+            block_item.setPos(node.x, node.y)
+
+            uid_to_blockitem[uid] = block_item
+
+        # 2. Recreate connections
+        for con in self.diagram.con_data:
+            src_item = uid_to_blockitem.get(con.from_uid)
+            dst_item = uid_to_blockitem.get(con.to_uid)
+            if not src_item or not dst_item:
+                continue
+
+            try:
+                src_port = src_item.outputs[con.port_number_from]
+                dst_port = dst_item.inputs[con.port_number_to]
+            except IndexError:
+                continue  # invalid port number
+
+            connection = ConnectionItem(src_port, dst_port)
+            self.scene.addItem(connection)
+
+        self.block_system = self.scene.get_main_block()
 
 
 if __name__ == "__main__":
