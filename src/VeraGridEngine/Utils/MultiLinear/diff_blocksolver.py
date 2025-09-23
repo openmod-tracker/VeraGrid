@@ -3,9 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
 import numpy as np
-import math
 import uuid
-import warnings
 import scipy.sparse as sp
 import time
 from typing import Optional
@@ -15,15 +13,9 @@ from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver, _compile_parameters_equations, _compile_equations
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr, Func, cos, sin, _emit
 from VeraGridEngine.Utils.MultiLinear.differential_var import DiffVar, LagVar
-from enum import Enum
-from scipy.sparse import csc_matrix
-import numba as nb
 from dataclasses import dataclass, field
-from types import MappingProxyType
 from typing import Any, Callable, ClassVar, Dict, Mapping, Union, List, Sequence, Tuple, Set, Literal
 from scipy.sparse.linalg import gmres, spilu, LinearOperator, MatrixRankWarning
-from scipy.linalg import LinAlgError, LinAlgWarning
-from scipy.sparse.linalg._dsolve import MatrixRankWarning
 from VeraGridEngine.Utils.Sparse.csc import pack_4_by_4_scipy
 
 # from VeraGridEngine.Utils.Symbolic.events import EventParam
@@ -123,7 +115,6 @@ class DiffBlockSolver(BlockSolver):
         #We define the parameter dt
         self.dt = Var(name='dt')
         self._parameters.append(self.dt)
-        self._parameters_eqs.append(Const(0.001))
 
         self._n_state = len(self._state_vars)
         self._n_alg = len(self._algebraic_vars)
@@ -305,7 +296,6 @@ class DiffBlockSolver(BlockSolver):
         else:
             self._j22_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        self.warm_up_start()
         print(f"Model compiled with {self._n_vars} variables, {len(self._lag_vars)} lags, {len(self._algebraic_eqs_substituted)}  algebraic eqs and {len(self._state_eqs_substituted)} state eqs")
 
 
@@ -333,7 +323,6 @@ class DiffBlockSolver(BlockSolver):
                 # reassemble full Jacobian
             J = pack_blocks_scipy(blocks, self.n_batches)
 
-        elif self.batched:
             j22: sp.csc_matrix = self._j22_fn(x, params)
             return j22
         
@@ -853,45 +842,8 @@ class DiffBlockSolver(BlockSolver):
 
         return res
     
-    def test_equations(
-            self,
-            t0: float,
-            t_end: float,
-            h: float,
-            x0: np.ndarray,
-            dx0: np.ndarray,
-            params0: np.ndarray,
-            events_list: RmsEvents,
-            method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
-            newton_tol: float = 1e-8,
-            newton_max_iter: int = 1000,
 
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        :param events_list:
-        :param params0:
-        :param t0: start time
-        :param t_end: end time
-        :param h: step
-        :param x0: initial values
-        :param method: method
-        :param newton_tol:
-        :param newton_max_iter:
-        :return: 1D time array, 2D array of simulated variables
-        """
-        lag0 = self.build_initial_lag_variables(x0, dx0, h)
-        x0   = self.build_initial_guess(x0, dx0, h)
 
-        params_matrix = self.build_params_matrix(int(np.ceil((t_end - t0) / h)), params0, events_list)
-        params_current = params0
-        params_current += params_matrix[0, :].toarray().ravel()
-        xn_lags = np.concatenate((x0, lag0))
-        print(f' xn is {xn_lags}, params is {params_current}')
-        rhs = self.rhs_implicit(xn_lags, xn_lags, params_current, 0, h)
-        print(f"rhs is {rhs}")
-        Jf = self.jacobian_implicit(xn_lags, params_current, h)  # sparse matrix
-        print(f"Jf is {Jf}")
 
-        return
         
         

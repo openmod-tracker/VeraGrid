@@ -14,8 +14,6 @@ import scipy.linalg
 
 
 
-def merge_stability_results ( eigV, eigA,):
-
     VeraGrid_Eig = np.genfromtxt(eigV, delimiter=",", dtype=complex)
     Andes_Eig = np.genfromtxt(eigA, delimiter=",", dtype=complex)
 
@@ -70,6 +68,3 @@ def merge_stability_results ( eigV, eigA,):
 
 
 
-
-
-merge_stability_results('Eigenvalues_results.csv','Eigenvalues_results_Andes.csv')
