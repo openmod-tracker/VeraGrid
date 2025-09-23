@@ -1541,20 +1541,16 @@ plt.show()
 
 #stability assessment
 start_stability = time.time()
-stab, Eigenvalues, A, V, W, PF = slv.stability_assessment(z=x0, params=params0, plot = True)
+stab, Eigenvalues, PF = slv.stability_assessment(x=x0, params=params0, plot = True)
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
 
-print("State matrix A:", A.toarray())
 print("Stability assessment:", stab)
 print("Eigenvalues:", Eigenvalues)
-#print("Right eivenvectors:", V)
-#print("Left eigenvectors:", W)
 print("Participation factors:", PF.toarray())
 
 df_Eig = pd.DataFrame(Eigenvalues)
 df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
-df_A = pd.DataFrame(A.toarray())
-df_A.to_csv("A_results.csv", index=False , header = False)
+
 
 

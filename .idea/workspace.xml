@@ -28,7 +28,26 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Events fully implemented" />
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="Events fully implemented">
+      <change afterPath="$PROJECT_DIR$/src/trunk/dynamics/merged_data_Andes_init_rms.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Utils/Symbolic/block_solver.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Utils/Symbolic/block_solver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Andes_vs_VeraGrid_stability.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/Andes_vs_VeraGrid_stability.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Andes_vs_Veragrid_PowerFlow.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_33_2015.raw" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_33_2015.raw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_TGR_2015.dyr" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_TGR_2015.dyr" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_noTGR_PSSmod_2015.dyr" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_noTGR_PSSmod_2015.dyr" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_noTGR_PSSori_2015.dyr" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_ESST1A_noTGR_PSSori_2015.dyr" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/constructing_kundur_full.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/constructing_kundur_full.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/converter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/josep/debug_4bus.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/josep/debug_4bus.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/merged_csv.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/merged_csv.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/pf_results.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/pf_results.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/scripting_gridcal_hardcoded_light.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/scripting_gridcal_hardcoded_light.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/scripting_simple_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/scripting_simple_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/trunk/dynamics/stability_andes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trunk/dynamics/stability_andes.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -91,7 +110,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/SanPen/VeraGrid.git&quot;,
-    &quot;accountId&quot;: &quot;cf5b980e-9261-4544-851c-0ceba824405b&quot;
+    &quot;accountId&quot;: &quot;4d02aa34-2027-4dfd-8f23-94887f8b85ab&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
@@ -169,6 +188,8 @@
     "Python tests.pytest in test_transformer_type.py.executor": "Run",
     "Python tests.pytest in tests.executor": "Run",
     "Python.AnalysisDialogue.executor": "Run",
+    "Python.Andes_vs_VeraGrid_stability.executor": "Run",
+    "Python.Andes_vs_Veragrid_PowerFlow.executor": "Run",
     "Python.Andes_vs_Veragrid_init_rms.executor": "Run",
     "Python.ExecuteGridCal.executor": "Run",
     "Python.GridCalMain.executor": "Run",
@@ -176,7 +197,7 @@
     "Python._piecewise_try.executor": "Run",
     "Python.alex.executor": "Debug",
     "Python.benchmark_with_andes.executor": "Run",
-    "Python.block_solver.executor": "Debug",
+    "Python.block_solver.executor": "Run",
     "Python.cgmes_rdfs_graph.executor": "Run",
     "Python.circuit_to_optimods.executor": "Run",
     "Python.constructing_kundur_full.executor": "Run",
@@ -196,7 +217,7 @@
     "Python.python_console.executor": "Run",
     "Python.raw_imp_exp_test.executor": "Run",
     "Python.readme_checks.executor": "Run",
-    "Python.scripting_andes.executor": "Debug",
+    "Python.scripting_andes.executor": "Run",
     "Python.scripting_gridcal.executor": "Run",
     "Python.scripting_gridcal_hardcoded.executor": "Run",
     "Python.scripting_gridcal_hardcoded_light.executor": "Run",
@@ -212,8 +233,10 @@
     "Python.scripting_initialization_check_automatic_init.executor": "Run",
     "Python.scripting_simbolic_framework_0.executor": "Run",
     "Python.scripting_simbolic_framework_0_automatic_init.executor": "Run",
+    "Python.scripting_simple_system.executor": "Run",
     "Python.scripting_small_sys_bus_mapping.executor": "Run",
     "Python.scripting_smallsys_p_controller.executor": "Run",
+    "Python.stability_andes.executor": "Run",
     "Python.substation_wizards.executor": "Run",
     "Python.substations_types.executor": "Run",
     "Python.test_power_flow.executor": "Run",
@@ -786,7 +809,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-fc1d50d2d915-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.24978.54" />
+        <option value="bundled-python-sdk-8753aad8314d-d902c0275401-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-252.25557.178" />
       </set>
     </attachedChunks>
   </component>
@@ -2446,24 +2469,84 @@
           <option name="timeStamp" value="2970" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/line.py</url>
-          <line>573</line>
-          <option name="timeStamp" value="2976" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/sequence_line_type.py</url>
           <line>174</line>
           <option name="timeStamp" value="2977" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py</url>
+          <line>40</line>
+          <option name="timeStamp" value="2985" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py</url>
+          <line>43</line>
+          <option name="timeStamp" value="2986" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py</url>
+          <line>96</line>
+          <option name="timeStamp" value="2987" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py</url>
+          <line>142</line>
+          <option name="timeStamp" value="2988" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/stability_andes.py</url>
+          <line>46</line>
+          <option name="timeStamp" value="2991" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/stability_andes.py</url>
+          <line>53</line>
+          <option name="timeStamp" value="2992" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>86</line>
+          <option name="timeStamp" value="2996" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>510</line>
+          <option name="timeStamp" value="2997" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>511</line>
+          <option name="timeStamp" value="2998" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>90</line>
+          <option name="timeStamp" value="2999" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>156</line>
+          <option name="timeStamp" value="3001" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/.venv/Lib/site-packages/andes/routines/eig.py</url>
+          <line>91</line>
+          <option name="timeStamp" value="3002" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Utils/Symbolic/block_solver.py</url>
-          <line>438</line>
-          <option name="timeStamp" value="2981" />
+          <line>1021</line>
+          <option name="timeStamp" value="3004" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_gridcal_hardcoded_light.py</url>
-          <line>321</line>
-          <option name="timeStamp" value="2984" />
+          <line>376</line>
+          <option name="timeStamp" value="3005" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_andes.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="3007" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

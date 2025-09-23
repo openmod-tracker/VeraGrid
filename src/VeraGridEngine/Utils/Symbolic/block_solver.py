@@ -982,9 +982,23 @@ class BlockSolver:
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
 
-    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = True):
+    def stability_assessment(self, x: np.ndarray, params: np.ndarray, plot = True):
         """
-            Stability analisys:
+
+            Parameters:
+            ----------
+            x: 1D numpy array
+                variables
+            params: 1D numpy array
+                parameters
+            plot: True(default) if S-domain eigenvalues plot wanted. Else: False
+            Returns:
+            ----------
+            stability: "Unstable", "Marginally stable" or "Asymptotically stable"
+            eigenvalues:  1D row numpy array
+            participation factors: 2D array csc matrix. Participation factors of mode i stored in PF[:,i]
+
+            Small Signal Stability analysis:
             1. Calculate the state matrix (A) from the state space model. From the DAE model:
                 Tx'=f(x,y)
                 0=g(x,y)
@@ -992,30 +1006,18 @@ class BlockSolver:
                 A = T^-1(f_x - f_y * g_y^{-1} * g_x)   #T is implicit in the jacobian!
 
             2. Find eigenvalues and right(V) and left(W) eigenvectors
-                for left eigenvectors (W): bi-orthogonality: W.T@V =I --> W = inv(V).T
 
             3. Perform stability assessment
 
             4. Calculate normalized participation factors PF = W · V
 
-            Returns:
-            stability: "Unstable", "Marginally stable" or "Asymptotically stable"
-            eigenvalues
-            participation factors
+
 
         """
-        fx = self._j11_fn(z, params)  # ∂f_state/∂x
-        fy = self._j12_fn(z, params)  # ∂f_state/∂y
-        gx = self._j21_fn(z, params)  # ∂g/∂x
-        gy = self._j22_fn(z, params)  # ∂g/∂y
-        df_fx = pd.DataFrame(fx.toarray())
-        df_fx.to_csv("fx_results.csv", index=False, header=False)
-        df_fy = pd.DataFrame(fy.toarray())
-        df_fy.to_csv("fy_results.csv", index=False, header=False)
-        df_gx = pd.DataFrame(gx.toarray())
-        df_gx.to_csv("gx_results.csv", index=False, header=False)
-        df_gy = pd.DataFrame(gy.toarray())
-        df_gy.to_csv("gy_results.csv", index=False, header=False)
+        fx = self._j11_fn(x, params)  # ∂f/∂x
+        fy = self._j12_fn(x, params)  # ∂f/∂y
+        gx = self._j21_fn(x, params)  # ∂g/∂x
+        gy = self._j22_fn(x, params)  # ∂g/∂y
 
         gyx = spsolve(gy, gx)
         A = (fx - fy @ gyx)  # sparse state matrix csc matrix
@@ -1059,12 +1061,10 @@ class BlockSolver:
             plt.xlabel("Re [s -1]")
             plt.ylabel("Im [s -1]")
             plt.title("Stability plot")
-            # plt.xlim([-5, 5])
-            # plt.ylim([-5, 5])
             plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
             plt.axvline(0, color='black', linewidth=1)
             # plt.grid(True)
             plt.tight_layout()
             plt.show()
 
-        return stability, Eigenvalues, A, V, W, PF
+        return stability, Eigenvalues, PF

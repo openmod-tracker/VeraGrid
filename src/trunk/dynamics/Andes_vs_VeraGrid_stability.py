@@ -14,9 +14,8 @@ import scipy.linalg
 
 
 
-def merge_stability_results ( eigV, eigA, fxV, fxA, gyV, gyA):
-# def merge_stability_results(eigV, eigA, fxV, fxA, gyV, gyAalues_results.csv", delimiter=",")
-    #Andes_Eig = np.loadtxt("Eigenvalues_results_Andes.csv", delimiter=",")
+def merge_stability_results ( eigV, eigA,):
+
     VeraGrid_Eig = np.genfromtxt(eigV, delimiter=",", dtype=complex)
     Andes_Eig = np.genfromtxt(eigA, delimiter=",", dtype=complex)
 
@@ -25,19 +24,7 @@ def merge_stability_results ( eigV, eigA, fxV, fxA, gyV, gyA):
 
     #print("vera eig:", VeraGrid_Eig_ord)
     #print("andes eig:", Andes_Eig_ord)
-    """
-    tol = 1e-10
-    for e in range(len(VeraGrid_Eig_ord)):
-        if abs(VeraGrid_Eig_ord[e]) < tol:
-            VeraGrid_Eig_ord[e] = 1e-20
-    for e in range(len(Andes_Eig_ord)):
-        if abs(Andes_Eig_ord[e]) < tol:
-            Andes_Eig_ord[e] = 1e-20
-    
 
-    if not len(VeraGrid_Eig_ord) == len(Andes_Eig_ord):
-        VeraGrid_Eig_ord = VeraGrid_Eig_ord[:-4]
-    """
     print("vera eig ord:", VeraGrid_Eig_ord)
     print("andes eig ord:", Andes_Eig_ord)
     print("vera eig ord abs:", np.abs(VeraGrid_Eig_ord))
@@ -81,28 +68,8 @@ def merge_stability_results ( eigV, eigA, fxV, fxA, gyV, gyA):
     plt.tight_layout()
     plt.show()
 
-    # print("compare jacobian Veragrid vs Andes")
-    #
-    # V_fx_Eig = np.genfromtxt(fxV, delimiter=",", dtype=complex)
-    # V_gy_Eig = np.genfromtxt(gyV, delimiter=",", dtype=complex)
-    # A_fx_Eig = np.genfromtxt(fxA, delimiter=",", dtype=complex)
-    # A_gy_Eig = np.genfromtxt(gyA, delimiter=",", dtype=complex)
-    #
-    # Eig_fx_V = scipy.linalg.eig(V_fx_Eig, left=False, right=False)
-    # Eig_gy_V = scipy.linalg.eig(V_gy_Eig, left=False, right=False)
-    # Eig_fx_A = scipy.linalg.eig(A_fx_Eig, left=False, right=False)
-    # Eig_gy_A = scipy.linalg.eig(A_gy_Eig, left=False, right=False)
-    #
-    # Eig_fx_V_ord = Eig_fx_V[np.argsort(-np.abs(Eig_fx_V))]
-    # Eig_gy_V_ord = Eig_gy_V[np.argsort(-np.abs(Eig_gy_V))]
-    # Eig_fx_A_ord = Eig_fx_A[np.argsort(-np.abs(Eig_fx_A))]
-    # Eig_gy_A_ord = Eig_gy_A[np.argsort(-np.abs(Eig_gy_A))]
-    #
-    # print("fx Veragrid eig ord:", Eig_fx_V_ord)
-    # print("gy Veragrid eig ord:", Eig_gy_V_ord)
-    # print("fx Andes eig ord:", Eig_fx_A_ord)
-    # print("gy Andes eig ord:", Eig_gy_A_ord)
 
 
 
-merge_stability_results('Eigenvalues_results.csv','Eigenvalues_results_Andes.csv',  'fx_results.csv', 'fx_results_Andes.csv' ,'gy_results.csv', 'gy_results_Andes.csv')
+
+merge_stability_results('Eigenvalues_results.csv','Eigenvalues_results_Andes.csv')
