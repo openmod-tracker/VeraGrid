@@ -3,9 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
 import numpy as np
-import math
 import uuid
-import warnings
 import scipy.sparse as sp
 import time
 from typing import Optional
@@ -15,15 +13,11 @@ from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver, _compile_parameters_equations, _compile_equations
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr, Func, cos, sin, _emit
 from VeraGridEngine.Utils.MultiLinear.differential_var import DiffVar, LagVar
-from enum import Enum
-from scipy.sparse import csc_matrix
-import numba as nb
+from VeraGridEngine.enumerations import DynamicVarType
+
 from dataclasses import dataclass, field
-from types import MappingProxyType
 from typing import Any, Callable, ClassVar, Dict, Mapping, Union, List, Sequence, Tuple, Set, Literal
 from scipy.sparse.linalg import gmres, spilu, LinearOperator, MatrixRankWarning
-from scipy.linalg import LinAlgError, LinAlgWarning
-from scipy.sparse.linalg._dsolve import MatrixRankWarning
 from VeraGridEngine.Utils.Sparse.csc import pack_4_by_4_scipy
 
 # from VeraGridEngine.Utils.Symbolic.events import EventParam
@@ -53,12 +47,17 @@ def pack_blocks_scipy(blocks: dict, n_batches: int):
         row_blocks.append(sp.hstack(col_blocks, format="csc"))
     return sp.vstack(row_blocks, format="csc")
 
+def delete_vars_from_block(block:Block, deleted_vars:List[Var]):
+    for b in block.get_all_blocks():
+        b.algebraic_vars = [var for var in  b.algebraic_vars if var not in deleted_vars]
+
 @dataclass(frozen=False)
 class DiffBlock(Block):
     diff_vars: List[DiffVar] = field(default_factory=list)
     lag_vars: List[DiffVar] = field(default_factory=list)
     reformulated_vars: List[DiffVar] = field(default_factory=list)
     differential_eqs: List[Expr] = field(default_factory=list)
+    pseudo_transient: bool = False
 
     @classmethod
     def from_block(cls, block: Block, **kwargs):
@@ -116,14 +115,14 @@ class DiffBlockSolver(BlockSolver):
                 self._lag_vars.extend(b.lag_vars)
                 self._differential_eqs.extend(b.differential_eqs)
                 self._reformulated_vars.extend(b.reformulated_vars)
-
+        
         self._lag_vars_set = set(self._lag_vars)
         self._state_eqs_substituted = self._state_eqs.copy()
 
         #We define the parameter dt
         self.dt = Var(name='dt')
         self._parameters.append(self.dt)
-        self._parameters_eqs.append(Const(0.001))
+        self._parameters_eqs.append(Const(1e-3))
 
         self._n_state = len(self._state_vars)
         self._n_alg = len(self._algebraic_vars)
@@ -305,7 +304,7 @@ class DiffBlockSolver(BlockSolver):
         else:
             self._j22_fn = self._get_jacobian(eqs=self._algebraic_eqs_substituted, variables=self._algebraic_vars, uid2sym_vars=uid2sym_vars,
                                      uid2sym_params=uid2sym_params, dt = self.dt)
-        self.warm_up_start()
+        #self.warm_up_start()
         print(f"Model compiled with {self._n_vars} variables, {len(self._lag_vars)} lags, {len(self._algebraic_eqs_substituted)}  algebraic eqs and {len(self._state_eqs_substituted)} state eqs")
 
 
@@ -333,7 +332,7 @@ class DiffBlockSolver(BlockSolver):
                 # reassemble full Jacobian
             J = pack_blocks_scipy(blocks, self.n_batches)
 
-        elif self.batched:
+        elif len(self._state_eqs) == 0:
             j22: sp.csc_matrix = self._j22_fn(x, params)
             return j22
         
@@ -853,45 +852,124 @@ class DiffBlockSolver(BlockSolver):
 
         return res
     
-    def test_equations(
-            self,
-            t0: float,
-            t_end: float,
-            h: float,
-            x0: np.ndarray,
-            dx0: np.ndarray,
-            params0: np.ndarray,
-            events_list: RmsEvents,
-            method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
-            newton_tol: float = 1e-8,
-            newton_max_iter: int = 1000,
+    def pseudo_transient(self, x0, res, grid):
+        init_guess = {}
+        for block in self.block_system:
+            if block.pseudo_transient:
+                i = block.bus
+                t = Var('t')
+                Pg = block.external_mapping[DynamicVarType.P]
+                Qg = block.external_mapping[DynamicVarType.Q]
+                Vm = block.external_mapping[DynamicVarType.Vm]
+                Va = block.external_mapping[DynamicVarType.Va]
+                bus_block = DiffBlock(
+                    parameters= [Pg, Qg, Vm, Va],
+                    parameters_eqs = [
+                        Const(float(np.abs(res.voltage[i]))),
+                        Const(float(np.angle(res.voltage[i]))),
+                        Const(float(np.real(res.Sbus[i] / grid.Sbase))),
+                        Const(float(np.imag(res.Sbus[i] / grid.Sbase))),
+                    ] 
+                )
+                init_block = DiffBlock(
+                    children = [block, bus_block]
+                )
+                delete_vars_from_block(init_block, [Pg, Qg, Vm, Va])
+                solver = DiffBlockSolver(t, init_block)
+                x0_mdl, init_guess_mdl = solver.init_pseudo_transient_individual(x0)
+                for i, var in enumerate(solver._algebraic_vars):
+                    x0[self.uid2idx_vars[var.uid]] = x0_mdl[ [solver.uid2idx_vars[var.uid]] ]
 
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        :param events_list:
-        :param params0:
-        :param t0: start time
-        :param t_end: end time
-        :param h: step
-        :param x0: initial values
-        :param method: method
-        :param newton_tol:
-        :param newton_max_iter:
-        :return: 1D time array, 2D array of simulated variables
-        """
-        lag0 = self.build_initial_lag_variables(x0, dx0, h)
-        x0   = self.build_initial_guess(x0, dx0, h)
+                init_guess.update(init_guess_mdl)
+        return x0, init_guess
 
-        params_matrix = self.build_params_matrix(int(np.ceil((t_end - t0) / h)), params0, events_list)
-        params_current = params0
-        params_current += params_matrix[0, :].toarray().ravel()
-        xn_lags = np.concatenate((x0, lag0))
-        print(f' xn is {xn_lags}, params is {params_current}')
-        rhs = self.rhs_implicit(xn_lags, xn_lags, params_current, 0, h)
-        print(f"rhs is {rhs}")
-        Jf = self.jacobian_implicit(xn_lags, params_current, h)  # sparse matrix
-        print(f"Jf is {Jf}")
+    def init_pseudo_transient_individual(self, x0, h=0.001, tol = 1e-5):
 
-        return
+        #Init pseudo transient method, we consider the Block is only defined by algebraic eqs
+        #We first compile the equations so that it doesnt depend on the lags
+        beta = 0.8
+
+        lag = np.zeros( len(self.uid2idx_lag) )
+        for i in range( len(lag) ):
+            base_var = self._lag_vars[i].base_var
+            lag[i] = x0[ self.uid2idx_vars[base_var.uid] ] + 0.0*np.random.rand()
         
+        dtau = 1
+        y = np.empty((5, self._n_vars))
+        step_idx = 0
+        max_tries = 4e5
+        x_new = x0.copy()  # initial guess
+        tries = 0
+        current_time = 0
+        params_current = self._params_fn( float(current_time) )
+        params_outer = params_current.copy()
+        params_outer[-1] = 1e-3
+        dx_error = 1
+        residual_norm = 10
+        #while dx_error > 1e-2:
+        while residual_norm < 3:
+            tries += 1 
+            xn = y[-1]
+
+            converged = False
+            #We get the params and change the dt
+            params_current[-1] = dtau
+            xn_lags = np.r_[xn, lag]
+            xnew_lags = np.r_[x_new, lag]
+            rhs = self.rhs_implicit(xnew_lags, xn_lags, params_current, 1, dtau)
+
+            Jf = self.jacobian_implicit(xnew_lags, params_current, dtau) 
+            try:
+                delta = sp.linalg.spsolve(Jf, -rhs)
+            except Exception as e:
+                raise RuntimeError(f"Linear solver failed at try {tries}: {e}")
+
+            x_new += delta
+            residual = np.linalg.norm(rhs, np.inf)
+            converged = residual < tol
+
+            if not np.all(np.isfinite(delta)):
+                raise RuntimeError(f"Newton step failed at try {tries}: delta has NaN/Inf values")
+
+            #print(f' residual is {residual}')
+            if residual < 3:
+                dx = self.compute_dx(x_new, lag, h)
+                dx_error = np.linalg.norm(dx)
+                rhs = self.rhs_implicit(xnew_lags, xn_lags, params_outer, 1, dtau)
+                residual_norm = np.linalg.norm(rhs)
+                print(f'Convergence achieved for dtau = {dtau} and ||dx|| = {dx_error} and residual is {rhs_norm}')
+                dtau *= beta
+                step_idx += 1
+                tries = 0
+                # shift all rows up by 1 and save existing one
+                y = np.roll(y, shift=-1, axis=0)
+                y[-1] = x_new
+
+                #Update Lags
+                for i, lag_var in enumerate(self._lag_vars):
+                    if lag_var.lag == 0:
+                        uid = lag_var.base_var.uid
+                        idx = self.uid2idx_vars[uid]
+                        lag[i] = x_new[idx] 
+                    elif step_idx + 1 - (lag_var.lag-1) >= 0:
+                        uid = lag_var.base_var.uid
+                        idx = self.uid2idx_vars[uid]
+                        lag[i] = y[-1 - lag_var.lag, idx]
+                    else:
+                        lag_name = lag_var.base_var.name + '_lag_' + str(lag_var.lag-1)
+                        next_lag_var = LagVar.get_or_create(lag_name, base_var= lag_var.base_var, lag = lag_var.lag-1)
+                        uid = next_lag_var.uid
+                        idx = self.uid2idx_lag[uid]
+                        lag[i] = lag[idx] 
+
+            elif tries>max_tries:
+                raise Exception(f"Maximum  number of tries attained at dtau = {dtau} and residual is {residual}")
+        
+        init_guess = {}
+
+        for var in self._algebraic_vars:
+            init_guess[var] = x_new[var.uid]
+        return x_new, init_guess
+
+
         
