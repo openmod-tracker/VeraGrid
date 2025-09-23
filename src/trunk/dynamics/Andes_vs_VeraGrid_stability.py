@@ -13,7 +13,7 @@ import scipy.linalg
 #df_Eig.to_csv("Eigenvalues_results.csv", index=False)
 
 
-
+def Andes_vs_Veragrid_stability(eigV, eigA):
     VeraGrid_Eig = np.genfromtxt(eigV, delimiter=",", dtype=complex)
     Andes_Eig = np.genfromtxt(eigA, delimiter=",", dtype=complex)
 
@@ -66,5 +66,5 @@ import scipy.linalg
     plt.tight_layout()
     plt.show()
 
-
+Andes_vs_Veragrid_stability("Eigenvalues_results.csv", "Eigenvalues_results_Andes.csv")
 

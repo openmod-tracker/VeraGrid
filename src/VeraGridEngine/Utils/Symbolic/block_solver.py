@@ -994,9 +994,11 @@ class BlockSolver:
             plot: True(default) if S-domain eigenvalues plot wanted. Else: False
             Returns:
             ----------
-            stability: "Unstable", "Marginally stable" or "Asymptotically stable"
+            stability: str
+                "Unstable", "Marginally stable" or "Asymptotically stable"
             eigenvalues:  1D row numpy array
-            participation factors: 2D array csc matrix. Participation factors of mode i stored in PF[:,i]
+            participation factors: 2D array csc matrix.
+                Participation factors of mode i stored in PF[:,i]
 
             Small Signal Stability analysis:
             1. Calculate the state matrix (A) from the state space model. From the DAE model:
@@ -1011,9 +1013,8 @@ class BlockSolver:
 
             4. Calculate normalized participation factors PF = W · V
 
-
-
         """
+
         fx = self._j11_fn(x, params)  # ∂f/∂x
         fy = self._j12_fn(x, params)  # ∂f/∂y
         gx = self._j21_fn(x, params)  # ∂g/∂x
@@ -1044,7 +1045,6 @@ class BlockSolver:
         zero_eigs = Eigenvalues[abs(np.real(Eigenvalues)) <= tol]
         stable_eigs = Eigenvalues[np.real(Eigenvalues) < -tol]
 
-        stability = ""
         if unstable_eigs.size == 0:
             if zero_eigs.size == 0:
                 stability = "Asymptotically stable"

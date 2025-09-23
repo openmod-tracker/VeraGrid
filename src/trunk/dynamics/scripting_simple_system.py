@@ -216,6 +216,7 @@ end_simulation = time.time()
 print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
 # TODO: check results and implement test once initialize_rms is working!
+
 # # Save to csv
 slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 

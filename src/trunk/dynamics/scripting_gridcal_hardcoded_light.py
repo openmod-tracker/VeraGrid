@@ -375,10 +375,8 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 
 #stability assessment
 start_stability = time.time()
-
 # stab, Eigenvalues, PFactors = slv.stability_assessment(x=y[1000], params=params0, plot = True)
 stab, Eigenvalues, PFactors = slv.stability_assessment(x=x0, params=params0, plot = True)
-
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
 

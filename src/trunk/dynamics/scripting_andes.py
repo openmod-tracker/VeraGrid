@@ -90,7 +90,6 @@ def main():
     tds.config.tf = 20.0
     tds.t = 0.0
     tds.init()
-
     print(len(ss.dae.x))
     print(len(ss.dae.y))
 
