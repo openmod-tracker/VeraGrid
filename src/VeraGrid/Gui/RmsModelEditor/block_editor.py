@@ -22,9 +22,10 @@ from VeraGridEngine.Utils.Symbolic.block import (
     variable,
     gain,
     integrator,
+    generic
 )
 from VeraGridEngine.Utils.Symbolic.symbolic import Var
-from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram
+from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram, DynamicModelHost
 
 
 def change_font_size(obj, font_size: int):
@@ -271,34 +272,79 @@ class BlockItem(QGraphicsRectItem):
 
         self._resizing_from_handle = False
 
+    # def mouseDoubleClickEvent(self, event):
+    #     if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
+    #         # open editor for constant value
+    #         dlg = QDialog()
+    #         dlg.setWindowTitle("Edit Constant Value")
+    #         layout = QVBoxLayout(dlg)
+    #
+    #         spin = QDoubleSpinBox(dlg)
+    #         spin.setRange(-1e6, 1e6)
+    #         spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
+    #         layout.addWidget(QLabel("Constant value:"))
+    #         layout.addWidget(spin)
+    #
+    #         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    #         layout.addWidget(buttons)
+    #         buttons.accepted.connect(dlg.accept)
+    #         buttons.rejected.connect(dlg.reject)
+    #
+    #         if dlg.exec() == QDialog.Accepted:
+    #             new_val = spin.value()
+    #             # update underlying block
+    #             self.subsys.value = new_val
+    #             # (optional) update label in scene
+    #             self.name_item.setPlainText(f"Const({new_val})")
+    #
+    #         else:
+    #             super().mouseDoubleClickEvent(event)
+
     def mouseDoubleClickEvent(self, event):
-        # if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
-            # open editor for constant value
-        dlg = QDialog()
-        dlg.setWindowTitle("Edit Constant Value")
-        layout = QVBoxLayout(dlg)
+        # --- Constant editing ---
+        if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
+            dlg = QDialog()
+            dlg.setWindowTitle("Edit Constant Value")
+            layout = QVBoxLayout(dlg)
 
-        spin = QDoubleSpinBox(dlg)
-        spin.setRange(-1e6, 1e6)
-        spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
-        layout.addWidget(QLabel("Constant value:"))
-        layout.addWidget(spin)
+            spin = QDoubleSpinBox(dlg)
+            spin.setRange(-1e6, 1e6)
+            spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
+            layout.addWidget(QLabel("Constant value:"))
+            layout.addWidget(spin)
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        layout.addWidget(buttons)
-        buttons.accepted.connect(dlg.accept)
-        buttons.rejected.connect(dlg.reject)
+            buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            layout.addWidget(buttons)
+            buttons.accepted.connect(dlg.accept)
+            buttons.rejected.connect(dlg.reject)
 
-        if dlg.exec() == QDialog.Accepted:
-            new_val = spin.value()
-            # update underlying block
-            self.subsys.value = new_val
-            # (optional) update label in scene
-            self.name_item.setPlainText(f"Const({new_val})")
+            if dlg.exec() == QDialog.Accepted:
+                new_val = spin.value()
+                self.subsys.value = new_val
+                self.name_item.setPlainText(f"Const({new_val})")
+            return
 
-        else:
-            super().mouseDoubleClickEvent(event)
+        # --- Generic block editing ---
+        if self.subsys.name == "generic":
+            # from VeraGrid.Gui.RmsModelEditor.block_editor import BlockEditor
+            # from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram
 
+            dlg = QDialog()
+            dlg.setWindowTitle(f"Editing GENERIC Block ({self.subsys.uid})")
+            dlg.resize(800, 600)
+            layout = QVBoxLayout(dlg)
+
+            # The block’s children become the "main_block" in the sub-editor
+            sub_editor = BlockEditor(model_host=self.model_host, diagram=BlockDiagram())
+            sub_editor.rebuild_scene_from_diagram()
+
+            layout.addWidget(sub_editor)
+
+            dlg.exec()
+            return
+
+        # fallback to default
+        super().mouseDoubleClickEvent(event)
 
     def resize_block(self, width, height):
         # Update geometry safely
@@ -446,12 +492,14 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
     if block_type == BlockType.CONSTANT:
         value = const_value if const_value is not None else 0.0
         y, blk = constant(value, name="const")
+        blk.name = "const"
         blk.in_vars = []
         blk.out_vars = [y]
         return blk
 
     if block_type == BlockType.VARIABLE:
         y, blk = variable(name="variable")
+        blk.name = "variable"
         blk.in_vars = []
         blk.out_vars = [y]
         return blk
@@ -471,6 +519,7 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
         # for SUM use adder; for PRODUCT you may later implement product()
         inputs = placeholders(ins, "sum_in_")
         y, blk = adder(inputs, name="sum_out")
+        blk.name = "sum"
         if not getattr(blk, "in_vars", None):
             blk.in_vars = inputs
         if not getattr(blk, "out_vars", None):
@@ -501,6 +550,12 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
         blk = Block(name="DRAIN")
         blk.in_vars = ins_vars
         blk.out_vars = []
+        return blk
+
+    if block_type == BlockType.GENERIC:
+        blk = generic()
+        blk.name = "generic"
+
         return blk
 
     # GENERIC / fallback: create a block and attach placeholder vars
@@ -699,13 +754,12 @@ class BlockEditor(QSplitter):
     """
 
     def __init__(self,
-                 block: Block,
-                 diagram: BlockDiagram,
+                 model_host: DynamicModelHost,
                  parent=None):
         super().__init__(parent)
-
-        self.main_block = block
-        self.diagram = diagram
+        self.model_host = model_host
+        self.main_block = model_host.model
+        self.diagram = model_host.diagram
 
         # --------------------------------------------------------------------------------------------------------------
         # Widget creation
@@ -737,6 +791,8 @@ class BlockEditor(QSplitter):
         self.setStretchFactor(1, 1000)
 
         self.resize(800, 600)
+
+        self.rebuild_scene_from_diagram()
 
     def graphicsDragEnterEvent(self, event: QDragEnterEvent) -> None:
         """

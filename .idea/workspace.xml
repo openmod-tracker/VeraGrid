@@ -28,12 +28,11 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="constant value change">
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="GUI saving graphical info with diagrams">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/RmsModelEditor/block_editor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/RmsModelEditor/block_editor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/VeraGrid/Gui/RmsModelEditor/rms_model_editor_dialogue.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGrid/Gui/RmsModelEditor/rms_model_editor_dialogue.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Diagrams/block_diagram.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Dynamic/dynamic_model_host.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Devices/Dynamic/dynamic_model_host.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VeraGridEngine/Utils/Symbolic/block.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/VeraGridEngine/Utils/Symbolic/block.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1922,7 +1921,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="625" />
+    <option name="localTasksCounter" value="626" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1968,7 +1967,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added compose_system_block" />
     <MESSAGE value="Removed duplicated of the _psi_tc function" />
     <MESSAGE value="Resolved circular import" />
     <MESSAGE value="automatic initialization 1" />
@@ -1993,7 +1991,8 @@
     <MESSAGE value="GUI implementation ongoing" />
     <MESSAGE value="GUI implementation ongoing results exported" />
     <MESSAGE value="constant value change" />
-    <option name="LAST_COMMIT_MESSAGE" value="constant value change" />
+    <MESSAGE value="GUI saving graphical info with diagrams" />
+    <option name="LAST_COMMIT_MESSAGE" value="GUI saving graphical info with diagrams" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2477,6 +2476,11 @@
           <url>file://$PROJECT_DIR$/src/trunk/dynamics/scripting_veragrid_kundor_no_shunt_gui.py</url>
           <line>37</line>
           <option name="timeStamp" value="2979" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/VeraGrid/Gui/RmsModelEditor/block_editor.py</url>
+          <line>277</line>
+          <option name="timeStamp" value="2982" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

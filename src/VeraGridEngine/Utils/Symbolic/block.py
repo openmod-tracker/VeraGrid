@@ -246,3 +246,7 @@ def pi_controller(err: Var, kp: float, ki: float, name: str = "pi") -> Block:
                  children=[blk_kp, blk_int, blk_ki, blk_sum],
                  in_vars=[err],
                  out_vars=[u])
+
+def generic() -> Block:
+    blk = Block()
+    return blk
