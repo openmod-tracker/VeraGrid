@@ -765,12 +765,12 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.ExecuteVeraGrid" />
       <item itemvalue="Python.block_solver" />
       <item itemvalue="Python.test_raw_cgmes_cross_roundtrip" />
-      <item itemvalue="Python.ExecuteVeraGrid" />
       <item itemvalue="Python.update_gui_all" />
-      <item itemvalue="Python tests.pytest for tests.test_symbolic_lp" />
       <item itemvalue="Python tests.pytest for test_state_estimation.test_3_node_abur_exposito" />
+      <item itemvalue="Python tests.pytest for tests.test_symbolic_lp" />
       <item itemvalue="Python tests.pytest in tests" />
     </list>
     <recent_temporary>
