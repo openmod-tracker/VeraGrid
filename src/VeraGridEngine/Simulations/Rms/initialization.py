@@ -190,8 +190,6 @@ def compose_system_block(grid: MultiCircuit,
             var.value = init_val
         sys_block.add(mdl)
 
-        sys_block.add(mdl)
-
     # del buses P, Q
     for i, elm in enumerate(grid.buses):
             mdl = elm.rms_model.model

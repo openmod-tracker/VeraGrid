@@ -28,7 +28,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="vars and equations editor dialog" />
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="undefined vconstant">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -258,7 +260,7 @@
       <recent name="D:\SIROCO\GridCal\src\GridCal\Gui\Diagrams\MapWidget\Branches" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.block_solver">
+  <component name="RunManager">
     <configuration default="true" type="DjangoTestsConfigurationType">
       <module name="GridCalEngine" />
       <option name="ENV_FILES" value="" />
@@ -765,12 +767,12 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.ExecuteVeraGrid" />
       <item itemvalue="Python.block_solver" />
       <item itemvalue="Python.test_raw_cgmes_cross_roundtrip" />
+      <item itemvalue="Python.ExecuteVeraGrid" />
       <item itemvalue="Python.update_gui_all" />
-      <item itemvalue="Python tests.pytest for test_state_estimation.test_3_node_abur_exposito" />
       <item itemvalue="Python tests.pytest for tests.test_symbolic_lp" />
+      <item itemvalue="Python tests.pytest for test_state_estimation.test_3_node_abur_exposito" />
       <item itemvalue="Python tests.pytest in tests" />
     </list>
     <recent_temporary>
@@ -1909,7 +1911,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="615" />
+    <option name="localTasksCounter" value="616" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1955,7 +1957,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Improved rms generator values" />
     <MESSAGE value="Equivalent events in simulations" />
     <MESSAGE value="Worked on the kundur modelling" />
     <MESSAGE value="Loading the kundur model from a file" />
@@ -1980,7 +1981,8 @@
     <MESSAGE value="comparision with Andes using automated and hardcoded VeraGrid" />
     <MESSAGE value="Events fully implemented" />
     <MESSAGE value="vars and equations editor dialog" />
-    <option name="LAST_COMMIT_MESSAGE" value="vars and equations editor dialog" />
+    <MESSAGE value="undefined vconstant" />
+    <option name="LAST_COMMIT_MESSAGE" value="undefined vconstant" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
