@@ -263,7 +263,7 @@
       <recent name="D:\SIROCO\GridCal\src\GridCal\Gui\Diagrams\MapWidget\Branches" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.block_solver">
     <configuration default="true" type="DjangoTestsConfigurationType">
       <module name="GridCalEngine" />
       <option name="ENV_FILES" value="" />
@@ -780,11 +780,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.ExecuteVeraGrid" />
-        <item itemvalue="Python.update_gui_all" />
         <item itemvalue="Python tests.pytest in tests" />
-        <item itemvalue="Python tests.pytest for tests.test_symbolic_lp" />
         <item itemvalue="Python tests.pytest for test_state_estimation.test_3_node_abur_exposito" />
+        <item itemvalue="Python tests.pytest for tests.test_symbolic_lp" />
+        <item itemvalue="Python.update_gui_all" />
+        <item itemvalue="Python.ExecuteVeraGrid" />
       </list>
     </recent_temporary>
   </component>
