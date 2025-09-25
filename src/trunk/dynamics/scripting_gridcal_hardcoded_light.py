@@ -43,7 +43,7 @@ import VeraGridEngine.api as gce
 
 # Build system
 
-
+t = Var("t")
 
 grid = MultiCircuit()
 

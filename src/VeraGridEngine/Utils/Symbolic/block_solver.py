@@ -236,7 +236,7 @@ def _get_jacobian(eqs: List[Expr],
 
 
 
-    def jac_fn(values: np.ndarray, params: np.ndarray) -> sp.csc_matrix:  # noqa: D401 – simple
+
     def jac_fn(values: np.ndarray, params: np.ndarray) -> tuple[csc_matrix, float, float]:  # noqa: D401 – simple
         assert len(values) >= len(variables)
 
