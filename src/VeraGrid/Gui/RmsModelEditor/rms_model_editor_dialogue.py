@@ -66,7 +66,6 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         # Connect category selection to table update
         self.ui.datalistWidget.itemSelectionChanged.connect(self.update_table)
 
-        # self.ui.actionCheckModel.triggered.connect(self.extract_dae)
 
     @property
     def model(self):

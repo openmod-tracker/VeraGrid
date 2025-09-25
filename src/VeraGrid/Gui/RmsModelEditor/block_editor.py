@@ -24,7 +24,7 @@ from VeraGridEngine.Utils.Symbolic.block import (
     integrator,
     generic
 )
-from VeraGridEngine.Utils.Symbolic.symbolic import Var
+from VeraGridEngine.Utils.Symbolic.symbolic import Var, make_symbolic, symbolic_to_string
 from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram, DynamicModelHost
 
 
@@ -426,6 +426,7 @@ class BlockItem(QGraphicsRectItem):
 
         list_widget = QListWidget()
         for v in var_list:
+
             list_widget.addItem(v.name)
         layout.addWidget(list_widget)
 
@@ -436,6 +437,7 @@ class BlockItem(QGraphicsRectItem):
             text, ok = QInputDialog.getText(None, f"Add {title}", "Variable name:")
             if ok and text:
                 var_list.append(Var(text))
+                print(self.subsys.algebraic_vars)
                 list_widget.addItem(text)
 
         add_btn.clicked.connect(add_var)
@@ -450,7 +452,8 @@ class BlockItem(QGraphicsRectItem):
 
         list_widget = QListWidget()
         for eq in eq_list:
-            list_widget.addItem(eq)
+            text = symbolic_to_string(eq)
+            list_widget.addItem(text)
         layout.addWidget(list_widget)
 
         add_btn = QPushButton("+")
@@ -459,7 +462,11 @@ class BlockItem(QGraphicsRectItem):
         def add_eq():
             text, ok = QInputDialog.getText(None, f"Add {title}", "Equation:")
             if ok and text:
-                eq_list.append(text)
+                print(text)
+                sym_expr = make_symbolic(text)
+                print(type(sym_expr))
+                eq_list.append(sym_expr)
+                print(self.subsys.algebraic_eqs)
                 list_widget.addItem(text)
 
         add_btn.clicked.connect(add_eq)
@@ -927,6 +934,9 @@ class BlockEditor(QSplitter):
             block_item.setPos(node.x, node.y)
 
             uid_to_blockitem[uid] = block_item
+
+            for subnode in node:
+                rebuild_scene_from_diagram()
 
         # 2. Recreate connections
         for con in self.diagram.con_data:
