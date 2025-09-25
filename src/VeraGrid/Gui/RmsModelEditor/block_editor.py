@@ -11,7 +11,7 @@ import sys
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QGraphicsScene, QGraphicsView, QGraphicsItem,
                                QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QMenu, QGraphicsPathItem,
                                QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QSplitter, QLabel, QDoubleSpinBox,
-                               QListView, QAbstractItemView)
+                               QListView, QAbstractItemView, QPushButton, QListWidget, QInputDialog)
 from PySide6.QtGui import (QPen, QBrush, QPainterPath, QAction, QPainter, QIcon, QStandardItemModel, QStandardItem,
                            QPixmap, QDropEvent, QDragEnterEvent, QDragMoveEvent)
 from PySide6.QtCore import Qt, QPointF, QByteArray, QDataStream, QIODevice, QModelIndex, QMimeData
@@ -272,33 +272,6 @@ class BlockItem(QGraphicsRectItem):
 
         self._resizing_from_handle = False
 
-    # def mouseDoubleClickEvent(self, event):
-    #     if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
-    #         # open editor for constant value
-    #         dlg = QDialog()
-    #         dlg.setWindowTitle("Edit Constant Value")
-    #         layout = QVBoxLayout(dlg)
-    #
-    #         spin = QDoubleSpinBox(dlg)
-    #         spin.setRange(-1e6, 1e6)
-    #         spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
-    #         layout.addWidget(QLabel("Constant value:"))
-    #         layout.addWidget(spin)
-    #
-    #         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    #         layout.addWidget(buttons)
-    #         buttons.accepted.connect(dlg.accept)
-    #         buttons.rejected.connect(dlg.reject)
-    #
-    #         if dlg.exec() == QDialog.Accepted:
-    #             new_val = spin.value()
-    #             # update underlying block
-    #             self.subsys.value = new_val
-    #             # (optional) update label in scene
-    #             self.name_item.setPlainText(f"Const({new_val})")
-    #
-    #         else:
-    #             super().mouseDoubleClickEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         # --- Constant editing ---
@@ -326,16 +299,13 @@ class BlockItem(QGraphicsRectItem):
 
         # --- Generic block editing ---
         if self.subsys.name == "generic":
-            # from VeraGrid.Gui.RmsModelEditor.block_editor import BlockEditor
-            # from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram
-
             dlg = QDialog()
             dlg.setWindowTitle(f"Editing GENERIC Block ({self.subsys.uid})")
             dlg.resize(800, 600)
             layout = QVBoxLayout(dlg)
 
             # The block’s children become the "main_block" in the sub-editor
-            sub_editor = BlockEditor(model_host=self.model_host, diagram=BlockDiagram())
+            sub_editor = BlockEditor(block=self.subsys, diagram=self.subsys.diagram)
             sub_editor.rebuild_scene_from_diagram()
 
             layout.addWidget(sub_editor)
@@ -396,10 +366,18 @@ class BlockItem(QGraphicsRectItem):
 
     def contextMenuEvent(self, event):
         menu = QMenu()
+
         delete_action = QAction("Remove Block", menu)
         menu.addAction(delete_action)
-        if menu.exec(event.screenPos()) == delete_action:
-            # Remove connections
+
+        edit_action = None
+        if self.subsys.name == "generic":
+            edit_action = QAction("Edit Block", menu)
+            menu.addAction(edit_action)
+
+        chosen = menu.exec(event.screenPos())
+
+        if chosen == delete_action:
             for port in self.inputs + self.outputs:
                 if port.connection:
                     self.scene().removeItem(port.connection)
@@ -407,8 +385,86 @@ class BlockItem(QGraphicsRectItem):
                         port.connection.source_port.connection = None
                     if port.connection.target_port:
                         port.connection.target_port.connection = None
-            # Remove the block itself
             self.scene().removeItem(self)
+
+        elif chosen == edit_action:
+            self.open_generic_editor()
+
+    def open_generic_editor(self):
+        dlg = QDialog()
+        dlg.setWindowTitle(f"Edit Generic Block ({self.subsys.uid})")
+        dlg.resize(600, 400)
+        layout = QVBoxLayout(dlg)
+
+        # Section: Algebraic Variables
+        alg_section = self.create_variable_section("Algebraic Variables", self.subsys.algebraic_vars)
+        layout.addLayout(alg_section)
+
+        # Section: State Variables
+        state_section = self.create_variable_section("State Variables", self.subsys.state_vars)
+        layout.addLayout(state_section)
+
+        # Section: Algebraic Equations
+        alg_eq_section = self.create_equation_section("Algebraic Equations", self.subsys.algebraic_eqs)
+        layout.addLayout(alg_eq_section)
+
+        # Section: State Equations
+        state_eq_section = self.create_equation_section("State Equations", self.subsys.state_eqs)
+        layout.addLayout(state_eq_section)
+
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dlg.accept)
+        layout.addWidget(close_btn)
+
+        dlg.exec()
+
+    def create_variable_section(self, title, var_list):
+        layout = QVBoxLayout()
+
+        label = QLabel(title)
+        layout.addWidget(label)
+
+        list_widget = QListWidget()
+        for v in var_list:
+            list_widget.addItem(v.name)
+        layout.addWidget(list_widget)
+
+        add_btn = QPushButton("+")
+        layout.addWidget(add_btn)
+
+        def add_var():
+            text, ok = QInputDialog.getText(None, f"Add {title}", "Variable name:")
+            if ok and text:
+                var_list.append(Var(text))
+                list_widget.addItem(text)
+
+        add_btn.clicked.connect(add_var)
+
+        return layout
+
+    def create_equation_section(self, title, eq_list):
+        layout = QVBoxLayout()
+
+        label = QLabel(title)
+        layout.addWidget(label)
+
+        list_widget = QListWidget()
+        for eq in eq_list:
+            list_widget.addItem(eq)
+        layout.addWidget(list_widget)
+
+        add_btn = QPushButton("+")
+        layout.addWidget(add_btn)
+
+        def add_eq():
+            text, ok = QInputDialog.getText(None, f"Add {title}", "Equation:")
+            if ok and text:
+                eq_list.append(text)
+                list_widget.addItem(text)
+
+        add_btn.clicked.connect(add_eq)
+
+        return layout
 
 
 class GraphicsView(QGraphicsView):
@@ -555,8 +611,8 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
     if block_type == BlockType.GENERIC:
         blk = generic()
         blk.name = "generic"
-
         return blk
+
 
     # GENERIC / fallback: create a block and attach placeholder vars
     in_vars = placeholders(ins, f"{block_type.name.lower()}_in_")
@@ -754,12 +810,13 @@ class BlockEditor(QSplitter):
     """
 
     def __init__(self,
-                 model_host: DynamicModelHost,
+                 block: Block,
+                 diagram: BlockDiagram,
                  parent=None):
         super().__init__(parent)
-        self.model_host = model_host
-        self.main_block = model_host.model
-        self.diagram = model_host.diagram
+
+        self.main_block = block
+        self.diagram = diagram
 
         # --------------------------------------------------------------------------------------------------------------
         # Widget creation
@@ -791,8 +848,6 @@ class BlockEditor(QSplitter):
         self.setStretchFactor(1, 1000)
 
         self.resize(800, 600)
-
-        self.rebuild_scene_from_diagram()
 
     def graphicsDragEnterEvent(self, event: QDragEnterEvent) -> None:
         """
@@ -826,6 +881,8 @@ class BlockEditor(QSplitter):
             y0 = point0.y()
 
             tpe = self.library_model.get_type(obj_type)
+
+
 
             blk: Block = create_block_of_type(block_type=tpe,
                                               ins=2,
