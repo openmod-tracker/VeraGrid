@@ -10,9 +10,9 @@ from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Utils.Symbolic import Var
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver
 from VeraGridEngine.Simulations.driver_template import DriverTemplate
-from VeraGridEngine.Simulations.Rms.rms_options import RmsOptions
-from VeraGridEngine.Simulations.Rms.rms_results import RmsResults
-from VeraGridEngine.Simulations.Rms.problems.rms_problem import RmsProblem
+from VeraGridEngine.Simulations.SmallSignal_Stability.SmallSignal_options import SmallSignal_Stability_Options
+from VeraGridEngine.Simulations.SmallSignal_Stability.SmallSignal_results import SmallSignal_Stability_Results
+# from VeraGridEngine.Simulations.Rms.problems.rms_problem import RmsProblem
 from VeraGridEngine.Simulations.Rms.numerical.integration_methods import Trapezoid, BackEuler
 from VeraGridEngine.enumerations import EngineType, SimulationTypes, DynamicIntegrationMethod
 from VeraGridEngine.Simulations.PowerFlow.power_flow_driver import PowerFlowResults, PowerFlowOptions
@@ -22,12 +22,12 @@ import VeraGridEngine.api as gce
 
 
 
-class (DriverTemplate):
+class SmallSignal_Stability_Driver(DriverTemplate):
     name = 'Small Signal Stability Simulation'
     tpe = SimulationTypes.SmallSignal_run
 
     def __init__(self, grid: MultiCircuit,
-                 options: SmallSignalOptions,
+                 options: SmallSignal_Stability_Options,
                  pf_results: PowerFlowResults | None,
                  engine: EngineType = EngineType.VeraGrid):
 

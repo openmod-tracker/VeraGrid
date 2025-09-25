@@ -769,14 +769,14 @@ class SimulationsMain(TimeEventsMain):
 
         return ops
 
-    def get_selected_small_signal_stability_options(self) -> SmallSignalOptions:
+    def get_selected_small_signal_stability_options(self) -> sim.SmallSignal_Stability_Options:
         """
         Gather SmallSignal simulation run options
         :return: sim.SmallSignalOptions
         """
-        ops = sim.SmallSignalOptions(
+        ops = sim.SmallSignal_Stability_Options(
             time_step=self.ui.h_spinBox.value(),
-            ss_assessment_time=self.ui.sim_time_spinBox.value(), #todo: change!!
+            ss_assessment_time=self.ui.sim_time_spinBox.value(),
             tolerance=self.ui.tolerance_rms_spinBox.value(),
             integration_method=self.ui.rms_int_method_comboBox.currentText()
         )
