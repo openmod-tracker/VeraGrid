@@ -11,7 +11,7 @@ import sys
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QGraphicsScene, QGraphicsView, QGraphicsItem,
                                QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QMenu, QGraphicsPathItem,
                                QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QSplitter, QLabel, QDoubleSpinBox,
-                               QListView, QAbstractItemView)
+                               QListView, QAbstractItemView, QPushButton, QListWidget, QInputDialog)
 from PySide6.QtGui import (QPen, QBrush, QPainterPath, QAction, QPainter, QIcon, QStandardItemModel, QStandardItem,
                            QPixmap, QDropEvent, QDragEnterEvent, QDragMoveEvent)
 from PySide6.QtCore import Qt, QPointF, QByteArray, QDataStream, QIODevice, QModelIndex, QMimeData
@@ -22,9 +22,10 @@ from VeraGridEngine.Utils.Symbolic.block import (
     variable,
     gain,
     integrator,
+    generic
 )
-from VeraGridEngine.Utils.Symbolic.symbolic import Var
-from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram
+from VeraGridEngine.Utils.Symbolic.symbolic import Var, make_symbolic, symbolic_to_string
+from VeraGridEngine.Devices.Dynamic.dynamic_model_host import BlockDiagram, DynamicModelHost
 
 
 def change_font_size(obj, font_size: int):
@@ -238,7 +239,7 @@ class BlockItem(QGraphicsRectItem):
         # ------------------------
         # API
         # ------------------------
-        self.subsys = block_sys  # << NEW
+        self.subsys = block_sys
 
         # ---------------------------
         # Graphical stuff
@@ -270,6 +271,50 @@ class BlockItem(QGraphicsRectItem):
         self.update_handle_position()
 
         self._resizing_from_handle = False
+
+
+    def mouseDoubleClickEvent(self, event):
+        # --- Constant editing ---
+        if self.subsys.name.lower().startswith("const") or self.subsys.name == "CONSTANT":
+            dlg = QDialog()
+            dlg.setWindowTitle("Edit Constant Value")
+            layout = QVBoxLayout(dlg)
+
+            spin = QDoubleSpinBox(dlg)
+            spin.setRange(-1e6, 1e6)
+            spin.setValue(self.subsys.value if hasattr(self.subsys, "value") else 0.0)
+            layout.addWidget(QLabel("Constant value:"))
+            layout.addWidget(spin)
+
+            buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            layout.addWidget(buttons)
+            buttons.accepted.connect(dlg.accept)
+            buttons.rejected.connect(dlg.reject)
+
+            if dlg.exec() == QDialog.Accepted:
+                new_val = spin.value()
+                self.subsys.value = new_val
+                self.name_item.setPlainText(f"Const({new_val})")
+            return
+
+        # --- Generic block editing ---
+        if self.subsys.name == "generic":
+            dlg = QDialog()
+            dlg.setWindowTitle(f"Editing GENERIC Block ({self.subsys.uid})")
+            dlg.resize(800, 600)
+            layout = QVBoxLayout(dlg)
+
+            # The block’s children become the "main_block" in the sub-editor
+            sub_editor = BlockEditor(block=self.subsys, diagram=self.subsys.diagram)
+            sub_editor.rebuild_scene_from_diagram()
+
+            layout.addWidget(sub_editor)
+
+            dlg.exec()
+            return
+
+        # fallback to default
+        super().mouseDoubleClickEvent(event)
 
     def resize_block(self, width, height):
         # Update geometry safely
@@ -321,10 +366,18 @@ class BlockItem(QGraphicsRectItem):
 
     def contextMenuEvent(self, event):
         menu = QMenu()
+
         delete_action = QAction("Remove Block", menu)
         menu.addAction(delete_action)
-        if menu.exec(event.screenPos()) == delete_action:
-            # Remove connections
+
+        edit_action = None
+        if self.subsys.name == "generic":
+            edit_action = QAction("Edit Block", menu)
+            menu.addAction(edit_action)
+
+        chosen = menu.exec(event.screenPos())
+
+        if chosen == delete_action:
             for port in self.inputs + self.outputs:
                 if port.connection:
                     self.scene().removeItem(port.connection)
@@ -332,8 +385,93 @@ class BlockItem(QGraphicsRectItem):
                         port.connection.source_port.connection = None
                     if port.connection.target_port:
                         port.connection.target_port.connection = None
-            # Remove the block itself
             self.scene().removeItem(self)
+
+        elif chosen == edit_action:
+            self.open_generic_editor()
+
+    def open_generic_editor(self):
+        dlg = QDialog()
+        dlg.setWindowTitle(f"Edit Generic Block ({self.subsys.uid})")
+        dlg.resize(600, 400)
+        layout = QVBoxLayout(dlg)
+
+        # Section: Algebraic Variables
+        alg_section = self.create_variable_section("Algebraic Variables", self.subsys.algebraic_vars)
+        layout.addLayout(alg_section)
+
+        # Section: State Variables
+        state_section = self.create_variable_section("State Variables", self.subsys.state_vars)
+        layout.addLayout(state_section)
+
+        # Section: Algebraic Equations
+        alg_eq_section = self.create_equation_section("Algebraic Equations", self.subsys.algebraic_eqs)
+        layout.addLayout(alg_eq_section)
+
+        # Section: State Equations
+        state_eq_section = self.create_equation_section("State Equations", self.subsys.state_eqs)
+        layout.addLayout(state_eq_section)
+
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dlg.accept)
+        layout.addWidget(close_btn)
+
+        dlg.exec()
+
+    def create_variable_section(self, title, var_list):
+        layout = QVBoxLayout()
+
+        label = QLabel(title)
+        layout.addWidget(label)
+
+        list_widget = QListWidget()
+        for v in var_list:
+
+            list_widget.addItem(v.name)
+        layout.addWidget(list_widget)
+
+        add_btn = QPushButton("+")
+        layout.addWidget(add_btn)
+
+        def add_var():
+            text, ok = QInputDialog.getText(None, f"Add {title}", "Variable name:")
+            if ok and text:
+                var_list.append(Var(text))
+                print(self.subsys.algebraic_vars)
+                list_widget.addItem(text)
+
+        add_btn.clicked.connect(add_var)
+
+        return layout
+
+    def create_equation_section(self, title, eq_list):
+        layout = QVBoxLayout()
+
+        label = QLabel(title)
+        layout.addWidget(label)
+
+        list_widget = QListWidget()
+        for eq in eq_list:
+            text = symbolic_to_string(eq)
+            list_widget.addItem(text)
+        layout.addWidget(list_widget)
+
+        add_btn = QPushButton("+")
+        layout.addWidget(add_btn)
+
+        def add_eq():
+            text, ok = QInputDialog.getText(None, f"Add {title}", "Equation:")
+            if ok and text:
+                print(text)
+                sym_expr = make_symbolic(text)
+                print(type(sym_expr))
+                eq_list.append(sym_expr)
+                print(self.subsys.algebraic_eqs)
+                list_widget.addItem(text)
+
+        add_btn.clicked.connect(add_eq)
+
+        return layout
 
 
 class GraphicsView(QGraphicsView):
@@ -417,12 +555,14 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
     if block_type == BlockType.CONSTANT:
         value = const_value if const_value is not None else 0.0
         y, blk = constant(value, name="const")
+        blk.name = "const"
         blk.in_vars = []
         blk.out_vars = [y]
         return blk
 
     if block_type == BlockType.VARIABLE:
         y, blk = variable(name="variable")
+        blk.name = "variable"
         blk.in_vars = []
         blk.out_vars = [y]
         return blk
@@ -442,6 +582,7 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
         # for SUM use adder; for PRODUCT you may later implement product()
         inputs = placeholders(ins, "sum_in_")
         y, blk = adder(inputs, name="sum_out")
+        blk.name = "sum"
         if not getattr(blk, "in_vars", None):
             blk.in_vars = inputs
         if not getattr(blk, "out_vars", None):
@@ -473,6 +614,12 @@ def create_block_of_type(block_type: BlockType, ins: int, outs: int, const_value
         blk.in_vars = ins_vars
         blk.out_vars = []
         return blk
+
+    if block_type == BlockType.GENERIC:
+        blk = generic()
+        blk.name = "generic"
+        return blk
+
 
     # GENERIC / fallback: create a block and attach placeholder vars
     in_vars = placeholders(ins, f"{block_type.name.lower()}_in_")
@@ -526,6 +673,8 @@ class DiagramScene(QGraphicsScene):
         self._main_block.add(blk)
         self.addItem(block_item)
 
+        # add to the diagram
+
         block_item.setPos(pos)
 
     def mousePressEvent(self, event):
@@ -573,6 +722,10 @@ class DiagramScene(QGraphicsScene):
                     dst_port.block.subsys.in_vars[dst_port.index] = dst_var
 
                     self.addItem(connection)
+
+                    color = connection.pen().color().name()
+                    # save branches in diagram
+                    self.editor.diagram.add_branch(self.source_port.block.subsys.uid, dst_port.block.subsys.uid, self.source_port.index, dst_port.index, color)
                     break
 
             self.removeItem(self.temp_line)
@@ -669,7 +822,7 @@ class BlockEditor(QSplitter):
                  parent=None):
         super().__init__(parent)
 
-        self.block = block
+        self.main_block = block
         self.diagram = diagram
 
         # --------------------------------------------------------------------------------------------------------------
@@ -736,23 +889,72 @@ class BlockEditor(QSplitter):
 
             tpe = self.library_model.get_type(obj_type)
 
+
+
             blk: Block = create_block_of_type(block_type=tpe,
                                               ins=2,
                                               outs=1,
                                               const_value=3)
 
             if blk is not None:
+                self.main_block.add(blk)
                 item = BlockItem(blk)
 
                 self.scene.addItem(item)
                 item.setPos(QPointF(x0, y0))
-
+                # save nodes in diagram
                 self.diagram.add_node(
                     x=x0,
                     y=y0,
                     device_uid=blk.uid,
                     tpe=tpe.name
                 )
+
+    def rebuild_scene_from_diagram(self):
+        """Rebuilds the graphical scene from saved diagram data"""
+        self.scene.clear()
+
+        uid_to_blockitem = {}
+
+        # 1. Recreate nodes
+        for uid, node in self.diagram.node_data.items():
+            block_type = BlockType[node.tpe]
+            ins = 2 if block_type in {BlockType.SUM, BlockType.PRODUCT, BlockType.MIN, BlockType.MAX} else 1
+            outs = 1
+            if block_type == BlockType.SOURCE:
+                ins = 0
+            elif block_type == BlockType.DRAIN:
+                outs = 0
+
+            blk = create_block_of_type(block_type, ins=ins, outs=outs)
+            blk.uid = uid
+
+            block_item = BlockItem(blk)
+            self.scene.addItem(block_item)
+            block_item.setPos(node.x, node.y)
+
+            uid_to_blockitem[uid] = block_item
+
+            for subnode in node:
+                rebuild_scene_from_diagram()
+
+        # 2. Recreate connections
+        for con in self.diagram.con_data:
+            src_item = uid_to_blockitem.get(con.from_uid)
+            dst_item = uid_to_blockitem.get(con.to_uid)
+            if not src_item or not dst_item:
+                continue
+
+            try:
+                src_port = src_item.outputs[con.port_number_from]
+                dst_port = dst_item.inputs[con.port_number_to]
+            except IndexError:
+                continue  # invalid port number
+
+            connection = ConnectionItem(src_port, dst_port)
+            self.scene.addItem(connection)
+
+        self.block_system = self.scene.get_main_block()
 
 
 if __name__ == "__main__":

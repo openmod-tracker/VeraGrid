@@ -13,6 +13,30 @@ from VeraGrid.Gui.RmsModelEditor.block_editor import BlockEditor
 from VeraGridEngine.Devices.Dynamic.dynamic_model_host import DynamicModelHost
 import VeraGridEngine.Devices as dev
 
+def add_vars(model, data_table_model):
+    if model.children:
+        for submodel in model.children:
+            for var, eq in zip(submodel.state_vars, submodel.state_eqs):
+                data_table_model.appendRow([
+                    QStandardItem(var.name),
+                    QStandardItem("state"),
+                    QStandardItem(str(eq)),
+                ])
+            for var, eq in zip(submodel.algebraic_vars, submodel.algebraic_eqs):
+                data_table_model.appendRow([
+                    QStandardItem(var.name),
+                    QStandardItem("algebraic"),
+                    QStandardItem(str(eq)),
+                ])
+            for const in submodel.parameters:
+                data_table_model.appendRow([
+                    QStandardItem(const.name),
+                    QStandardItem("parameter"),
+                    QStandardItem(str(const.value)),
+                ])
+            add_vars(submodel, data_table_model)
+
+
 
 class RmsModelEditorGUI(QtWidgets.QMainWindow):
     """
@@ -31,6 +55,8 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self.model_host: DynamicModelHost = model_host
         self.editor = BlockEditor(block=model_host.model,
                                   diagram=model_host.diagram)
+        self.editor.rebuild_scene_from_diagram()
+
         self.ui.editorLayout.addWidget(self.editor)
 
         # Table model for variables/equations (right side)
@@ -40,11 +66,11 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         # Connect category selection to table update
         self.ui.datalistWidget.itemSelectionChanged.connect(self.update_table)
 
-        # self.ui.actionCheckModel.triggered.connect(self.extract_dae)
 
     @property
     def model(self):
-        return self.editor.block_system
+        return self.editor.main_block
+
 
     def update_table(self):
         items = self.ui.datalistWidget.selectedItems()
@@ -55,32 +81,7 @@ class RmsModelEditorGUI(QtWidgets.QMainWindow):
         self._data_table_model.clear()
         self._data_table_model.setHorizontalHeaderLabels(["Name", "Type", "Equation"])
 
-        if category == "State variables":
-            for submodel in self.model.children:
-                for var, eq in zip(submodel.state_vars, submodel.state_eqs):
-                    self._data_table_model.appendRow([
-                        QStandardItem(var.name),
-                        QStandardItem("state"),
-                        QStandardItem(str(eq)),
-                    ])
-
-        elif category == "Algebraic variables":
-            for submodel in self.model.children:
-                for var, eq in zip(submodel.algebraic_vars, submodel.algebraic_eqs):
-                    self._data_table_model.appendRow([
-                        QStandardItem(var.name),
-                        QStandardItem("algebraic"),
-                        QStandardItem(str(eq)),
-                    ])
-
-        elif category == "Constants":
-            for submodel in self.model.children:
-                for const in submodel.parameters:
-                    self._data_table_model.appendRow([
-                        QStandardItem(const.name),
-                        QStandardItem("parameter"),
-                        QStandardItem(str(const.value)),
-                    ])
+        add_vars(self.model, self._data_table_model)
 
     def extract_dae(self):
         eqs = self.editor.run()

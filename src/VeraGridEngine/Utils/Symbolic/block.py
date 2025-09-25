@@ -14,6 +14,137 @@ from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr
 from VeraGridEngine.enumerations import DynamicVarType
 
 
+@dataclass
+class BlockDiagramNode:
+    x: float
+    y: float
+    tpe: str
+    device_uid: int
+
+    def get_node_dict(self):
+        """
+        get as a dictionary point
+        :return:
+        """
+        return {'x': self.x,
+                'y': self.y,
+                'type': self.tpe,
+                'device_uid': self.device_uid}
+
+
+@dataclass
+class BlockDiagramConnection:
+    from_uid: int
+    to_uid: int
+    port_number_from: int
+    port_number_to: int
+    color: str
+
+    def get_connection_dict(self):
+        """
+        get as a dictionary point
+        :return:
+        """
+        return {'from_uid': self.from_uid,
+                'to_uid': self.to_uid,
+                'port_number_from': self.port_number_from,
+                'port_number_to': self.port_number_to,
+                'color': self.color}
+
+
+
+
+class BlockDiagram:
+    """
+    Diagram
+    """
+
+    def __init__(self, idtag=None, name=''):
+        """
+
+        :param name: Diagram name
+        """
+        self.node_data: Dict[int, BlockDiagramNode] = dict()
+        self.con_data: List[BlockDiagramConnection] = list()
+
+    def add_node(self, x: float, y: float, device_uid: int, tpe: str):
+        """
+
+        :param x:
+        :param y:
+        :param device_uid:
+        :param tpe:
+        :return:
+        """
+        self.node_data[device_uid] = BlockDiagramNode(
+            x=x,
+            y=y,
+            tpe=tpe,
+            device_uid=device_uid
+        )
+
+    def add_branch(self, device_uid_from: int, device_uid_to: int,
+                   port_number_from: int, port_number_to: int, color: str):
+        """
+
+        :param device_uid_from:
+        :param device_uid_to:
+        :param port_number_from:
+        :param port_number_to:
+        :param color:
+        :return:
+        """
+        self.con_data.append(
+            BlockDiagramConnection(
+                from_uid=device_uid_from,
+                to_uid=device_uid_to,
+                port_number_from=port_number_from,
+                port_number_to=port_number_to,
+                color=color
+            )
+        )
+    def get_node_data_dict(self) -> Dict[int, Dict[str, int]]:
+        graph_info ={device_uid: node.get_node_dict() for device_uid, node in self.node_data.items()}
+        return graph_info
+
+    def get_con_data_dict(self) -> Dict[int, Dict[str, int]]:
+        graph_info = {index: connection.get_connection_dict() for index, connection in enumerate(self.con_data)}
+        return graph_info
+
+    def parse_nodes(self, nodes_data) -> None:
+        """
+        Parse file data ito this class
+        :param nodes_data: json dictionary
+         """
+
+        self.node_data = dict()
+        for uid, node in nodes_data.items():
+            self.node_data[uid] = BlockDiagramNode(
+            x=node['x'],
+            y=node['y'],
+            tpe=node['tpe'],
+            device_uid=node['device_uid']
+        )
+
+    def parse_branches(self, con_data)-> None:
+        """
+        Parse file data ito this class
+        :param con_data: json dictionary
+         """
+
+        self.con_data = list()
+        for idx, node in con_data.items():
+            self.con_data.append(BlockDiagramConnection(
+                from_uid=con_data['from_uid'],
+                to_uid=con_data['to_uid'],
+                port_number_from=con_data['port_number_from'],
+                port_number_to=con_data['port_number_to'],
+                color=con_data['color'],
+            ))
+
+
+
+
 def _new_uid() -> int:
     """
     Generate a fresh UUID‑v4 string.
@@ -85,6 +216,9 @@ class Block:
     init_eqs: Dict[Var, Expr] = field(default_factory=dict)
     fix_vars: List[Any] = field(default_factory=list)
     fix_vars_eqs: Dict[Any, Expr] = field(default_factory=dict)
+
+    # diagram to save graphic info:
+    diagram: BlockDiagram = field(default_factory=lambda: BlockDiagram())
 
 
     external_mapping: Dict[DynamicVarType, Var] = field(default_factory=dict)
@@ -246,3 +380,7 @@ def pi_controller(err: Var, kp: float, ki: float, name: str = "pi") -> Block:
                  children=[blk_kp, blk_int, blk_ki, blk_sum],
                  in_vars=[err],
                  out_vars=[u])
+
+def generic() -> Block:
+    blk = Block()
+    return blk

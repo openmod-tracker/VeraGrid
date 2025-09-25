@@ -6,7 +6,7 @@
 from __future__ import annotations
 import json
 import math
-import pdb
+import ast
 import uuid
 import numpy as np
 from enum import Enum
@@ -15,8 +15,6 @@ import numba as nb
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Callable, ClassVar, Dict, Mapping, Union, List, Sequence, Tuple, Set
-
-# from VeraGridEngine.Utils.Symbolic.events import EventParam
 
 NUMBER = Union[int, float, complex]
 
@@ -918,6 +916,107 @@ def _compile(expressions: Sequence[Expr],
         )
     return fn
 
+# mapping of Python operator nodes → our BinOp symbols
+_BINOP_MAP = {
+    ast.Add: "+",
+    ast.Sub: "-",
+    ast.Mult: "*",
+    ast.Div: "/",
+    ast.Pow: "**",
+}
+
+_UNOP_MAP = {
+    ast.USub: "-",
+}
+
+# mapping of allowed function names → our constructor functions
+_FUNC_MAP = {
+    "sin": sin,
+    "cos": cos,
+    "tan": tan,
+    "exp": exp,
+    "log": log,
+    "sqrt": sqrt,
+    "asin": asin,
+    "acos": acos,
+    "atan": atan,
+    "sinh": sinh,
+    "cosh": cosh,
+    "real": real,
+    "imag": imag,
+    "conj": conj,
+    "angle": angle,
+    "abs": abs,           # ⚠️ rename if you avoid shadowing built-in
+    "heaviside": heaviside,
+}
+
+def make_symbolic(expr_str: str, variables: Dict[str, Var] | None = None) -> Expr:
+    """
+    Parse a string like "sin(x) + 2*y" into a symbolic Expr tree.
+    variables: optional mapping of variable names -> Var. If None, new Var is created.
+    """
+    tree = ast.parse(expr_str, mode="eval").body
+
+    def _convert(node: ast.AST) -> Expr:
+        # if isinstance(node, ast.Num):  # Python <3.8
+        #     return Const(node.n)
+        if isinstance(node, ast.Constant):  # Python 3.8+
+            if isinstance(node.value, (int, float, complex)):
+                return Const(node.value)
+            raise TypeError(f"Unsupported constant: {node.value}")
+        if isinstance(node, ast.Name):
+            if variables is not None and node.id in variables:
+                return variables[node.id]
+            return Var(node.id)
+        if isinstance(node, ast.BinOp):
+            op = _BINOP_MAP.get(type(node.op))
+            if op is None:
+                raise TypeError(f"Unsupported binary operator {node.op}")
+            return BinOp(op, _convert(node.left), _convert(node.right))
+        if isinstance(node, ast.UnaryOp):
+            op = _UNOP_MAP.get(type(node.op))
+            if op is None:
+                raise TypeError(f"Unsupported unary operator {node.op}")
+            return UnOp(op, _convert(node.operand))
+        if isinstance(node, ast.Call):
+            if not isinstance(node.func, ast.Name):
+                raise TypeError("Only simple function calls allowed")
+            fname = node.func.id
+            if fname not in _FUNC_MAP:
+                raise ValueError(f"Unknown function '{fname}'")
+            if len(node.args) != 1:
+                raise ValueError(f"Function '{fname}' takes one argument")
+            return _FUNC_MAP[fname](_convert(node.args[0]))
+        raise TypeError(f"Unsupported expression: {ast.dump(node)}")
+
+    return _convert(tree)
+
+def symbolic_to_string(expr: Expr) -> str:
+    """
+    Convert a symbolic expression into a string (parsable by parse_expr).
+    """
+    if isinstance(expr, Const):
+        return str(expr.value)
+    elif isinstance(expr, Var):
+        return expr.name
+    elif isinstance(expr, UnOp):
+        if expr.op == "-":
+            return f"-({symbolic_to_string(expr.operand)})"
+        return f"{expr.op}({symbolic_to_string(expr.operand)})"
+    elif isinstance(expr, BinOp):
+        left = symbolic_to_string(expr.left)
+        right = symbolic_to_string(expr.right)
+        return f"({left} {expr.op} {right})"
+    elif isinstance(expr, Func):
+        return f"{expr.name}({symbolic_to_string(expr.arg)})"
+    elif isinstance(expr, Comparison):
+        left = symbolic_to_string(expr.left)
+        right = symbolic_to_string(expr.right)
+        return f"({left} {expr.op} {right})"
+    else:
+        raise TypeError(f"Unsupported expression type: {type(expr)}")
+
+
 
 # -----------------------------------------------------------------------------
 # Public interface
@@ -937,3 +1036,14 @@ __all__ = [
     "heaviside",
     "piecewise"
 ]
+#
+# x = Var("x")
+# y = Var("y")
+#
+# expr1 = make_symbolic("sin(x) + 2*y", {"x": x, "y": y})
+# print(expr1)  # sin(x) + (2 * y)
+#
+# # You can also create new Vars on the fly:
+# expr2 = make_symbolic("exp(z) + 3")
+# print(expr2)  # exp(z) + 3
+

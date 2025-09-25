@@ -1827,6 +1827,7 @@ class ResultTypes(Enum):
     ClusteringReport = 'Clustering time series report'
 
     # RMS Simulation
+
     RmsSimulationReport = 'Rms time series report'
 
     # RMS Small Signal Stability
