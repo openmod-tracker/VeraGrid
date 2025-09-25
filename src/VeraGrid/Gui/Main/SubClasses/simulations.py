@@ -763,6 +763,20 @@ class SimulationsMain(TimeEventsMain):
         ops = sim.RmsOptions(
             time_step=self.ui.h_spinBox.value(),
             simulation_time=self.ui.sim_time_spinBox.value(),
+            tolerance=self.ui.tolerance_ss_spinBox_2.value(),
+            integration_method=self.ui.ss_int_method_comboBox_2.currentText()
+        )
+
+        return ops
+
+    def get_selected_small_signal_stability_options(self) -> sim.SmallSignal_Stability_Options:
+        """
+        Gather SmallSignal simulation run options
+        :return: sim.SmallSignalOptions
+        """
+        ops = sim.SmallSignal_Stability_Options(
+            time_step=self.ui.ss_h_spinBox_2.value(),
+            ss_assessment_time=self.ui.ss_assessment_time_spinBox_2.value(),
             tolerance=self.ui.tolerance_rms_spinBox.value(),
             integration_method=self.ui.rms_int_method_comboBox.currentText()
         )
@@ -3135,3 +3149,69 @@ class SimulationsMain(TimeEventsMain):
             self._remote_jobs.pop(driver_idtag)
 
             self.show_info_toast(f"Remote results received!")
+    def run_small_signal_stability(self):
+        """
+        Run small signal simulation
+        :return:
+        """
+        if self.circuit.valid_for_simulation():
+
+            if not self.session.is_this_running(SimulationTypes.SmallSignal_run):
+
+                _, pf_results = self.session.power_flow
+
+                if pf_results is not None:
+
+                    self.add_simulation(SimulationTypes.SmallSignal_run)
+
+                    self.LOCK()
+
+                     # Compile the grid
+                    self.ui.progress_label.setText('Compiling the grid...')
+                    QtGui.QGuiApplication.processEvents()
+
+                    # get the small signal stability analysis simulation options from the GUI
+                    options = self.get_selected_small_signal_stability_options()
+
+                    self.ui.progress_label.setText('Performing Small Signal Stability analysis...')
+
+                    drv = sim.SmallSignal_Stability_Driver(grid=self.circuit, options=options, pf_results=pf_results)
+
+                    self.session.run(drv,
+                                post_func=self.post_small_signal_stability,
+                                prog_func=self.ui.progressBar.setValue,
+                                text_func=self.ui.progress_label.setText)
+
+
+                else:
+                    info_msg('Run a power flow simulation first.\n'
+                             'The results are needed to initialize this simulation.')
+            else:
+                self.show_warning_toast('Another Small Signal stability analysis simulation is running already...')
+
+        else:
+            pass
+
+    def post_small_signal_stability(self):
+        """
+
+        :return:
+        """
+        _, results = self.session.small_signal_stability_simulation
+
+        if results is not None:
+
+            # delete from the current simulations
+            self.remove_simulation(SimulationTypes.SmallSignal_run)
+            self.update_available_results()
+
+            # if results.converged:
+            #     self.show_info_toast("Power flow converged :)")
+            # else:
+            #     self.show_warning_toast("Power flow not converged :/")
+
+        else:
+            warning_msg('There are no Small Signal Stability analysis results.', 'Small Signal Stability analysis')
+
+        if not self.session.is_anything_running():
+            self.UNLOCK()

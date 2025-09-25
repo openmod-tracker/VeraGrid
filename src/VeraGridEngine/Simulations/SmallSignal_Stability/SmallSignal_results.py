@@ -1,0 +1,62 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+# SPDX-License-Identifier: MPL-2.0
+
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+import matplotlib.colors as plt_colors
+from typing import List, Tuple, Dict
+
+from VeraGridEngine.Devices.Parents.physical_device import PhysicalDevice
+from VeraGridEngine.Simulations.results_table import ResultsTable
+from VeraGridEngine.Simulations.results_template import ResultsTemplate
+from VeraGridEngine.DataStructures.numerical_circuit import NumericalCircuit
+from VeraGridEngine.basic_structures import IntVec, Vec, StrVec, CxVec, ConvergenceReport, Logger, DateVec
+from VeraGridEngine.enumerations import StudyResultsType, ResultTypes, DeviceType
+from VeraGridEngine.Utils.Symbolic.symbolic import Var
+
+class SmallSignal_Stability_Results(ResultsTemplate):
+
+    def __init__(self,
+                 stability: str,
+                 Eigenvalues: np.ndarray,
+                 PF: np.ndarray,
+                 stat_vars: List[Var],
+                 vars2device: Dict[int, PhysicalDevice],
+                 ):
+        ResultsTemplate.__init__(
+            self,
+            name='Small Signal Stability',
+            available_results=[ResultTypes.SmallSignalStabilityReport],
+            time_array=None,
+            clustering_results=None,
+            study_results_type=StudyResultsType.SmallSignalStability
+        )
+        stat_vars_names = [str(var) + vars2device[var.uid].name for var in stat_vars]
+
+        self.stat_vars_array = np.array(stat_vars_names, dtype=np.str_)
+
+        self.stability = stability
+        self.eigenvalues = Eigenvalues
+        self.participation_factors = PF
+        self.register(name='Stability', tpe=Vec)
+        self.register(name='eigenvalues', tpe=Vec)
+        self.register(name='participation_factors', tpe=Mat)
+
+    def mdl(self, result_type: ResultTypes) -> ResultsTable:
+        """
+        Export the results as a ResultsTable for plotting.
+        """
+        if result_type == ResultTypes.SmallSignalStabilityReport:
+            return ResultsTable(
+                data=np.array(self.participation_factors),
+                index=np.array(self.stat_vars_array.astype(str), dtype=np.str_),
+                columns=np.array(self.eigenvalues.astype(str), dtype=np.str_),
+                title="Rms Small Signal Stability Results",
+                idx_device_type=DeviceType.NoDevice,
+                cols_device_type=DeviceType.NoDevice
+            )
+        else:
+            raise Exception(f"Result type not understood: {result_type}")

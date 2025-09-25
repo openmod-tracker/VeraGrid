@@ -1287,6 +1287,7 @@ class StudyResultsType(Enum):
     NetTransferCapacityTimeSeries = 'NetTransferCapacityTimeSeries'
     StochasticPowerFlow = 'StochasticPowerFlow'
     RmsSimulation = "RmsSimulation"
+    SmallSignalStability = "SmallSignalStability"
 
     def __str__(self):
         return self.value
@@ -1829,6 +1830,9 @@ class ResultTypes(Enum):
 
     RmsSimulationReport = 'Rms time series report'
 
+    # RMS Small Signal Stability
+    SmallSignalStabilityReport = "SmallSignalStabilityReport"
+
     # inputs analysis
     ZoneAnalysis = 'Zone analysis'
     CountryAnalysis = 'Country analysis'
@@ -2019,6 +2023,7 @@ class SimulationTypes(Enum):
     NodalCapacityTimeSeries_run = 'Nodal capacity time series'
     Reliability_run = "Reliability"
     RmsDynamic_run = "RMS Dynamic"
+    SmallSignal_run = "Small Signal stability"
 
     NoSim = "No simulation"
 
