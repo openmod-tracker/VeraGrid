@@ -21,6 +21,7 @@ import numpy as np
 import numba as nb
 import math
 import scipy.sparse as sp
+import scipy.linalg
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix, csc_matrix
 from scipy.sparse.linalg import gmres, spilu, LinearOperator
@@ -32,6 +33,8 @@ from VeraGridEngine.Devices.Dynamic.events import RmsEvents
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Expr, Const, _emit, _emit_params_eq, _heaviside
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Sparse.csc import pack_4_by_4_scipy
+
+from matplotlib import pyplot as plt
 
 
 def _fully_substitute(expr: Expr, mapping: Dict[Var, Expr], max_iter: int = 10) -> Expr:
@@ -202,6 +205,8 @@ def _get_jacobian(eqs: List[Expr],
         else:
             check_set.add(v)
 
+    # Cache compiled partials by UID so duplicates are reused
+    fn_cache: Dict[str, Callable] = {}
     triplets: List[Tuple[int, int, Callable]] = []  # (col, row, fn)
 
     for row, eq in enumerate(eqs):
@@ -229,6 +234,9 @@ def _get_jacobian(eqs: List[Expr],
                                   indptr.copy()),
                                  shape=(len(eqs), len(variables)))
 
+
+
+    def jac_fn(values: np.ndarray, params: np.ndarray) -> sp.csc_matrix:  # noqa: D401 – simple
     def jac_fn(values: np.ndarray, params: np.ndarray) -> tuple[csc_matrix, float, float]:  # noqa: D401 – simple
         assert len(values) >= len(variables)
 
@@ -250,7 +258,54 @@ def _get_jacobian(eqs: List[Expr],
 
         return csc_matrix, jac_eval_time, csc_matrix_time
 
+        jac_values = functions_ptr(values, params)
+        data = np.array(jac_values, dtype=np.float64)
+
+        return sp.csc_matrix((data, indices, indptr), shape=(len(eqs), len(variables)))
+
     return jac_fn
+
+
+# def compose_system_block(grid: MultiCircuit, power_flow_results) -> Block:
+#     """
+#     Compose all RMS models
+#     :return: System block
+#     """
+#     # already computed grid power flow
+#     res = power_flow_results
+#
+#     # create the system block
+#     sys_block = Block(children=[], in_vars=[])
+#
+#     # initialize set variables list
+#     already_set: List[Var] = list()
+#
+#     # buses
+#     for i, elm in enumerate(grid.buses):
+#         mdl = elm.rms_model.model
+#         #mdl.compute_init_guess
+#         # set already computed values
+#         Vm0 = res.voltage[i]
+#         already_set.append(Vm0)
+#         init_eqs = mdl.init_eqs
+#         sys_block.children.append(mdl)
+#
+#     # branches
+#     for elm in grid.get_branches_iter(add_vsc=True, add_hvdc=True, add_switch=True):
+#         mdl = elm.rms_model.model
+#         #mdl.compute_init_guess
+#         init_eqs = mdl.init_eqs
+#         sys_block.children.append(mdl)
+#
+#     # initialize injections
+#     for elm in grid.get_injection_devices_iter():
+#         mdl = elm.rms_model.model
+#         #mdl.compute_init_guess
+#         init_eqs = mdl.init_eqs
+#         sys_block.children.append(mdl)
+#
+#     return sys_block
+
 
 class BlockSolver:
     """
@@ -483,53 +538,6 @@ class BlockSolver:
 
         else:
             return f_algeb
-
-    # def jacobian_implicit(
-    #         self,
-    #         x: np.ndarray,
-    #         params: np.ndarray,
-    #         h: float,
-    #         n_processes: int = 4
-    # ) -> Tuple[sp.csc_matrix, float, float]:
-    #     """
-    #     Compute the implicit Jacobian:
-    #         | I - h*J11   -h*J12 |
-    #         | J21         J22    |
-    #     using pathos multiprocessing to parallelize the four Jacobians.
-    #     """
-    #
-    #     tasks = [
-    #         (self._j11_fn, (x, params)),
-    #         (self._j12_fn, (x, params)),
-    #         (self._j21_fn, (x, params)),
-    #         (self._j22_fn, (x, params))
-    #     ]
-    #
-    #     # Use pathos ProcessingPool
-    #     with Pool(nodes=n_processes) as pool:
-    #         # pathos can map closures/lambdas directly
-    #         results = pool.map(lambda t: t[0](*t[1]), tasks)
-    #
-    #     # Unpack results
-    #     (j11_val, jac_time11, csc_time11), \
-    #         (j12_val, jac_time12, csc_time12), \
-    #         (j21_val, jac_time21, csc_time21), \
-    #         (j22_val, jac_time22, csc_time22) = results
-    #
-    #     # Total timing
-    #     jac_time = jac_time11 + jac_time12 + jac_time21 + jac_time22
-    #     csc_time = csc_time11 + csc_time12 + csc_time21 + csc_time22
-    #
-    #     # Build blocks
-    #     I = sp.eye(self._n_state, self._n_state)
-    #     j11: sp.csc_matrix = (I - h * j11_val).tocsc()
-    #     j12: sp.csc_matrix = - h * j12_val
-    #     j21: sp.csc_matrix = j21_val
-    #     j22: sp.csc_matrix = j22_val
-    #
-    #     J = pack_4_by_4_scipy(j11, j12, j21, j22)
-    #
-    #     return J, jac_time, csc_time
 
     def full_jacobian_implicit(self, x: np.ndarray, params: np.ndarray, h: float) -> tuple[sp.csc_matrix, float, float]:
         """
@@ -990,8 +998,9 @@ class BlockSolver:
             h: float,
             x0: np.ndarray,
             params0: np.ndarray,
-            method: str,
-            newton_tol: float = 1e-8,
+            time: Var,
+            method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
+            newton_tol: float = 1e-10,
             newton_max_iter: int = 1000,
 
     ) -> Tuple[np.ndarray, np.ndarray ]:
@@ -1110,7 +1119,7 @@ class BlockSolver:
 
                 if step_idx == 0:
                     if converged:
-                        print("System well initailzed.")
+                        print("System well initialized.")
                     else:
                         print(f"System bad initilaized. DAE resiudal is {residual}.")
 
@@ -1187,3 +1196,90 @@ class BlockSolver:
             df_simulation_results.to_csv(filename, index=False)
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
+
+    def stability_assessment(self, x: np.ndarray, params: np.ndarray, plot = True):
+        """
+
+            Parameters:
+            ----------
+            x: 1D numpy array
+                variables
+            params: 1D numpy array
+                parameters
+            plot: True(default) if S-domain eigenvalues plot wanted. Else: False
+            Returns:
+            ----------
+            stability: str
+                "Unstable", "Marginally stable" or "Asymptotically stable"
+            eigenvalues:  1D row numpy array
+            participation factors: 2D array csc matrix.
+                Participation factors of mode i stored in PF[:,i]
+
+            Small Signal Stability analysis:
+            1. Calculate the state matrix (A) from the state space model. From the DAE model:
+                Tx'=f(x,y)
+                0=g(x,y)
+                the A matrix is computed as:
+                A = T^-1(f_x - f_y * g_y^{-1} * g_x)   #T is implicit in the jacobian!
+
+            2. Find eigenvalues and right(V) and left(W) eigenvectors
+
+            3. Perform stability assessment
+
+            4. Calculate normalized participation factors PF = W · V
+
+        """
+
+        fx = self._j11_fn(x, params)  # ∂f/∂x
+        fy = self._j12_fn(x, params)  # ∂f/∂y
+        gx = self._j21_fn(x, params)  # ∂g/∂x
+        gy = self._j22_fn(x, params)  # ∂g/∂y
+
+        gyx = spsolve(gy, gx)
+        A = (fx - fy @ gyx)  # sparse state matrix csc matrix
+        An = A.toarray()
+
+        num_states = A.shape[0]
+
+        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)
+        V = sp.csc_matrix(V) #right
+        W = sp.csc_matrix(W) #left
+
+        PF = sp.lil_matrix(A.shape)
+        for row in range(W.shape[0]):
+            for column in range(W.shape[0]):
+                PF[row, column] = abs(W[row, column]) * abs(V[row, column])  #find participation factors
+
+        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
+        for i in range(len(Eigenvalues)):
+            PF[:, i] /= PF_abs[0, i] #normalize participation factors
+
+        # Stability: select positive and zero eigenvalues
+        tol = 1e-6  # numerical tolerance for eigenvalues = 0
+        unstable_eigs = Eigenvalues[np.real(Eigenvalues) > tol]
+        zero_eigs = Eigenvalues[abs(np.real(Eigenvalues)) <= tol]
+        stable_eigs = Eigenvalues[np.real(Eigenvalues) < -tol]
+
+        if unstable_eigs.size == 0:
+            if zero_eigs.size == 0:
+                stability = "Asymptotically stable"
+            else:
+                stability = "Marginally stable"
+        else:
+            stability = "Unstable"
+
+        if plot == True:
+            x = Eigenvalues.real
+            y = Eigenvalues.imag
+
+            plt.scatter(x, y, marker='x', color='blue')
+            plt.xlabel("Re [s -1]")
+            plt.ylabel("Im [s -1]")
+            plt.title("Stability plot")
+            plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
+            plt.axvline(0, color='black', linewidth=1)
+            # plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+
+        return stability, Eigenvalues, PF

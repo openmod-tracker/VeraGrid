@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import numpy as np
-from matplotlib import pyplot as plt
+import pandas as pd
 
 import sys
 import time
@@ -130,9 +130,6 @@ line13 = grid.add_line(
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
 
 # Transformers
-
-
-#
 trafo_G1 = grid.add_line(
     Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
@@ -148,30 +145,6 @@ trafo_G3 = grid.add_line(
 trafo_G4 = grid.add_line(
     Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
              r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
-
-# trafo_G1_line = Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
-#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
-#
-# trafo_G2_line = Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
-#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
-#
-# trafo_G3_line = Line(name="trafo 11-3", bus_from=bus11, bus_to=bus3,
-#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
-#
-# trafo_G4_line = Line(name="trafo 10-4", bus_from=bus10, bus_to=bus4,
-#                      r=0.0, x=0.15*(100/900), b=0.0, rate=900.0)
-#
-# trafo_G1 = trafo_G1_line.get_equivalent_transformer()
-# trafo_G2 = trafo_G2_line.get_equivalent_transformer()
-# trafo_G3 = trafo_G3_line.get_equivalent_transformer()
-# trafo_G4 = trafo_G4_line.get_equivalent_transformer()
-#
-#
-# grid.add_transformer2w(trafo_G1)
-# grid.add_transformer2w(trafo_G2)
-# grid.add_transformer2w(trafo_G3)
-# grid.add_transformer2w(trafo_G4)
-
 
 # load
 load1 = Load(name="load1", P=967.0, Q=100.0, Pl0=-9.670000000007317, Ql0=-0.9999999999967969)
@@ -300,6 +273,7 @@ grid.add_generator(bus=bus4, api_obj=gen4)
 # Events
 # ---------------------------------------------------------------------------------------
 
+# event1 = RmsEvent(load1, "Pl0", np.array([2.5, 12.5]), np.array([-9.0, -9.01]))
 event1 = RmsEvent(load1, "Pl0", np.array([2.5]), np.array([-9.0]))
 
 # event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
@@ -397,3 +371,16 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 # plt.grid(True)
 # plt.tight_layout()
 # plt.show()
+
+#stability assessment
+start_stability = time.time()
+# stab, Eigenvalues, PFactors = slv.stability_assessment(x=y[1000], params=params0, plot = True)
+stab, Eigenvalues, PFactors = slv.stability_assessment(x=x0, params=params0, plot = True)
+end_stability = time.time()
+print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
+
+print("Stability assessment:", stab)
+print("Eigenvalues:", Eigenvalues)
+print("Participation factors:", PFactors.toarray())
+df_Eig = pd.DataFrame(Eigenvalues)
+df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
