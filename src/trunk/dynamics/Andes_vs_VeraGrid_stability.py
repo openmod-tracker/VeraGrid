@@ -6,46 +6,36 @@ import pdb
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy.linalg
 
 #Eigenvalues = [2,3,4,5,6,7,8]
 #df_Eig = pd.DataFrame(Eigenvalues)
 #df_Eig.to_csv("Eigenvalues_results.csv", index=False)
 
 
-
-def merge_stability_results ( csv1, csv2):
-    #VeraGrid_Eig = np.loadtxt("Eigenvalues_results.csv", delimiter=",")
-    #Andes_Eig = np.loadtxt("Eigenvalues_results_Andes.csv", delimiter=",")
-    VeraGrid_Eig = np.genfromtxt("Eigenvalues_results.csv", delimiter=",", dtype=complex)
-    Andes_Eig = np.genfromtxt("Eigenvalues_results_Andes.csv", delimiter=",", dtype=complex)
+def Andes_vs_Veragrid_stability(eigV, eigA):
+    VeraGrid_Eig = np.genfromtxt(eigV, delimiter=",", dtype=complex)
+    Andes_Eig = np.genfromtxt(eigA, delimiter=",", dtype=complex)
 
     VeraGrid_Eig_ord = VeraGrid_Eig[np.argsort(-np.abs(VeraGrid_Eig))]
     Andes_Eig_ord = Andes_Eig[np.argsort(-np.abs(Andes_Eig))]
 
     #print("vera eig:", VeraGrid_Eig_ord)
     #print("andes eig:", Andes_Eig_ord)
-    """
-    tol = 1e-10
-    for e in range(len(VeraGrid_Eig_ord)):
-        if abs(VeraGrid_Eig_ord[e]) < tol:
-            VeraGrid_Eig_ord[e] = 1e-20
-    for e in range(len(Andes_Eig_ord)):
-        if abs(Andes_Eig_ord[e]) < tol:
-            Andes_Eig_ord[e] = 1e-20
-    
 
-    if not len(VeraGrid_Eig_ord) == len(Andes_Eig_ord):
-        VeraGrid_Eig_ord = VeraGrid_Eig_ord[:-4]
-    """
-    #print("vera eig ord:", VeraGrid_Eig_ord)
-    #print("andes eig ord:", Andes_Eig_ord)
+    print("vera eig ord:", VeraGrid_Eig_ord)
+    print("andes eig ord:", Andes_Eig_ord)
     print("vera eig ord abs:", np.abs(VeraGrid_Eig_ord))
     print("andes eig ord abs:", np.abs(Andes_Eig_ord))
 
-    rel_err = np.where(np.abs(Andes_Eig_ord) != 0, np.abs(np.abs(Andes_Eig_ord) - np.abs(VeraGrid_Eig_ord)) *100/ np.abs(Andes_Eig_ord), 0)
+    rel_err = np.ndarray(VeraGrid_Eig_ord.shape)
     for i in range(len(Andes_Eig_ord)):
         if np.abs(Andes_Eig_ord[i]) <= 1e-10:
             rel_err[i] = float('inf')
+        else:
+            rel_err[i] = np.where(np.abs(Andes_Eig_ord[i]) != 0,
+                               np.abs(np.abs(Andes_Eig_ord[i]) - np.abs(VeraGrid_Eig_ord[i])) * 100 / np.abs(Andes_Eig_ord[i]),
+                               0)
 
     """
     rel_err = np.zeros_like(VeraGrid_Eig_ord).real.astype(float)
@@ -62,8 +52,8 @@ def merge_stability_results ( csv1, csv2):
     x2= Andes_Eig_ord.real
     y2 = Andes_Eig_ord.imag
 
-    plt.scatter(x1, y1, marker='o', color='orange', label='VeraGrid')
-    plt.scatter(x2, y2, marker='x', color='blue', label='Andes')
+    plt.scatter(x2, y2, marker='o', color='orange', label='Andes')
+    plt.scatter(x1, y1, marker='x', color='blue', label='VeraGrid')
     plt.xlabel("Re [s -1]")
     plt.ylabel("Im [s -1]")
     plt.title("Stability plot")
@@ -76,7 +66,5 @@ def merge_stability_results ( csv1, csv2):
     plt.tight_layout()
     plt.show()
 
+Andes_vs_Veragrid_stability("Eigenvalues_results.csv", "Eigenvalues_results_Andes.csv")
 
-
-
-merge_stability_results('Eigenvalues_results.csv','Eigenvalues_results_Andes.csv')

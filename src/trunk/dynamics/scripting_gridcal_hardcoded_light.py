@@ -6,7 +6,6 @@
 import numpy as np
 import pandas as pd
 
-
 import sys
 import time
 import os
@@ -24,7 +23,7 @@ import VeraGridEngine.api as gce
 # ----------------------------------------------------------------------------------------------------------------------
 # Load system
 # TODO: be careful! this is _noshunt, such that the initialization it's easier because we have one device per bus. 
-# In scriptin_gridcal_hardcoded there are also shunt elements!
+# In scripting_gridcal_hardcoded there are also shunt elements!
 grid_1 = gce.open_file('Two_Areas_PSS_E/Benchmark_4ger_33_2015_noshunt.raw')
 # Run power flow
 res_1 = gce.power_flow(grid_1)
@@ -67,6 +66,7 @@ grid.add_bus(bus10)
 grid.add_bus(bus11)
 
 # Line
+
 line0 = grid.add_line(
     gce.Line(name="line 5-6-1", bus_from=bus5, bus_to=bus6,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
@@ -122,11 +122,11 @@ line12 = grid.add_line(
 line13 = grid.add_line(
     gce.Line(name="line 10-11-2", bus_from=bus10, bus_to=bus11,
              r=0.00500, x=0.05000, b=0.02187, rate=750.0))
-
 # Transformers
+xt1 = 0.15 * (100.0/900.0)
 trafo_G1 = grid.add_line(
     gce.Line(name="trafo 5-1", bus_from=bus5, bus_to=bus1,
-             r=0.00000, x=0.15 * (100.0/900.0), b=0.0, rate=900.0))
+             r=0.00000, x=xt1, b=0.0, rate=900.0))
 
 trafo_G2 = grid.add_line(
     gce.Line(name="trafo 6-2", bus_from=bus6, bus_to=bus2,
@@ -214,8 +214,9 @@ gen1 = gce.Generator(
     x1=xd_1, r1=ra_1, freq=fn_1,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.999999999999923,
-    vf=1.141048034212655,
+    tm0=6.999999999999999,
+    vf=1.1410480598099169,
+    # vf0=1.141048034212655,
     M=M_1, D=D_1,
     omega_ref=omega_ref_1,
     Kp=Kp_1, Ki=Ki_1
@@ -226,8 +227,9 @@ gen2 = gce.Generator(
     x1=xd_2, r1=ra_2, freq=fn_2,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.999999999999478,
-    vf=1.180101792122771,
+    tm0=6.999999999999998,
+    vf=1.1801018702912192, ###
+    # vf0=1.180101792122771, ###
     M=M_2, D=D_2,
     omega_ref=omega_ref_2,
     Kp=Kp_2, Ki=Ki_2
@@ -238,8 +240,9 @@ gen3 = gce.Generator(
     x1=xd_3, r1=ra_3, freq=fn_3,
     # vf=1.0,
     # tm0=719.091/900.0,  # ≈ 0.7990
-    tm0=7.331832804674334,
-    vf=1.1551307366822237,
+    tm0=7.331838148595014,
+    vf=1.15513088317088697, ###
+    # vf0=1.1551307366822237, ###
     M=M_3, D=D_3,
     omega_ref=omega_ref_3,
     Kp=Kp_3, Ki=Ki_3
@@ -250,8 +253,9 @@ gen4 = gce.Generator(
     x1=xd_4, r1=ra_4, freq=fn_4,
     # vf=1.0,
     # tm0=700.0/900.0,   # ≈ 0.7778
-    tm0=6.99999999999765,
-    vf=1.2028205849036708,
+    tm0=6.999999999999998,
+    vf=1.2028207647478641, ###
+    # vf0=1.2028205849036708, ###
     M=M_4, D=D_4,
     omega_ref=omega_ref_4,
     Kp=Kp_4, Ki=Ki_4
@@ -267,13 +271,14 @@ grid.add_generator(bus=bus4, api_obj=gen4)
 # Events
 # ---------------------------------------------------------------------------------------
 
-event1 = RmsEvent(load1, "Pl0", np.array([2.5, 12.5]), np.array([-9.0, -9.01]))
+# event1 = RmsEvent(load1, "Pl0", np.array([2.5, 12.5]), np.array([-9.0, -9.01]))
+event1 = RmsEvent(load1, "Pl0", np.array([2.5]), np.array([-9.0]))
 
-event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
+# event2 = RmsEvent(load1, "Ql0", np.array([16.5]), np.array([-0.8]))
 
 
 grid.add_rms_event(event1)
-grid.add_rms_event(event2)
+# grid.add_rms_event(event2)
 
 # # Run power flow
 options = gce.PowerFlowOptions(
@@ -334,7 +339,7 @@ start_simulation = time.time()
 
 t, y = slv.simulate(
     t0=0,
-    t_end=20.0,
+    t_end=30.0,
     h=0.001,
     x0=x0,
     params0=params0,
@@ -346,7 +351,7 @@ end_simulation = time.time()
 print(f"Automatic simulation time = {end_simulation-start_simulation:.6f} [s]")
 
 
-# TODO: check results and implement test once intilize_rms is wokring!
+# TODO: check results and implement test once initialize_rms is working!
 # # Save to csv
 slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, csv_saving=True)
 
@@ -365,22 +370,19 @@ slv.save_simulation_to_csv('simulation_results_Ieee_automatic_init.csv', t, y, c
 # plt.tight_layout()
 # plt.show()
 
+# print("x0:", x0)
+# print("size x0:", x0.shape)
+# print("params0:", params0)
+
 #stability assessment
 start_stability = time.time()
-
-stab, Eigenvalues, V, W, PF, A = slv.stability_assessment(z=x0, params=params0, plot = True)
-
+# stab, Eigenvalues, PFactors = slv.stability_assessment(x=y[1000], params=params0, plot = True)
+stab, Eigenvalues, PFactors = slv.stability_assessment(x=x0, params=params0, plot = True)
 end_stability = time.time()
 print(f"Time for stability assessment = {end_stability - start_stability:.6f} [s]")
 
-print("State matrix A:", A.toarray())
 print("Stability assessment:", stab)
 print("Eigenvalues:", Eigenvalues)
-#print("Right eivenvectors:", V)
-#print("Left eigenvectors:", W)
-print("Participation factors:", PF.toarray())
-
+print("Participation factors:", PFactors.toarray())
 df_Eig = pd.DataFrame(Eigenvalues)
 df_Eig.to_csv("Eigenvalues_results.csv", index=False , header = False)
-df_A = pd.DataFrame(A.toarray())
-df_A.to_csv("A_results.csv", index=False , header = False)

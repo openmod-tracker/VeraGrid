@@ -20,9 +20,10 @@ import math
 import scipy.sparse as sp
 import scipy.linalg
 from scipy.sparse.linalg import spsolve
-from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import gmres, spilu, LinearOperator, inv
+from scipy.sparse import csr_matrix, identity
+from scipy.sparse.linalg import gmres, spilu, LinearOperator, inv, spsolve
 from typing import Dict, List, Literal, Any, Callable, Sequence
+
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
@@ -265,10 +266,9 @@ class BlockSolver:
         uid2sym_t[self.time.uid] = f"time"
         self.uid2idx_t[self.time.uid] = k
 
-
-
         # Compile RHS and Jacobian
         """
+        
                    state Var   algeb var  
         state eq |J11        | J12       |    | ∆ state var|    | ∆ state eq |
                  |           |           |    |            |    |            |
@@ -829,7 +829,7 @@ class BlockSolver:
             params0: np.ndarray,
             time: Var,
             method: Literal["rk4", "euler", "implicit_euler"] = "rk4",
-            newton_tol: float = 1e-8,
+            newton_tol: float = 1e-10,
             newton_max_iter: int = 1000,
 
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -897,7 +897,7 @@ class BlockSolver:
                                  x0: np.ndarray,
                                  params0: np.ndarray,
                                  time,
-                                 tol=1e-6,
+                                 tol=1e-8,
                                  max_iter=1000):
         """
         :param t0:
@@ -929,7 +929,7 @@ class BlockSolver:
 
                 if step_idx == 0:
                     if converged:
-                        print("System well initailzed.")
+                        print("System well initialized.")
                     else:
                         print(f"System bad initilaized. DAE resiudal is {residual}.")
 
@@ -972,6 +972,7 @@ class BlockSolver:
         all_vars = self._state_vars + self._algebraic_vars
         var_names = [str(var) + '_VeraGrid' for var in all_vars]
 
+
         # Create DataFrame with time and variable data
         df_simulation_results = pd.DataFrame(data=y, columns=var_names)
         df_simulation_results.insert(0, 'Time [s]', t)
@@ -981,57 +982,62 @@ class BlockSolver:
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
 
-    def stability_assessment(self, z: np.ndarray, params: np.ndarray, plot = False):
+    def stability_assessment(self, x: np.ndarray, params: np.ndarray, plot = True):
         """
-            Stability analisys:
+
+            Parameters:
+            ----------
+            x: 1D numpy array
+                variables
+            params: 1D numpy array
+                parameters
+            plot: True(default) if S-domain eigenvalues plot wanted. Else: False
+            Returns:
+            ----------
+            stability: str
+                "Unstable", "Marginally stable" or "Asymptotically stable"
+            eigenvalues:  1D row numpy array
+            participation factors: 2D array csc matrix.
+                Participation factors of mode i stored in PF[:,i]
+
+            Small Signal Stability analysis:
             1. Calculate the state matrix (A) from the state space model. From the DAE model:
                 Tx'=f(x,y)
                 0=g(x,y)
                 the A matrix is computed as:
-                A = T^-1(f_x - f_y * g_y^{-1} * g_x)
+                A = T^-1(f_x - f_y * g_y^{-1} * g_x)   #T is implicit in the jacobian!
 
-            2. Find eigenvalues and right and left eigenvectors
-                for left eigenvectors: bi-orthogonality: W.T@V =I --> W = inv(V).T
+            2. Find eigenvalues and right(V) and left(W) eigenvectors
 
             3. Perform stability assessment
 
-            Returns:
-            stability: "Unstable", "Marginally stable" or "Asymptotically stable"
-            ndarray with the positive eigenvalues (unstable ones)
-            -------
-            ??
+            4. Calculate normalized participation factors PF = W · V
+
         """
-        fx = self._j11_fn(z, params)  # ∂f_state/∂x
-        fy = self._j12_fn(z, params)  # ∂f_state/∂y
-        gx = self._j21_fn(z, params)  # ∂g/∂x
-        gy = self._j22_fn(z, params)  # ∂g/∂y
 
-        gxy = inv(gy) @ gx
-        A = (fx - fy @ gxy)  # sparse state matrix csc matrix
+        fx = self._j11_fn(x, params)  # ∂f/∂x
+        fy = self._j12_fn(x, params)  # ∂f/∂y
+        gx = self._j21_fn(x, params)  # ∂g/∂x
+        gy = self._j22_fn(x, params)  # ∂g/∂y
+
+        gyx = spsolve(gy, gx)
+        A = (fx - fy @ gyx)  # sparse state matrix csc matrix
         An = A.toarray()
+
         num_states = A.shape[0]
-        det_A = np.linalg.det(An)
-        #print("determinant A=", det_A)
 
-        Eigenvalues, V = scipy.linalg.eig(An)  # find eigenvalues and right eigenvectors(V)
-        V = sp.csc_matrix(V)
+        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)
+        V = sp.csc_matrix(V) #right
+        W = sp.csc_matrix(W) #left
 
-        W = sp.csc_matrix(inv(V).T)  # left eigenvectors
-
-
-        Wabs = sp.lil_matrix((W.shape[0], W.shape[0]))
-        Vabs = sp.lil_matrix((V.shape[0], V.shape[0]))
+        PF = sp.lil_matrix(A.shape)
         for row in range(W.shape[0]):
             for column in range(W.shape[0]):
-                Wabs[row, column] = abs(W[row, column])
-                Vabs[row, column] = abs(V[row, column])
-        Wabs = Wabs.tocsc()
-        Vabs = Vabs.tocsc()
-        PF = Wabs.multiply(Vabs)
-        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
+                PF[row, column] = abs(W[row, column]) * abs(V[row, column])  #find participation factors
 
+        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
         for i in range(len(Eigenvalues)):
-            PF[:, i] /= PF_abs[0, i]
+            PF[:, i] /= PF_abs[0, i] #normalize participation factors
 
         # Stability: select positive and zero eigenvalues
         tol = 1e-6  # numerical tolerance for eigenvalues = 0
@@ -1039,7 +1045,6 @@ class BlockSolver:
         zero_eigs = Eigenvalues[abs(np.real(Eigenvalues)) <= tol]
         stable_eigs = Eigenvalues[np.real(Eigenvalues) < -tol]
 
-        stability = ""
         if unstable_eigs.size == 0:
             if zero_eigs.size == 0:
                 stability = "Asymptotically stable"
@@ -1056,12 +1061,10 @@ class BlockSolver:
             plt.xlabel("Re [s -1]")
             plt.ylabel("Im [s -1]")
             plt.title("Stability plot")
-            # plt.xlim([-5, 5])
-            # plt.ylim([-5, 5])
             plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
             plt.axvline(0, color='black', linewidth=1)
             # plt.grid(True)
             plt.tight_layout()
             plt.show()
 
-        return stability, Eigenvalues, V, W, PF, A
+        return stability, Eigenvalues, PF

@@ -29,8 +29,8 @@ def merge_simulation_results_by_time(csv1, csv2, output_csv= 'merged_data_Andes_
     """
 
     # Load both CSV files
-    df1 = pd.read_csv(csv1)
-    df2 = pd.read_csv(csv2)
+    df1 = pd.read_csv(csv1)  #andes
+    df2 = pd.read_csv(csv2)  #VeraGrid
 
     # Sort both by time column
     df1 = df1.sort_values(by=time_col)
@@ -58,14 +58,15 @@ merged_df = comparison
 # merged_df['Pl_Gridcal'] = merged_df['Pl_Gridcal'] * (-100)
 
 variable_pairs = [
-     [f"omega_andes_gen_1", f"omega_VeraGrid"],
-     [f"omega_andes_gen_2", f"omega_VeraGrid.1"],
-     [f"omega_andes_gen_3", f"omega_VeraGrid.2"],
-     [f"omega_andes_gen_4", f"omega_VeraGrid.3"],
-     # [f"Vline_to_Gridcal", f"Vm_Gridcal.1"],
-     # [f"dline_to_Gridcal", f"Va_Gridcal.1"],
-     # [f"dline_from_Gridcal", f"Va_Gridcal"],
-     # [f"Vline_from_Gridcal", f"Vm_Gridcal"]
+     [f"omega_andes_gen_1", f"omegaGen1_VeraGrid"],
+     [f"omega_andes_gen_2", f"omegaGen2_VeraGrid"],
+     [f"omega_andes_gen_3", f"omegaGen3_VeraGrid"],
+     [f"omega_andes_gen_4", f"omegaGen4_VeraGrid"],
+     [f"v_andes_Bus_1", f"VmBus1_VeraGrid"],
+     # [f"Vline_to_Veragrid", f"Vm_VeraGrid.1"],
+     # [f"dline_to_Gridcal", f"Va_VeraGrid.1"],
+     # [f"dline_from_Gridcal", f"Va_VeraGrid"],
+     # [f"Vline_from_Gridcal", f"Vm_VeraGrid"]
     ]
 
 
@@ -102,4 +103,6 @@ plt.subplots_adjust(top=0.95)
 plt.show()
 
 # plt.savefig('comparison_plots.png', dpi=300)
+
+
 
