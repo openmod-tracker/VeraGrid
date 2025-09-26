@@ -60,3 +60,12 @@ class SmallSignal_Stability_Results(ResultsTemplate):
             )
         else:
             raise Exception(f"Result type not understood: {result_type}")
+
+    def plot(self, fig, ax):
+        """
+        Plot the S-Domain modes plot
+        :param fig: Matplotlib figure. If None, one will be created
+        :param ax: Matplotlib Axis. If None, one will be created
+        """
+        if ax is None:
+            fig = plt.figure

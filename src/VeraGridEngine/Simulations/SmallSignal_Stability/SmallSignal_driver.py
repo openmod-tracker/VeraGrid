@@ -97,13 +97,12 @@ class SmallSignal_Stability_Driver(DriverTemplate):
                 method=integrator
             )
             i = self.options.ss_assessment_time/self.options.time_step
-            stab, Eigenvalues, pfactors = slv.stability_assessment(x=y[i], params=params0, plot=False)
+            stab, Eigenvalues, pfactors = slv.stability_assessment(x=y[i], params=params0, plot=False )
         else:
-            stab, Eigenvalues, pfactors = slv.stability_assessment(x=x0, params=params0, plot = False )
+            stab, Eigenvalues, pfactors = slv.stability_assessment(x=x0, params=params0, plot=False )
 
 
-        self.results = SmallSignal_Stability_Results(values=y,
-                                                    stability=stab,
+        self.results = SmallSignal_Stability_Results(stability=stab,
                                                     Eigenvalues = Eigenvalues,
                                                     PF = pfactors,
                                                     stat_vars=slv._state_vars,
