@@ -331,7 +331,7 @@ class BlockSolver:
 
         return x
 
-    def build_init_vars_vector(self, mapping: dict[Var, float]) -> np.ndarray:
+    def build_init_vars_vector(self, mapping: dict[Var, float], permissive:bool = False) -> np.ndarray:
         """
         Helper function to build the initial vector
         :param mapping: var->initial value mapping
@@ -343,7 +343,7 @@ class BlockSolver:
             if key.uid in self.uid2idx_vars.keys():
                 i = self.uid2idx_vars[key.uid]
                 x[i] = val
-            else:
+            elif not permissive:
                 raise ValueError(f"Missing variable {key} definition")
 
         return x

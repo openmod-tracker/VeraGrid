@@ -6,9 +6,11 @@ import numpy as np
 import uuid
 import scipy.sparse as sp
 import time
+import matplotlib.pyplot as plt
 from typing import Optional
 
 from VeraGridEngine.Devices.Dynamic.events import RmsEvents
+from VeraGridEngine.Devices import MultiCircuit
 from VeraGridEngine.Utils.Symbolic.block import Block
 from VeraGridEngine.Utils.Symbolic.block_solver import BlockSolver, _compile_parameters_equations, _compile_equations
 from VeraGridEngine.Utils.Symbolic.symbolic import Var, Const, Expr, Func, cos, sin, _emit
@@ -34,6 +36,18 @@ def _new_uid() -> int:
     """Generate a fresh UUID‑v4 string."""
     return uuid.uuid4().int
 
+def find_name_in_block(name:str, block:Block):
+    for var in block.algebraic_vars + block.state_vars:
+        if name == var.name:
+            return var
+        
+    for block_child in block.children:
+        result = find_name_in_block(name, block_child)
+        if result is not None:   # found in a child
+            return result
+    
+    return None
+
 def pack_blocks_scipy(blocks: dict, n_batches: int):
     """
     Pack an n_batches x n_batches dict of sparse submatrices into one big csc_matrix.
@@ -48,8 +62,15 @@ def pack_blocks_scipy(blocks: dict, n_batches: int):
     return sp.vstack(row_blocks, format="csc")
 
 def delete_vars_from_block(block:Block, deleted_vars:List[Var]):
+    deleted_vars_uid = set(var.uid for var in deleted_vars)
     for b in block.get_all_blocks():
-        b.algebraic_vars = [var for var in  b.algebraic_vars if var not in deleted_vars]
+        algebraic_vars_copy = b.algebraic_vars.copy()
+        b.algebraic_vars = []
+        for var in  algebraic_vars_copy:
+            if var.uid not in deleted_vars_uid:
+                b.algebraic_vars.append(var) 
+            else: 
+                print(f'Deleting var {var.name} from block {b.name}')
 
 @dataclass(frozen=False)
 class DiffBlock(Block):
@@ -202,7 +223,7 @@ class DiffBlockSolver(BlockSolver):
                 approximation, total_lag = var.approximation_expr(self.dt, lag_can_be_0=lag_can_be_0)
                 eq = eq.subs({var:approximation})
                 self._lag_vars_set.update(LagVar.get_or_create( var.origin_var.name+ '_lag_' + str(lag),
-                                                 base_var=var.origin_var, lag = lag) for lag in range(lag_init, max(3, total_lag+1)))
+                                                 base_var=var.origin_var, lag = lag) for lag in range(lag_init, max(2, total_lag+1)))
             self._state_eqs_substituted[iter] = eq
 
         n_algebraic = len(self._algebraic_eqs)
@@ -236,7 +257,7 @@ class DiffBlockSolver(BlockSolver):
                 approximation, total_lag = var.approximation_expr(self.dt, lag_can_be_0=lag_can_be_0, central =False)
                 eq = eq.subs({var:approximation})
                 self._lag_vars_set.update(LagVar.get_or_create( var.origin_var.name+ '_lag_' + str(lag),
-                                                 base_var=var.origin_var, lag = lag) for lag in range(lag_init, max(3, total_lag+1)))
+                                                 base_var=var.origin_var, lag = lag) for lag in range(lag_init, max(2, total_lag+1)))
 
             self._algebraic_eqs_substituted[iter] = eq
             
@@ -446,7 +467,7 @@ class DiffBlockSolver(BlockSolver):
         self.jacobian_implicit(dummy_vals, dummy_params, 0.001)  # triggers compilation once
         self._rhs_algeb_fn(dummy_vals, dummy_params)  # triggers compilation once
 
-    def sort_vars(self, mapping: dict[Var, float]) -> np.ndarray:
+    def sort_vars(self, mapping: dict[Var, float], permissive:bool = False) -> np.ndarray:
         """
         Helper function to build the initial vector
         :param mapping: var->initial value mapping
@@ -852,124 +873,304 @@ class DiffBlockSolver(BlockSolver):
 
         return res
     
-    def pseudo_transient(self, x0, res, grid):
-        init_guess = {}
-        for block in self.block_system:
-            if block.pseudo_transient:
+    def pseudo_transient(self, x0:np.ndarray, init_guess:dict[Var, float], res, grid:MultiCircuit):
+        for block in self.block_system.children:
+            found = False
+            if getattr(block, 'pseudo_transient', False):
                 i = block.bus
                 t = Var('t')
-                Pg = block.external_mapping[DynamicVarType.P]
-                Qg = block.external_mapping[DynamicVarType.Q]
-                Vm = block.external_mapping[DynamicVarType.Vm]
-                Va = block.external_mapping[DynamicVarType.Va]
-                bus_block = DiffBlock(
-                    parameters= [Pg, Qg, Vm, Va],
+                for child_block in block.get_all_blocks():
+                    if not hasattr(child_block, 'external_mapping'):
+                        continue
+                    if not DynamicVarType.P in child_block.external_mapping.keys():
+                        continue
+                    Pg = child_block.external_mapping[DynamicVarType.P]
+                    Qg = child_block.external_mapping[DynamicVarType.Q]
+                    Vm = child_block.external_mapping[DynamicVarType.Vm]
+                    Va = child_block.external_mapping[DynamicVarType.Va]
+                    found = True
+                    break
+
+                if not found:
+                    continue
+
+                bus_block1 = DiffBlock(
+                    algebraic_vars= [Vm, Va],
+                    parameters= [ Pg, Qg,],
                     parameters_eqs = [
                         Const(float(np.abs(res.voltage[i]))),
                         Const(float(np.angle(res.voltage[i]))),
+                        #Const(float(np.real(res.Sbus[i] / grid.Sbase))),
+                        #Const(float(np.imag(res.Sbus[i] / grid.Sbase))),
+                    ] 
+                )
+                bus_block2 = DiffBlock(
+                    algebraic_vars= [Pg, Qg],
+                    parameters= [ Vm, Va],
+                    parameters_eqs = [
+                        #Const(float(np.abs(res.voltage[i]))),
+                        #Const(float(np.angle(res.voltage[i]))),
                         Const(float(np.real(res.Sbus[i] / grid.Sbase))),
                         Const(float(np.imag(res.Sbus[i] / grid.Sbase))),
                     ] 
                 )
+
                 init_block = DiffBlock(
-                    children = [block, bus_block]
+                    children = [block, bus_block2]
                 )
-                delete_vars_from_block(init_block, [Pg, Qg, Vm, Va])
-                solver = DiffBlockSolver(t, init_block)
-                x0_mdl, init_guess_mdl = solver.init_pseudo_transient_individual(x0)
+                #2 out of [Pg, Qg, Vm, Va] need to be deleted from the algebraic vars to have a square system
+                delete_vars_from_block(init_block, [Vm, Va]) 
+                solver = DiffBlockSolver(init_block, t)
+
+                init_guess_copy = init_guess.copy()
+                init_guess_copy.update({Vm: float(np.real(res.Sbus[i] / grid.Sbase)), Va: float(np.imag(res.Sbus[i] / grid.Sbase))})
+                x0_init_guess = solver.build_init_vars_vector(init_guess_copy, permissive=True)
+
+                x0_mdl, init_guess_mdl = solver.init_pseudo_transient_individual(x0_init_guess, plot= True)
                 for i, var in enumerate(solver._algebraic_vars):
                     x0[self.uid2idx_vars[var.uid]] = x0_mdl[ [solver.uid2idx_vars[var.uid]] ]
 
                 init_guess.update(init_guess_mdl)
         return x0, init_guess
 
-    def init_pseudo_transient_individual(self, x0, h=0.001, tol = 1e-5):
+    def init_pseudo_transient_individual(self, x0, plot = True, dtau0 =1e0, h=0.001, beta=0.8, tol=1e-4, max_step = 1e4):
+        # Init pseudo transient method, Block only has algebraic eqs
+        lag = np.zeros(len(self.uid2idx_lag))
+        dtau_max = 1
+        dtau_min = 1e-8
+        dtau = dtau0
 
-        #Init pseudo transient method, we consider the Block is only defined by algebraic eqs
-        #We first compile the equations so that it doesnt depend on the lags
-        beta = 0.8
 
-        lag = np.zeros( len(self.uid2idx_lag) )
-        for i in range( len(lag) ):
+        for i in range(len(lag)):
             base_var = self._lag_vars[i].base_var
-            lag[i] = x0[ self.uid2idx_vars[base_var.uid] ] + 0.0*np.random.rand()
-        
-        dtau = 1
+            lag[i] = x0[self.uid2idx_vars[base_var.uid]] + 0.0*np.random.rand()
+        for i in range(len(x0)):
+            if x0[i] == 0:
+                x0[i] = 0.1 + 0.1*np.random.rand()
+
         y = np.empty((5, self._n_vars))
         step_idx = 0
-        max_tries = 4e5
-        x_new = x0.copy()  # initial guess
+        max_tries = int(4e5)
+        x_new = x0.copy()
         tries = 0
         current_time = 0
-        params_current = self._params_fn( float(current_time) )
+        params_current = self._params_fn(float(current_time))
         params_outer = params_current.copy()
         params_outer[-1] = 1e-3
         dx_error = 1
-        residual_norm = 10
-        #while dx_error > 1e-2:
-        while residual_norm < 3:
-            tries += 1 
+        residual = 10
+        old_residual = 10
+
+        # history containers
+        dtau_hist = []
+        dx_error_hist = []
+        residual_hist = []
+        x_hist = []
+        dx_hist = []
+
+        while step_idx < max_step:
+            tries += 1
             xn = y[-1]
 
-            converged = False
-            #We get the params and change the dt
             params_current[-1] = dtau
             xn_lags = np.r_[xn, lag]
             xnew_lags = np.r_[x_new, lag]
             rhs = self.rhs_implicit(xnew_lags, xn_lags, params_current, 1, dtau)
 
-            Jf = self.jacobian_implicit(xnew_lags, params_current, dtau) 
+            Jf = self.jacobian_implicit(xnew_lags, params_current, dtau)
             try:
                 delta = sp.linalg.spsolve(Jf, -rhs)
             except Exception as e:
                 raise RuntimeError(f"Linear solver failed at try {tries}: {e}")
 
-            x_new += delta
-            residual = np.linalg.norm(rhs, np.inf)
-            converged = residual < tol
-
             if not np.all(np.isfinite(delta)):
                 raise RuntimeError(f"Newton step failed at try {tries}: delta has NaN/Inf values")
 
-            #print(f' residual is {residual}')
-            if residual < 3:
-                dx = self.compute_dx(x_new, lag, h)
-                dx_error = np.linalg.norm(dx)
-                rhs = self.rhs_implicit(xnew_lags, xn_lags, params_outer, 1, dtau)
-                residual_norm = np.linalg.norm(rhs)
-                print(f'Convergence achieved for dtau = {dtau} and ||dx|| = {dx_error} and residual is {rhs_norm}')
-                dtau *= beta
+            x_new += delta
+            newton_residual = np.linalg.norm(rhs, np.inf)
+            converged = newton_residual < tol
+            #print(f'residual is {newton_residual} delta is {np.linalg.norm(delta)}')
+
+            if converged:
                 step_idx += 1
                 tries = 0
-                # shift all rows up by 1 and save existing one
+                
+                # shift history buffer
                 y = np.roll(y, shift=-1, axis=0)
-                y[-1] = x_new
+                alpha = 1.0
+                y[-1] = alpha*x_new + (1-alpha)*y[-1]
+                x_new = y[-1] 
 
-                #Update Lags
+                dx = self.compute_dx(x_new, lag, dtau)
+                print(f'x_new is {x_new}')
+                dx_error = np.linalg.norm(dx)
+                rhs = self.rhs_implicit(xnew_lags, xn_lags, params_outer, 1, dtau)
+                old_residual = residual
+                residual = np.linalg.norm(rhs)
+
+                # save history
+                dtau_hist.append(dtau)
+                dx_error_hist.append(dx_error)
+                residual_hist.append(residual)
+                x_hist.append(x_new.copy())
+                dx_hist.append(dx.copy())
+
+                print(f'Convergence achieved for dtau={dtau:.2e}, ||dx||={dx_error:.2e}, residual={residual:.2e}, step {step_idx}')
+                dtau = min(dtau_max, max(dtau_min, dtau*residual/(old_residual)))  
+
+
+                # update lags
                 for i, lag_var in enumerate(self._lag_vars):
                     if lag_var.lag == 0:
                         uid = lag_var.base_var.uid
                         idx = self.uid2idx_vars[uid]
-                        lag[i] = x_new[idx] 
-                    elif step_idx + 1 - (lag_var.lag-1) >= 0:
+                        lag[i] = x_new[idx]
+                    elif step_idx + 1 - (lag_var.lag - 1) >= 0:
                         uid = lag_var.base_var.uid
                         idx = self.uid2idx_vars[uid]
                         lag[i] = y[-1 - lag_var.lag, idx]
                     else:
-                        lag_name = lag_var.base_var.name + '_lag_' + str(lag_var.lag-1)
-                        next_lag_var = LagVar.get_or_create(lag_name, base_var= lag_var.base_var, lag = lag_var.lag-1)
+                        lag_name = lag_var.base_var.name + '_lag_' + str(lag_var.lag - 1)
+                        next_lag_var = LagVar.get_or_create(lag_name, base_var=lag_var.base_var, lag=lag_var.lag - 1)
                         uid = next_lag_var.uid
                         idx = self.uid2idx_lag[uid]
-                        lag[i] = lag[idx] 
+                        lag[i] = lag[idx]
 
-            elif tries>max_tries:
-                raise Exception(f"Maximum  number of tries attained at dtau = {dtau} and residual is {residual}")
+            elif tries > max_tries:
+                raise RuntimeError(f"Max tries reached at dtau={dtau:.2e}, residual={residual:.2e}")
+
+        init_guess = {var: x_new[self.uid2idx_vars[var.uid]] for var in self._algebraic_vars}
+
+        if not plot:
+            return x_new, init_guess
+        # --- Plotting section ---
+        fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
+
+        axs[0].semilogy(dx_error_hist, label="||dx||")
+        axs[0].set_ylabel("dx error (log)")
+        axs[0].legend()
+
+        axs[1].semilogy(residual_hist, label="Residual norm")
+        axs[1].set_ylabel("Residual (log)")
+        axs[1].legend()
+
+        axs[2].plot(dtau_hist, label="dtau")
+        axs[2].set_ylabel("dtau")
+        axs[2].set_xlabel("Step index")
+        axs[2].legend()
+
+        # --- Plot actual variables ---
+        x_hist = np.array(x_hist)  # shape: (n_steps, n_vars)
+        dx_hist = np.array(dx_hist)  # shape: (n_steps, n_vars)
+
+        nvars = len(self._algebraic_vars)
+        vars_per_plot = 5
+        nplots = (nvars + vars_per_plot - 1) // vars_per_plot
         
-        init_guess = {}
+        fig, axs = plt.subplots(nplots, 1, figsize=(10, 2.5*nplots), sharex=True)
+        
+        # if there’s only one subplot, axs won’t be a list
+        if nplots == 1:
+            axs = [axs]
+        
+        for i in range(nplots):
+            start = i * vars_per_plot
+            end = min((i+1) * vars_per_plot, nvars)
+            for var in self._algebraic_vars[start:end]:
+                axs[i].plot(x_hist[:, self.uid2idx_vars[var.uid]], label=var.name)
+            axs[i].set_ylabel("Value")
+            axs[i].legend(loc="best", fontsize="x-small", ncol=2, frameon=False)
+        axs[-1].set_xlabel("Step index")
 
-        for var in self._algebraic_vars:
-            init_guess[var] = x_new[var.uid]
+        nvars = len(self._diff_vars)
+        vars_per_plot = 5
+        nplots = (nvars + vars_per_plot - 1) // vars_per_plot
+        
+        fig, axs = plt.subplots(nplots, 1, figsize=(10, 2.5*nplots), sharex=True)
+        if nplots == 1:
+            axs = [axs]
+
+        for i in range(nplots):
+            start = i * vars_per_plot
+            end = min((i+1) * vars_per_plot, nvars)
+            for var in self._algebraic_vars[start:end]:
+                axs[i].plot(dx_hist[:, self.uid2idx_vars[var.uid]], label=f"d{var.name}")
+            axs[i].set_ylabel("dx")
+            axs[i].legend(loc="best", fontsize="x-small", ncol=2, frameon=False)
+        axs[-1].set_xlabel("Step index")
+        plt.tight_layout()
+        plt.show()
+
         return x_new, init_guess
+    
+    def fixed_point_finder(self, x0 = None, tol = 1e-4):
+        states = set()
+        states = {var.base_var for var in self._diff_vars}
+        self.states = list(states)
+        self.n_states = len(states)
+        if x0 is None:
+            xstart = np.random.rand( len(self._lag_vars) )
+        else:
+            xstart = np.zeros( len(self._lag_vars) )
+            for lag in self._lag_vars:
+                base_var = lag.base_var
+                base_var_idx = self.uid2idx_vars[ base_var.uid ]
+                xstart[self.uid2idx_lag[lag.uid]] = x0[base_var_idx]
 
+        params_current = self._params_fn(float(0))
+        T_operator = self.T_operator(params_current)
+        residual = 10
+        alpha = 0.05
+        x = xstart.copy()
+        while residual > tol:
+            x_new = (alpha)*x + (1-alpha)*T_operator(x)
+            residual = np.linalg.norm(x_new - x)
+            x = x_new
+        return x
+
+    def T_operator(self, params_current):
+
+        def operator(lags, h = 1e-3):
+            residual = 10
+            x_n = np.zeros(self._n_vars)
+            dtau = 1e-6
+            for lag in self._lag_vars:
+                base_var = lag.base_var
+                base_var_idx = self.uid2idx_vars[ base_var.uid ]
+                x_n[base_var_idx] = lags[ self.uid2idx_lag[lag.uid] ] + 2*np.random.rand()
+
+            x_new = x_n.copy()
+
+            while residual > 1e-4:    
+                xn_lags = np.r_[x_n, lags]
+                xnew_lags = np.r_[x_new, lags]
+                params_current[-1] = dtau
+
+                rhs = self.rhs_implicit(xnew_lags, xn_lags, params_current, 1, dtau)
+                Jf = self.jacobian_implicit(xnew_lags, params_current, dtau)
+                delta = sp.linalg.spsolve(Jf, -rhs)
+                
+                if np.isnan(delta).any() or np.isinf(delta).any():
+                    delta = sp.linalg.lsqr(Jf, -rhs)[0]
+
+                x_new += delta
+                residual = np.linalg.norm(rhs)
+                print(f'residual is {residual}')
+            x_states = np.zeros( len(self._lag_vars) ) 
+
+            #We project onto the state variables
+            #TODO: return should also be lags
+            for lag in self._lag_vars:
+                base_var = lag.base_var
+                base_var_idx = self.uid2idx_vars[ base_var.uid ]
+                if lag.lag == 1:
+                    x_states[ self.uid2idx_lag[lag.uid]] = x_new[base_var_idx]
+                else:
+                    lag_var = LagVar.get_or_create('name', base_var=base_var, lag = lag.lag -1)
+                    x_states[ self.uid2idx_lag[lag.uid]] = lags[ self.uid2idx_lag[lag_var.uid] ]
+
+            return x_states
+        
+        return operator
 
         

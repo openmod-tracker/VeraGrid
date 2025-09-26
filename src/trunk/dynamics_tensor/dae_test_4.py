@@ -444,7 +444,7 @@ bus2_block = Block(
 # ----------------------------------------------------------------------------------------------------------------------
 
 sys = DiffBlock(
-    children=[line_block, load_block, generator_block_integrator, bus1_block, bus2_block],
+    children=[line_block, load_block, generator_block_ML_0, bus1_block, bus2_block],
     in_vars=[]
 )
 
