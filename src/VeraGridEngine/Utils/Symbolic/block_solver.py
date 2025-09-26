@@ -1187,3 +1187,90 @@ class BlockSolver:
             df_simulation_results.to_csv(filename, index=False)
             print(f"Simulation results saved to: {filename}")
         return df_simulation_results
+
+    def stability_assessment(self, x: np.ndarray, params: np.ndarray, plot=True):
+        """
+
+            Parameters:
+            ----------
+            x: 1D numpy array
+                variables
+            params: 1D numpy array
+                parameters
+            plot: True(default) if S-domain eigenvalues plot wanted. Else: False
+            Returns:
+            ----------
+            stability: str
+                "Unstable", "Marginally stable" or "Asymptotically stable"
+            eigenvalues:  1D row numpy array
+            participation factors: 2D array csc matrix.
+                Participation factors of mode i stored in PF[:,i]
+
+            Small Signal Stability analysis:
+            1. Calculate the state matrix (A) from the state space model. From the DAE model:
+                Tx'=f(x,y)
+                0=g(x,y)
+                the A matrix is computed as:
+                A = T^-1(f_x - f_y * g_y^{-1} * g_x)   #T is implicit in the jacobian!
+
+            2. Find eigenvalues and right(V) and left(W) eigenvectors
+
+            3. Perform stability assessment
+
+            4. Calculate normalized participation factors PF = W · V
+
+        """
+
+        fx = self._j11_fn(x, params)  # ∂f/∂x
+        fy = self._j12_fn(x, params)  # ∂f/∂y
+        gx = self._j21_fn(x, params)  # ∂g/∂x
+        gy = self._j22_fn(x, params)  # ∂g/∂y
+
+        gyx = spsolve(gy, gx)
+        A = (fx - fy @ gyx)  # sparse state matrix csc matrix
+        An = A.toarray()
+
+        num_states = A.shape[0]
+
+        Eigenvalues, W, V = scipy.linalg.eig(An, left=True, right=True)
+        V = sp.csc_matrix(V)  # right
+        W = sp.csc_matrix(W)  # left
+
+        PF = sp.lil_matrix(A.shape)
+        for row in range(W.shape[0]):
+            for column in range(W.shape[0]):
+                PF[row, column] = abs(W[row, column]) * abs(V[row, column])  # find participation factors
+
+        PF_abs = sp.csc_matrix(np.ones(num_states)) @ PF
+        for i in range(len(Eigenvalues)):
+            PF[:, i] /= PF_abs[0, i]  # normalize participation factors
+
+        # Stability: select positive and zero eigenvalues
+        tol = 1e-6  # numerical tolerance for eigenvalues = 0
+        unstable_eigs = Eigenvalues[np.real(Eigenvalues) > tol]
+        zero_eigs = Eigenvalues[abs(np.real(Eigenvalues)) <= tol]
+        stable_eigs = Eigenvalues[np.real(Eigenvalues) < -tol]
+
+        if unstable_eigs.size == 0:
+            if zero_eigs.size == 0:
+                stability = "Asymptotically stable"
+            else:
+                stability = "Marginally stable"
+        else:
+            stability = "Unstable"
+
+        if plot == True:
+            x = Eigenvalues.real
+            y = Eigenvalues.imag
+
+            plt.scatter(x, y, marker='x', color='blue')
+            plt.xlabel("Re [s -1]")
+            plt.ylabel("Im [s -1]")
+            plt.title("Stability plot")
+            plt.axhline(0, color='black', linewidth=1)  # eje horizontal (y = 0)
+            plt.axvline(0, color='black', linewidth=1)
+            # plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+
+        return stability, Eigenvalues, PF
