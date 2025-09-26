@@ -934,9 +934,9 @@ class BlockEditor(QSplitter):
             block_item.setPos(node.x, node.y)
 
             uid_to_blockitem[uid] = block_item
-
-            for subnode in node:
-                rebuild_scene_from_diagram()
+            #
+            # for subnode in node:
+            #     rebuild_scene_from_diagram()
 
         # 2. Recreate connections
         for con in self.diagram.con_data:
