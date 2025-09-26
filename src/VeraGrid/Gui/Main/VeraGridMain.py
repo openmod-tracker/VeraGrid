@@ -79,6 +79,7 @@ class VeraGridMainGUI(ScriptingMain):
         self.update_available_results()
 
         self.ui.actionRun_Dynamic_RMS_Simulation.setVisible(True)
+        self.ui.actionRun_Small_Signal_RMS_Simulation.setVisible(True)
 
     def save_all_config(self) -> None:
         """

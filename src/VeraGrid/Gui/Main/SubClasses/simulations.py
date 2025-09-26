@@ -230,6 +230,7 @@ class SimulationsMain(TimeEventsMain):
         self.ui.actionInvestments_evaluation.triggered.connect(self.run_investments_evaluation)
         self.ui.actionReliability.triggered.connect(self.reliability_dispatcher)
         self.ui.actionRun_Dynamic_RMS_Simulation.triggered.connect(self.rms_dispatcher)
+        self.ui.actionRun_Small_Signal_RMS_Simulation.triggered.connect(self.ss_dispatcher)
 
         self.ui.actionUse_clustering.triggered.connect(self.activate_clustering)
         self.ui.actionNodal_capacity.triggered.connect(self.run_nodal_capacity)
@@ -985,6 +986,19 @@ class SimulationsMain(TimeEventsMain):
 
         else:
             self.run_rms()
+
+    def ss_dispatcher(self):
+        """
+        Dispatch the reliability action
+        :return:
+        """
+        if self.server_driver.is_running():
+            instruction = RemoteInstruction(operation=SimulationTypes.SmallSignal_run)
+            self.run_remote(instruction=instruction)
+
+        else:
+            self.run_small_signal_stability()
+
 
     def run_power_flow(self):
         """
