@@ -6,6 +6,7 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from typing import Union
 import matplotlib.colors as plt_colors
 from typing import List, Tuple, Dict
 
@@ -41,7 +42,7 @@ class SmallSignal_Stability_Results(ResultsTemplate):
         self.stability = stability
         self.eigenvalues = Eigenvalues
         self.participation_factors = PF
-        self.register(name='Stability', tpe=Vec)
+        # self.register(name='Stability', tpe=Vec)
         self.register(name='eigenvalues', tpe=Vec)
         self.register(name='participation_factors', tpe=Mat)
 
@@ -68,4 +69,12 @@ class SmallSignal_Stability_Results(ResultsTemplate):
         :param ax: Matplotlib Axis. If None, one will be created
         """
         if ax is None:
-            fig = plt.figure
+            fig = plt.figure(figsize=(8, 7))
+            ax = fig.add_subplot(111)
+
+        x = self.eigenvalues.real
+        y = self.eigenvalues.imag
+
+        ax.set_title(r'$S-Domain$ plot')
+        ax.set_xlabel(r'$Imaginary [s^{-1}]$')
+        ax.set_ylabel(r'$Real [s^{-1}]$')

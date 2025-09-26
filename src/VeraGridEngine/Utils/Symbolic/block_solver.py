@@ -20,11 +20,13 @@ import pandas as pd
 import numpy as np
 import numba as nb
 import math
+import scipy
 import scipy.sparse as sp
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix, csc_matrix
 from scipy.sparse.linalg import gmres, spilu, LinearOperator
 from typing import Dict, List, Literal, Any, Callable, Sequence
+import matplotlib.pyplot as plt
 
 # from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 # from VeraGridEngine import RmsResults
