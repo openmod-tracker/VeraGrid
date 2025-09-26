@@ -13,21 +13,39 @@ from VeraGridEngine.enumerations import DeviceType
 
 
 @dataclass
+# class BlockDiagramNode:
+#     x: float
+#     y: float
+#     tpe: str
+#     device_uid: int
+#
+#     def get_node_dict(self):
+#         """
+#         get as a dictionary point
+#         :return:
+#         """
+#         return {'x': self.x,
+#                 'y': self.y,
+#                 'type': self.tpe,
+#                 'device_uid': self.device_uid}
+
 class BlockDiagramNode:
     x: float
     y: float
     tpe: str
     device_uid: int
+    subdiagram: "BlockDiagram | None" = None   # 👈 NEW
 
     def get_node_dict(self):
-        """
-        get as a dictionary point
-        :return:
-        """
-        return {'x': self.x,
-                'y': self.y,
-                'type': self.tpe,
-                'device_uid': self.device_uid}
+        data = {
+            'x': self.x,
+            'y': self.y,
+            'tpe': self.tpe,         # fix: use 'tpe' not 'type'
+            'device_uid': self.device_uid
+        }
+        if self.subdiagram:
+            data['subdiagram'] = self.subdiagram.get_node_dict()
+        return data
 
 
 @dataclass
