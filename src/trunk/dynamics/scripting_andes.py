@@ -14,23 +14,31 @@ import pandas as pd
 import numpy as np
 matplotlib.use('TkAgg')  # or 'QtAgg', depending on your system
 
-import matplotlib.pyplot as plt
-
 def main():
     
     # ss = andes.load('src/trunk/dynamics/Two_Areas_PSS_E/Benchmark_4ger_33_2015.raw', default_config=True)
     # write(ss, 'my_system.json', overwrite=True)
 
+    np.set_printoptions(precision=15, suppress=False)
+
     start = time.time()
     # ss = andes.load('Gen_Load/kundur_ieee_no_shunt.json', default_config=True)
-    # ss = andes.load('Gen_Load/simple_system3.json', default_config=True)
-    ss = andes.load('src/trunk/dynamics/Gen_Load/simple_system3.json', default_config=True)
+    ss = andes.load('Gen_Load/simple_system3.json', default_config=True)
     n_xy = len(ss.dae.xy_name)
     print(f"Andes variables = {n_xy}")
     ss.files.no_output = True
-    
+
+    # fix P & Q load Andes
+    ss.PQ.config.p2p = 1.0
+    ss.PQ.config.p2i = 0
+    ss.PQ.config.p2z = 0
+
+    ss.PQ.config.q2q = 1.0
+    ss.PQ.config.q2i = 0
+    ss.PQ.config.q2z = 0
+
     # Run PF
-    ss.PFlow.config.tol = 1e-13
+    ss.PFlow.config.tol = 1e-6
     ss.PFlow.run()
 
     print(f"Bus voltages = {ss.Bus.v.v}")
@@ -39,52 +47,6 @@ def main():
     end_pf = time.time()
     print(f"ANDES - PF time = {end_pf-start:.6f} [s]")
 
-    #save PF results
-    # bus
-    v_PF = ss.Bus.v.v
-    a_PF = ss.Bus.a.v
-    # PV
-    q_PV_PF = ss.PV.q.v
-    # Slack
-    p_Slack_PF = ss.Slack.p.v
-    q_Slack_PF = ss.Slack.q.v
-    # PQ
-    Ppf_PF = ss.PQ.Ppf.v
-    Qpf_PF = ss.PQ.Qpf.v
-
-
-    # bus
-    v_PFdf = pd.DataFrame([v_PF])  # shape: [T, n_loads]
-    v_PFdf.columns = [f"v_PF_andes_Bus_{i + 1}" for i in range(v_PF.shape[0])]
-    a_PFdf = pd.DataFrame([a_PF])  # shape: [T, n_loads]
-    a_PFdf.columns = [f"a_PF_andes_Bus_{i + 1}" for i in range(a_PF.shape[0])]
-    # PV
-    q_PV_PFdf = pd.DataFrame([q_PV_PF])  # shape: [T, n_loads]
-    q_PV_PFdf.columns = [f"q_PV_PF_andes_{i + 1}" for i in range(q_PV_PF.shape[0])]
-    # Slack
-    p_Slack_PFdf = pd.DataFrame([p_Slack_PF])  # shape: [T, n_loads]
-    p_Slack_PFdf.columns = [f"p_Slack_PF_andes_{i}" for i in range(p_Slack_PF.shape[0])]
-    q_Slack_PFdf = pd.DataFrame([q_Slack_PF])  # shape: [T, n_loads]
-    q_Slack_PFdf.columns = [f"q_Slack_PF_andes_{i}" for i in range(q_Slack_PF.shape[0])]
-    # PQ
-    Ppf_PFdf = pd.DataFrame([Ppf_PF])  # shape: [T, n_loads]
-    Ppf_PFdf.columns = [f"Ppf_PF_andes_load_{i}" for i in range(Ppf_PF.shape[0])]
-    Qpf_PFdf = pd.DataFrame([Qpf_PF])  # shape: [T, n_loads]
-    Qpf_PFdf.columns = [f"Qpf_PF_andes_load_{i}" for i in range(Qpf_PF.shape[0])]
-
-    PFdf = pd.concat([v_PFdf, a_PFdf, q_PV_PFdf, p_Slack_PFdf, q_Slack_PFdf, Ppf_PFdf, Qpf_PFdf], axis=1)
-    PFdf.to_csv("PowerFlow_andes_output.csv", index=False)
-    print('Power Flow results saved in PowerFlow_andes_output.csv')
-
-
-    # PQ constant power load
-    ss.PQ.config.p2p = 1.0
-    ss.PQ.config.p2i = 0
-    ss.PQ.config.p2z = 0
-    ss.PQ.pq2z = 0
-    ss.PQ.config.q2q = 1.0
-    ss.PQ.config.q2i = 0
-    ss.PQ.config.q2z = 0
 
     # Logging
     time_history = []
@@ -115,8 +77,6 @@ def main():
     vf_history = [[] for _ in range(len(ss.GENCLS))]
     XadIfd_history = [[] for _ in range(len(ss.GENCLS))] #
 
-
-
     #PQ (load)
     Ppf_history = [[] for _ in range(len(ss.PQ))]
     Qpf_history = [[] for _ in range(len(ss.PQ))] #
@@ -130,7 +90,6 @@ def main():
     tds.config.tf = 20.0
     tds.t = 0.0
     tds.init()
-
     print(len(ss.dae.x))
     print(len(ss.dae.y))
 
