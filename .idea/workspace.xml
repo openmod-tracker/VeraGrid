@@ -71,7 +71,7 @@
     </favorite-branches>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="71c79b0fb098da360756e74cd5e2bae237c5b1a1" />
+        <entry key="$PROJECT_DIR$" value="devel" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -1781,7 +1781,7 @@
       <option name="project" value="LOCAL" />
       <updated>1698766404661</updated>
     </task>
-    <option name="localTasksCounter" value="608" />
+    <option name="localTasksCounter" value="609" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1827,7 +1827,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Susbtation type configurations updates" />
     <MESSAGE value="Substation type configurations updates v2" />
     <MESSAGE value="Substation type configurations updates v3" />
     <MESSAGE value="implemented the ptdf reduction and integrated with the diagram" />
@@ -1852,7 +1851,8 @@
     <MESSAGE value="5.4.0" />
     <MESSAGE value="5.4.0 b" />
     <MESSAGE value="Improved contingency TS calculations" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved contingency TS calculations" />
+    <MESSAGE value="merged from eroots devel" />
+    <option name="LAST_COMMIT_MESSAGE" value="merged from eroots devel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2162,21 +2162,6 @@
           <option name="timeStamp" value="2606" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/ContingencyAnalysis/contingency_analysis_driver.py</url>
-          <line>194</line>
-          <option name="timeStamp" value="2656" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/ContingencyAnalysis/contingency_analysis_driver.py</url>
-          <line>210</line>
-          <option name="timeStamp" value="2659" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/ContingencyAnalysis/contingency_analysis_driver.py</url>
-          <line>213</line>
-          <option name="timeStamp" value="2660" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/IO/cim/cgmes/cgmes_to_gridcal.py</url>
           <line>2528</line>
           <option name="timeStamp" value="2661" />
@@ -2282,29 +2267,18 @@
           <option name="timeStamp" value="2778" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/LinearFactors/linear_analysis.py</url>
-          <line>244</line>
-          <option name="timeStamp" value="2787" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <condition expression="len(contingency_indices.hvdc_contingency_indices) &gt; 0" language="Python" />
-          <url>file://$PROJECT_DIR$/src/VeraGridEngine/Simulations/LinearFactors/linear_analysis.py</url>
-          <line>864</line>
-          <option name="timeStamp" value="2789" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/tests/test_grid_diff.py</url>
           <line>38</line>
           <option name="timeStamp" value="2919" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGrid/Gui/Main/SubClasses/Model/time_events.py</url>
-          <line>477</line>
+          <line>491</line>
           <option name="timeStamp" value="2967" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGrid/Gui/Main/SubClasses/Model/time_events.py</url>
-          <line>479</line>
+          <line>493</line>
           <option name="timeStamp" value="2968" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -2319,7 +2293,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/line.py</url>
-          <line>573</line>
+          <line>552</line>
           <option name="timeStamp" value="2976" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
