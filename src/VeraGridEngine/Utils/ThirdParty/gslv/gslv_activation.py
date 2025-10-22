@@ -6,13 +6,14 @@ from __future__ import annotations
 from typing import Tuple
 import os.path
 import shutil
+import packaging.version as pkg
 import warnings
 from VeraGridEngine.IO.file_system import get_create_veragrid_folder
 from VeraGridEngine.enumerations import TapModuleControl, TapPhaseControl, BusMode
 from VeraGridEngine.enumerations import (HvdcControlType, SolverType, TimeGrouping,
                                          ZonalGrouping, MIPSolvers, ContingencyMethod, ContingencyOperationTypes,
                                          BuildStatus, BranchGroupTypes, ConverterControlType)
-GSLV_RECOMMENDED_VERSION = "0.4.8"
+GSLV_RECOMMENDED_VERSION = "0.4.9"
 GSLV_VERSION = ''
 GSLV_AVAILABLE = False
 try:
@@ -29,7 +30,7 @@ try:
         GSLV_VERSION = pg.get_version()
 
     if GSLV_AVAILABLE:
-        if GSLV_VERSION < GSLV_RECOMMENDED_VERSION:
+        if pkg.parse(GSLV_VERSION) < pkg.parse(GSLV_RECOMMENDED_VERSION):
             warnings.warn(f"Recommended version for GSLV is {GSLV_RECOMMENDED_VERSION} "
                           f"instead of {GSLV_VERSION}")
 
