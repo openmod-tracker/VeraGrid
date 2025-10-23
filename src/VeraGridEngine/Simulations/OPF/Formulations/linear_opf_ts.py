@@ -34,9 +34,9 @@ from VeraGridEngine.DataStructures.fluid_turbine_data import FluidTurbineData
 from VeraGridEngine.DataStructures.fluid_pump_data import FluidPumpData
 from VeraGridEngine.DataStructures.fluid_p2x_data import FluidP2XData
 from VeraGridEngine.basic_structures import Logger, Vec, IntVec, DateVec, Mat
-from VeraGridEngine.Utils.MIP.selected_interface import LpExp, LpVar, LpModel, lpDot, join
-from VeraGridEngine.enumerations import HvdcControlType, ZonalGrouping, MIPSolvers, TapPhaseControl, \
-    ConverterControlType
+from VeraGridEngine.Utils.MIP.selected_interface import LpExp, LpVar, LpModel, lpDot, join, get_model_instance
+from VeraGridEngine.enumerations import (HvdcControlType, ZonalGrouping, MIPSolvers, TapPhaseControl,
+                                         ConverterControlType, MIPFramework)
 from VeraGridEngine.Simulations.LinearFactors.linear_analysis import (LinearAnalysis, LinearMultiContingency,
                                                                       LinearMultiContingencies)
 
@@ -1224,10 +1224,10 @@ def add_linear_load_formulation(t: Union[int, None],
                 load_vars.p[t, k] = load_data_t.S[k].real / Sbase
 
             # add to the balance
-            bus_vars.Pbalance[t, bus_idx] -= load_vars.p[t, k]
+            bus_vars.Pbalance[t, bus_idx] += -load_vars.p[t, k]
 
             # add to the injections
-            # bus_vars.Pinj[t, bus_idx] -= load_vars.p[t, k]
+            # bus_vars.Pinj[t, bus_idx] += - load_vars.p[t, k]
 
         else:
             # the load is not available at time step
@@ -1321,7 +1321,7 @@ def add_linear_branches_formulation(t: int,
                     branch_vars.flows[t, m] = bk * (bus_vars.Va[t, fr] - bus_vars.Va[t, to])
 
             # power injected and subtracted due to the phase shift
-            bus_vars.Pbalance[t, fr] -= branch_vars.flows[t, m]
+            bus_vars.Pbalance[t, fr] += - branch_vars.flows[t, m]
             bus_vars.Pbalance[t, to] += branch_vars.flows[t, m]
 
             if add_losses_approximation:
@@ -1354,8 +1354,8 @@ def add_linear_branches_formulation(t: int,
 
                 # divide the losses contribution equally among the from and to buses as new loads
                 l_inj = 0.5 * branch_vars.losses[t, m]
-                bus_vars.Pbalance[t, fr] -= l_inj
-                bus_vars.Pbalance[t, to] -= l_inj
+                bus_vars.Pbalance[t, fr] += - l_inj
+                bus_vars.Pbalance[t, to] += - l_inj
 
             # add the flow constraint if monitored
             if branch_data_t.monitor_loading[m]:
@@ -1487,7 +1487,7 @@ def add_linear_hvdc_formulation(t: int,
                 hvdc_vars.flows[t, m] = (P0 + k * (bus_vars.Va[t, fr] - bus_vars.Va[t, to]))
 
                 # add the injections matching the flow
-                bus_vars.Pbalance[t, fr] -= hvdc_vars.flows[t, m]
+                bus_vars.Pbalance[t, fr] += - hvdc_vars.flows[t, m]
                 bus_vars.Pbalance[t, to] += hvdc_vars.flows[t, m]
 
             elif hvdc_data_t.control_mode[m] == HvdcControlType.type_1_Pset:
@@ -1500,7 +1500,7 @@ def add_linear_hvdc_formulation(t: int,
                                                          name=join("hvdc_flow_", [t, m], "_"))
 
                     # add the injections matching the flow
-                    bus_vars.Pbalance[t, fr] -= hvdc_vars.flows[t, m]
+                    bus_vars.Pbalance[t, fr] += - hvdc_vars.flows[t, m]
                     bus_vars.Pbalance[t, to] += hvdc_vars.flows[t, m]
 
                 else:
@@ -1517,7 +1517,7 @@ def add_linear_hvdc_formulation(t: int,
                                                          name=join("hvdc_flow_", [t, m], "_"))
 
                     # add the injections matching the flow
-                    bus_vars.Pbalance[t, fr] -= hvdc_vars.flows[t, m]
+                    bus_vars.Pbalance[t, fr] += - hvdc_vars.flows[t, m]
                     bus_vars.Pbalance[t, to] += hvdc_vars.flows[t, m]
             else:
                 raise Exception('OPF: Unknown HVDC control mode {}'.format(hvdc_data_t.control_mode[m]))
@@ -1562,7 +1562,7 @@ def add_linear_vsc_formulation(t: int,
                                                 name=join("vsc_flow_", [t, m], "_"))
 
             # add the injections matching the flow
-            bus_vars.Pbalance[t, fr] -= vsc_vars.flows[t, m]
+            bus_vars.Pbalance[t, fr] += - vsc_vars.flows[t, m]
             bus_vars.Pbalance[t, to] += vsc_vars.flows[t, m]
 
             if (vsc_data_t.control1[m] == ConverterControlType.Vm_dc or
@@ -1758,7 +1758,7 @@ def add_hydro_formulation(t: Union[int, None],
             logger.add_error(msg='Pump generator pmax > 0 is not possible',
                              value=generator_data.pmax[gen_idx])
 
-        # f_obj -= pump_flow
+        # f_obj += - pump_flow
 
     for m in range(p2x_data.nelm):
         gen_idx = p2x_data.generator_idx[m]
@@ -1770,14 +1770,14 @@ def add_hydro_formulation(t: Union[int, None],
         p2x_flow = (generator_vars.p[t, gen_idx] * coeff)
 
         # if t > 0:
-        node_vars.p2x_flow[t, p2x_data.plant_idx[m]] -= p2x_flow
+        node_vars.p2x_flow[t, p2x_data.plant_idx[m]] += - p2x_flow
         inj_vars.flow[t, m + turbine_data.nelm + pump_data.nelm] = - p2x_flow
 
         if generator_data.pmax[gen_idx] > 0:
             logger.add_error(msg='P2X generator pmax > 0 is not possible',
                              value=generator_data.pmax[gen_idx])
 
-        # f_obj -= p2x_flow
+        # f_obj += - p2x_flow
 
     if time_global_tidx is not None:
         # constraints for the node level
@@ -1838,7 +1838,8 @@ def run_linear_opf_ts(grid: MultiCircuit,
                       progress_func: Union[None, Callable[[float], None]] = None,
                       export_model_fname: Union[None, str] = None,
                       verbose: int = 0,
-                      robust: bool = False) -> OpfVars:
+                      robust: bool = False,
+                      mip_framework: MIPFramework = MIPFramework.PuLP) -> OpfVars:
     """
     Run linear optimal power flow
     :param grid: MultiCircuit instance
@@ -1925,7 +1926,9 @@ def run_linear_opf_ts(grid: MultiCircuit,
                        n_cap_buses=len(capacity_nodes_idx))
 
     # create the MIP problem object
-    lp_model: LpModel = LpModel(solver_type)
+    lp_model: LpModel = get_model_instance(tpe=mip_framework, solver_type=solver_type)
+    logger.add_info(f"MIP Framework", value=lp_model.name)
+    logger.add_info(f"MIP Solver", value=solver_type.value)
 
     # objective function
     f_obj: Union[LpExp, float] = 0.0
@@ -2133,7 +2136,7 @@ def run_linear_opf_ts(grid: MultiCircuit,
 
                 # maximize the power at the from buses
                 for i in inter_aggregation_info.idx_bus_from:
-                    f_obj -= mip_vars.bus_vars.Pgen[local_t_idx, i]
+                    f_obj += - mip_vars.bus_vars.Pgen[local_t_idx, i]
 
                 # minimize the power at the to buses
                 for i in inter_aggregation_info.idx_bus_to:
@@ -2206,7 +2209,7 @@ def run_linear_opf_ts(grid: MultiCircuit,
     # gather the results
     logger.add_info(msg="Status", value=lp_model.status2string(status))
 
-    if status == LpModel.OPTIMAL:
+    if status == lp_model.OPTIMAL:
         logger.add_info("Objective function", value=lp_model.fobj_value())
         mip_vars.acceptable_solution = True
     else:

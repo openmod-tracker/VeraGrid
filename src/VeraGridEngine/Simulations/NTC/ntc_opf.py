@@ -12,7 +12,7 @@ import os
 import numpy as np
 from typing import List, Union, Tuple, Callable
 
-from VeraGridEngine.enumerations import MIPSolvers, ZonalGrouping
+from VeraGridEngine.enumerations import MIPSolvers, MIPFramework, ZonalGrouping
 from VeraGridEngine.Devices.multi_circuit import MultiCircuit
 from VeraGridEngine.Devices.Aggregation.contingency_group import ContingencyGroup
 from VeraGridEngine.Compilers.circuit_to_data import compile_numerical_circuit_at
@@ -26,10 +26,11 @@ from VeraGridEngine.DataStructures.hvdc_data import HvdcData
 from VeraGridEngine.DataStructures.vsc_data import VscData
 from VeraGridEngine.DataStructures.bus_data import BusData
 from VeraGridEngine.basic_structures import Logger, Vec, IntVec, BoolVec, CxMat, Mat, ObjVec
-from VeraGridEngine.Utils.MIP.selected_interface import LpExp, LpVar, LpModel, join
+from VeraGridEngine.Utils.MIP.selected_interface import LpExp, LpVar, LpModel, join, get_model_instance
 from VeraGridEngine.enumerations import TapPhaseControl, HvdcControlType, AvailableTransferMode, ConverterControlType
 from VeraGridEngine.Simulations.LinearFactors.linear_analysis import LinearAnalysis, LinearMultiContingencies
-from VeraGridEngine.Simulations.ATC.available_transfer_capacity_driver import compute_alpha, compute_alpha_n1, compute_dP
+from VeraGridEngine.Simulations.ATC.available_transfer_capacity_driver import compute_alpha, compute_alpha_n1, \
+    compute_dP
 from VeraGridEngine.IO.file_system import opf_file_path
 
 
@@ -1082,6 +1083,10 @@ class NtcVars:
         return self.bus_vars.Vm * np.exp(1j * self.bus_vars.Va)
 
     def check_kirchhoff(self, tol: float = 1e-10):
+        """
+
+        :param tol:
+        """
         nodal_power = self.bus_vars.Pbalance
 
 
@@ -1118,7 +1123,7 @@ def get_base_power(Sbase: float,
     #         ps = active_branch_data_t.tap_angle[k] / (branch_data_t.X[k] + 1e-20)
     #         f = branch_data_t.F[k]
     #         t = branch_data_t.T[k]
-    #         branch_bus_dp[f] -= ps
+    #         branch_bus_dp[f] += -ps
     #         branch_bus_dp[t] += ps
 
     base_power = gen_per_bus + batt_per_bus + load_per_bus  # + branch_bus_dp
@@ -1129,7 +1134,7 @@ def get_base_power(Sbase: float,
         gen_sum = gen_per_bus.sum()
         if gen_sum != 0:
             share = gen_per_bus / gen_sum
-            gen_per_bus -= share * diff  # we make the generators balance the system
+            gen_per_bus += - share * diff  # we make the generators balance the system
         else:
             raise ValueError("Cannot balance the circumstance")
 
@@ -1335,7 +1340,7 @@ def add_linear_injections_formulation_proper(t: Union[int, None],
             i = gen_data_t.bus_idx[k]
             ntc_vars.bus_vars.delta_p[t, i] += ntc_vars.gen_vars.p_inc[t, k]
 
-            f_obj -= ntc_vars.gen_vars.p_inc[t, k] * gen_data_t.shift_key[k]
+            f_obj += - ntc_vars.gen_vars.p_inc[t, k] * gen_data_t.shift_key[k]
         else:
             # the generator is maxed out
             pass
@@ -1354,7 +1359,7 @@ def add_linear_injections_formulation_proper(t: Union[int, None],
             i = batt_data_t.bus_idx[k]
             ntc_vars.bus_vars.delta_p[t, i] += ntc_vars.batt_vars.p_inc[t, k]
 
-            f_obj -= ntc_vars.batt_vars.p_inc[t, k] * batt_data_t.shift_key[k]
+            f_obj += - ntc_vars.batt_vars.p_inc[t, k] * batt_data_t.shift_key[k]
         else:
             # the battery is maxed out
             pass
@@ -1371,9 +1376,9 @@ def add_linear_injections_formulation_proper(t: Union[int, None],
             ntc_vars.delta_2[t] += ntc_vars.gen_vars.p_inc[t, k]
 
             i = gen_data_t.bus_idx[k]
-            ntc_vars.bus_vars.delta_p[t, i] -= ntc_vars.gen_vars.p_inc[t, k]
+            ntc_vars.bus_vars.delta_p[t, i] += - ntc_vars.gen_vars.p_inc[t, k]
 
-            f_obj -= ntc_vars.gen_vars.p_inc[t, k] * gen_data_t.shift_key[k]
+            f_obj += - ntc_vars.gen_vars.p_inc[t, k] * gen_data_t.shift_key[k]
         else:
             # the generator cannot go lower
             pass
@@ -1385,13 +1390,13 @@ def add_linear_injections_formulation_proper(t: Union[int, None],
             else:
                 margin_dwn = (batt_data_t.p[k] - batt_data_t.pmin[k]) / Sbase
             ntc_vars.batt_vars.p_inc[t, k] = prob.add_var(lb=0, ub=margin_dwn, name=join("batt_n_inc_", [t, k]))
-            ntc_vars.batt_vars.p[t, k] -= ntc_vars.batt_vars.p_inc[t, k]
+            ntc_vars.batt_vars.p[t, k] += - ntc_vars.batt_vars.p_inc[t, k]
             ntc_vars.delta_2[t] += ntc_vars.batt_vars.p_inc[t, k]
 
             i = batt_data_t.bus_idx[k]
-            ntc_vars.bus_vars.delta_p[t, i] -= ntc_vars.batt_vars.p_inc[t, k]
+            ntc_vars.bus_vars.delta_p[t, i] += - ntc_vars.batt_vars.p_inc[t, k]
 
-            f_obj -= ntc_vars.batt_vars.p_inc[t, k] * batt_data_t.shift_key[k]
+            f_obj += -ntc_vars.batt_vars.p_inc[t, k] * batt_data_t.shift_key[k]
         else:
             # the battery cannot go lower
             pass
@@ -1409,8 +1414,8 @@ def add_linear_injections_formulation_proper(t: Union[int, None],
 
     for k in range(load_data_t.nelm):
         i = load_data_t.bus_idx[k]
-        ntc_vars.bus_vars.Pinj[t, i] -= ntc_vars.load_vars.p[t, k]
-        ntc_vars.bus_vars.Pbalance[t, i] -= ntc_vars.load_vars.p[t, k]
+        ntc_vars.bus_vars.Pinj[t, i] += -ntc_vars.load_vars.p[t, k]
+        ntc_vars.bus_vars.Pbalance[t, i] += -ntc_vars.load_vars.p[t, k]
 
     # add the area equality constraint
     ntc_vars.delta_sl_1[t] = prob.add_var(lb=0, ub=prob.INFINITY, name=join("DeltaSL_up_", [t]))
@@ -1554,8 +1559,8 @@ def add_linear_branches_formulation(t_idx: int,
                         )
 
             # We save in Pcalc the balance of the branch flows
-            bus_vars.Pbalance[t_idx, fr] -= branch_vars.flows[t_idx, m]
-            bus_vars.Pbalance[t_idx, to] += branch_vars.flows[t_idx, m]
+            bus_vars.Pbalance[t_idx, fr] = bus_vars.Pbalance[t_idx, fr] - branch_vars.flows[t_idx, m]
+            bus_vars.Pbalance[t_idx, to] = bus_vars.Pbalance[t_idx, to] + branch_vars.flows[t_idx, m]
 
             # Monitoring logic: Avoid unrealistic ntc flows over CEP rule limit in N condition
             if monitor_only_ntc_load_rule_branches:
@@ -1596,15 +1601,15 @@ def add_linear_branches_formulation(t_idx: int,
 
                     # here flows is always a variable
                     prob.set_var_bounds(branch_vars.flows[t_idx, m],
-                                   lb=-rate_pu * (abs(loading[m]) + 0.1),
-                                   ub=rate_pu * (abs(loading[m]) + 0.1))
+                                        lb=-rate_pu * (abs(loading[m]) + 0.1),
+                                        ub=rate_pu * (abs(loading[m]) + 0.1))
                 else:
                     # here flows is always a variable
                     prob.set_var_bounds(branch_vars.flows[t_idx, m], lb=-rate_pu, ub=rate_pu)
 
     # add the inter-area flows to the objective function with the correct sign
     for k, sense in branch_vars.inter_space_branches:
-        f_obj -= branch_vars.flows[t_idx, k] * sense
+        f_obj += -branch_vars.flows[t_idx, k] * sense
 
     return f_obj
 
@@ -1827,7 +1832,7 @@ def add_linear_hvdc_formulation(t_idx: int,
                     )
 
                 # add the injections matching the flow
-                vars_bus.Pbalance[t_idx, fr] -= hvdc_vars.flows[t_idx, m]
+                vars_bus.Pbalance[t_idx, fr] += - hvdc_vars.flows[t_idx, m]
                 vars_bus.Pbalance[t_idx, to] += hvdc_vars.flows[t_idx, m]
 
             elif hvdc_data_t.control_mode[m] == HvdcControlType.type_1_Pset:
@@ -1842,7 +1847,7 @@ def add_linear_hvdc_formulation(t_idx: int,
                     )
 
                     # add the injections matching the flow
-                    vars_bus.Pbalance[t_idx, fr] -= hvdc_vars.flows[t_idx, m]
+                    vars_bus.Pbalance[t_idx, fr] += -hvdc_vars.flows[t_idx, m]
                     vars_bus.Pbalance[t_idx, to] += hvdc_vars.flows[t_idx, m]
 
                 else:
@@ -1860,7 +1865,7 @@ def add_linear_hvdc_formulation(t_idx: int,
                     hvdc_vars.flows[t_idx, m] = P0
 
                     # add the injections matching the flow
-                    vars_bus.Pbalance[t_idx, fr] -= hvdc_vars.flows[t_idx, m]
+                    vars_bus.Pbalance[t_idx, fr] += -hvdc_vars.flows[t_idx, m]
                     vars_bus.Pbalance[t_idx, to] += hvdc_vars.flows[t_idx, m]
             else:
                 raise Exception('OPF: Unknown HVDC control mode {}'.format(hvdc_data_t.control_mode[m]))
@@ -1870,7 +1875,7 @@ def add_linear_hvdc_formulation(t_idx: int,
 
     # add the flows to the objective function
     for k, sense in hvdc_vars.inter_space_hvdc:
-        f_obj -= hvdc_vars.flows[t_idx, k] * sense
+        f_obj += -hvdc_vars.flows[t_idx, k] * sense
 
     return f_obj
 
@@ -2066,7 +2071,7 @@ def add_linear_vsc_formulation(t_idx: int,
                                  value=f"{vsc_data_t.control1[m]}, {vsc_data_t.control2[m]}")
 
             # add the injections matching the flow
-            bus_vars.Pbalance[t_idx, fr] -= vsc_vars.flows[t_idx, m]
+            bus_vars.Pbalance[t_idx, fr] += -vsc_vars.flows[t_idx, m]
             bus_vars.Pbalance[t_idx, to] += vsc_vars.flows[t_idx, m]
 
         else:
@@ -2075,7 +2080,7 @@ def add_linear_vsc_formulation(t_idx: int,
 
     # add the flows to the objective function
     for k, sense in vsc_vars.inter_space_vsc:
-        f_obj -= vsc_vars.flows[t_idx, k] * sense
+        f_obj += -vsc_vars.flows[t_idx, k] * sense
 
     if not any_dc_slack and vsc_data_t.nelm > 0:
         logger.add_warning("No DC Slack! set Vm_dc in any of the converters")
@@ -2143,7 +2148,8 @@ def run_linear_ntc_opf(grid: MultiCircuit,
                        progress_func: Union[None, Callable[[float], None]] = None,
                        export_model_fname: Union[None, str] = None,
                        verbose: int = 0,
-                       robust: bool = False) -> NtcVars:
+                       robust: bool = False,
+                       mip_framework: MIPFramework = MIPFramework.PuLP) -> NtcVars:
     """
 
     :param grid: MultiCircuit instance
@@ -2167,6 +2173,7 @@ def run_linear_ntc_opf(grid: MultiCircuit,
     :param export_model_fname: Export the model into LP and MPS?
     :param verbose: Verbosity level
     :param robust: Robust optimization?
+    :param mip_framework: MIPFramework to use
     :return: NtcVars class with the results
     """
     mode_2_int = {
@@ -2188,7 +2195,10 @@ def run_linear_ntc_opf(grid: MultiCircuit,
     n_vsc = grid.get_vsc_number()
 
     # Declare the LP model
-    lp_model: LpModel = LpModel(solver_type)
+    lp_model: LpModel = get_model_instance(tpe=mip_framework, solver_type=solver_type)
+    print("Solving NTC with", lp_model.name)
+    logger.add_info(f"MIP Framework", value=lp_model.name)
+    logger.add_info(f"MIP Solver", value=solver_type.value)
 
     # declare structures of LP vars
     mip_vars = NtcVars(nt=1, nbus=n, ng=ng, nb=nb, nl=nl, nbr=nbr, n_hvdc=n_hvdc, n_vsc=n_vsc,
@@ -2381,7 +2391,8 @@ def run_linear_ntc_opf(grid: MultiCircuit,
                     dT=1.0
                 )
 
-                branch_loading_con = np.abs(branch_flows / (nc.passive_branch_data.contingency_rates / nc.Sbase + 1e-20))
+                branch_loading_con = np.abs(
+                    branch_flows / (nc.passive_branch_data.contingency_rates / nc.Sbase + 1e-20))
 
                 # formulate the contingencies
                 f_obj += add_linear_branches_contingencies_formulation(
@@ -2435,7 +2446,7 @@ def run_linear_ntc_opf(grid: MultiCircuit,
     # gather the results
     logger.add_info(msg="Status", value=lp_model.status2string(status))
 
-    if status == LpModel.OPTIMAL:
+    if status == lp_model.OPTIMAL:
         logger.add_info("Objective function", value=lp_model.fobj_value())
         mip_vars.acceptable_solution[t_idx] = True
     else:

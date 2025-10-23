@@ -28,9 +28,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="merged from eroots devel">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="aa3ee678-6e91-470f-91a9-09e9d8a4756d" name="Changes" comment="merged from eroots devel" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -71,7 +69,7 @@
     </favorite-branches>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="devel" />
+        <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -649,6 +647,7 @@
         <item itemvalue="Python.ExecuteVeraGrid" />
         <item itemvalue="Python tests.pytest in test_gslv_conversion.py" />
         <item itemvalue="Python.ExecuteVeraGrid" />
+        <item itemvalue="Python tests.pytest in test_gslv_conversion.py" />
       </list>
     </recent_temporary>
   </component>
@@ -2246,16 +2245,6 @@
           <url>file://$PROJECT_DIR$/src/tests/test_grid_diff.py</url>
           <line>38</line>
           <option name="timeStamp" value="2919" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGrid/Gui/profiles_model.py</url>
-          <line>366</line>
-          <option name="timeStamp" value="2969" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/VeraGrid/Gui/profiles_model.py</url>
-          <line>369</line>
-          <option name="timeStamp" value="2970" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/VeraGridEngine/Devices/Branches/sequence_line_type.py</url>
